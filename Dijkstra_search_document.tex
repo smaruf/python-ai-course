@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+
+\title{Documentation on Dijkstra's Algorithm}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Dijkstra's Algorithm is a popular method in computational graph theory for finding the shortest paths from a source vertex to all other vertices in a weighted graph with non-negative weights.
+
+\section{History}
+
+The algorithm was conceived by the Dutch computer scientist, Edsger W. Dijkstra, in 1956 and published in 1959. It was originally designed to solve the shortest path problem for a graph, and has since become essential in many fields, such as network routing protocols and geographic information systems.
+
+\section{Algorithm Description}
+
+Dijkstra's Algorithm solves the single-source shortest path problem. The algorithm operates by iteratively expanding the closest vertex to the source that has not yet been visited. It utilizes a priority queue to efficiently receive the next closest vertex.
+
+\subsection{Algorithm Steps}
+
+Here are the primary steps of the algorithm:
+
+\begin{enumerate}
+    \item Initialize distances: Distance to the source vertex is 0 and to all other vertices is infinity. Previous vertex remains undefined.
+    \item Set the initial node as current. Mark all other nodes unvisited. Create a set of all the unvisited nodes called the unvisited set.
+    \item For the current node, consider all of its unvisited neighbors and calculate their tentative distances through the current node. Compare the newly calculated tentative distance to the current assigned value and assign the smaller one.
+    \item When we have finished considering all of the unvisited neighbors of the current node, mark the current node as visited and remove it from the unvisited set. A visited node will never be checked again.
+    \item Select the unvisited node that is marked with the smallest tentative distance, set it as the new "current node", and go back to step 3.
+    \item The algorithm continues until all nodes are visited.
+\end{enumerate}
+
+\section{Pictorial Representation}
+
+The figure below illustrates a simple graph with five nodes. The numbers on the edges represent the weights.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.5\textwidth]{graph_image.png} % make sure to include an actual path to an image file
+\caption{A simple weighted graph}
+\end{figure}
+
+\section{Complexity and Implementation Tips}
+
+The efficiency of the algorithm depends strongly on the data structure used for the set of unvisited nodes:
+\begin{itemize}
+    \item When an array is used, the time complexity is O(V^2).
+    \item When a binary heap and adjacency list are used, the time complexity becomes O((V + E) log V).
+    \item When a Fibonacci heap is used, the complexity is O(E + V log V).
+\end{itemize}
+
+\section{Conclusion}
+
+Dijkstra’s Algorithm is crucial for pathfinding and graph traversal, which appears in numerous applications like road networks, logistics, and network routing protocols. Its importance stems from its efficiency and breadth of utility in solving real-world problems.
+
+\end{document}
