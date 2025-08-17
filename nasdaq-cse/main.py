@@ -21,10 +21,23 @@ from oms.manager import order_manager
 from rms.manager import risk_manager
 
 
+# Background task for updating market data and positions
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    asyncio.create_task(market_data_updater())
+    asyncio.create_task(position_updater())
+    yield
+    # Shutdown
+    pass
+
 app = FastAPI(
     title="NASDAQ CSE Gold Derivatives Trading Simulator",
     description="Advanced trading simulator with AI assistant and real-time charts",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Add CORS middleware
@@ -107,12 +120,13 @@ async def submit_order(order: OrderCreate, user_id: int = 1):
     """Submit a new trading order"""
     try:
         # Check pre-trade risk
-        risk_check = await risk_manager.check_pre_trade_risk(user_id, order.dict())
+        order_dict = order.model_dump()
+        risk_check = await risk_manager.check_pre_trade_risk(user_id, order_dict)
         if not risk_check['allowed']:
             raise HTTPException(status_code=400, detail=risk_check['reason'])
         
         # Submit order
-        result = await order_manager.submit_order(user_id, order.dict())
+        result = await order_manager.submit_order(user_id, order_dict)
         
         if not result['success']:
             raise HTTPException(status_code=400, detail=result['error'])
@@ -125,7 +139,7 @@ async def submit_order(order: OrderCreate, user_id: int = 1):
         trades_data[result['order_id']] = {
             'timestamp': datetime.utcnow().isoformat(),
             'user_id': user_id,
-            'order': order.dict(),
+            'order': order_dict,
             'result': result
         }
         json_storage.save_trades(trades_data)
@@ -255,11 +269,6 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 # Background task for updating market data and positions
-@app.on_event("startup")
-async def startup_event():
-    """Start background tasks"""
-    asyncio.create_task(market_data_updater())
-    asyncio.create_task(position_updater())
 
 async def market_data_updater():
     """Update market data periodically"""
