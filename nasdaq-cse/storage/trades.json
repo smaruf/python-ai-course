@@ -1,0 +1,20 @@
+{
+  "trade_001": {
+    "timestamp": "2024-01-01T12:00:00",
+    "user_id": 1,
+    "contract": "GOLD2024DEC",
+    "side": "BUY",
+    "quantity": 5,
+    "price": 2050.0,
+    "status": "FILLED"
+  },
+  "trade_002": {
+    "timestamp": "2024-01-01T13:00:00",
+    "user_id": 1,
+    "contract": "GOLD2024DEC",
+    "side": "SELL",
+    "quantity": 3,
+    "price": 2055.0,
+    "status": "FILLED"
+  }
+}
