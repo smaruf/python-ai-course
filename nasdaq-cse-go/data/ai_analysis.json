@@ -1,0 +1,21 @@
+{
+  "analysis_001": {
+    "timestamp": "2024-01-01T12:00:00",
+    "type": "trade_suggestion",
+    "result": {
+      "timestamp": "2025-08-17T09:38:05.015125",
+      "analysis_type": "trade_suggestion",
+      "current_price": 2050.43,
+      "predicted_direction": "BEARISH",
+      "confidence_score": 4.049084548809425,
+      "technical_indicators": {
+        "rsi": 0,
+        "volatility": 0.06432795479898173,
+        "moving_avg_ratio": 0.9842377619563644
+      },
+      "suggestion": "Consider SHORT position - bearish signals detected; RSI indicates oversold conditions; High volatility - consider smaller position sizes",
+      "risk_level": "LOW"
+    },
+    "user_id": 1
+  }
+}

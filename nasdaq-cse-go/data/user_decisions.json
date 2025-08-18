@@ -1,0 +1,16 @@
+{
+  "decision_001": {
+    "timestamp": "2024-01-01T12:00:00",
+    "user_id": 1,
+    "decision_type": "risk_tolerance",
+    "value": "moderate",
+    "ai_suggestion_followed": true
+  },
+  "decision_002": {
+    "timestamp": "2024-01-01T13:00:00",
+    "user_id": 1,
+    "decision_type": "position_sizing",
+    "value": "5_contracts",
+    "ai_suggestion_followed": false
+  }
+}
