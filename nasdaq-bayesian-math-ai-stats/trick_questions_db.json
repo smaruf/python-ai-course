@@ -1,0 +1,479 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2025-09-25T06:24:10.230384",
+    "total_questions": 21,
+    "description": "Bootstrap trick question database for technical interviews"
+  },
+  "questions": [
+    {
+      "id": 1,
+      "language": "Python",
+      "difficulty": "Medium",
+      "category": "Data Types",
+      "question": "What is the output of the following code?\n\na = [1, 2, 3]\nb = a\nc = a[:]\nb.append(4)\nprint(a, b, c)",
+      "options": [
+        "[1, 2, 3] [1, 2, 3, 4] [1, 2, 3]",
+        "[1, 2, 3, 4] [1, 2, 3, 4] [1, 2, 3]",
+        "[1, 2, 3] [1, 2, 3] [1, 2, 3, 4]",
+        "Error"
+      ],
+      "correct_answer": 1,
+      "explanation": "b is a reference to the same list as a, so modifying b affects a. c is a shallow copy, so it remains unchanged.",
+      "tags": [
+        "list",
+        "reference",
+        "copy",
+        "mutation"
+      ]
+    },
+    {
+      "id": 2,
+      "language": "Python",
+      "difficulty": "Hard",
+      "category": "Scoping",
+      "question": "What is the output of this code?\n\nx = 10\ndef func():\n    print(x)\n    x = 20\n    print(x)\n\nfunc()",
+      "options": [
+        "10\\n20",
+        "UnboundLocalError",
+        "10\\n10",
+        "20\\n20"
+      ],
+      "correct_answer": 1,
+      "explanation": "Python sees x = 20 in the function, so it treats x as a local variable throughout the function. The first print(x) tries to access x before it's assigned locally.",
+      "tags": [
+        "scope",
+        "local",
+        "global",
+        "error"
+      ]
+    },
+    {
+      "id": 3,
+      "language": "Java",
+      "difficulty": "Medium",
+      "category": "String",
+      "question": "What is the output?\n\nString s1 = \"Hello\";\nString s2 = \"Hello\";\nString s3 = new String(\"Hello\");\nSystem.out.println(s1 == s2);\nSystem.out.println(s1 == s3);\nSystem.out.println(s1.equals(s3));",
+      "options": [
+        "true\\nfalse\\ntrue",
+        "false\\nfalse\\ntrue",
+        "true\\ntrue\\ntrue",
+        "false\\nfalse\\nfalse"
+      ],
+      "correct_answer": 0,
+      "explanation": "s1 and s2 refer to the same string literal in the string pool (==), s3 is a new object (== fails), but equals() compares content.",
+      "tags": [
+        "string",
+        "pool",
+        "equals",
+        "reference"
+      ]
+    },
+    {
+      "id": 4,
+      "language": "Python",
+      "difficulty": "Medium",
+      "category": "Loops",
+      "question": "What is the output?\n\nfor i in range(3):\n    for j in range(3):\n        if i == j:\n            continue\n        print(f'{i},{j}', end=' ')\n    else:\n        print('Done')",
+      "options": [
+        "0,1 0,2 Done 1,0 1,2 Done 2,0 2,1 Done",
+        "0,1 0,2 1,0 1,2 2,0 2,1 Done",
+        "0,1 0,2 1,0 1,2 2,0 2,1",
+        "Error"
+      ],
+      "correct_answer": 0,
+      "explanation": "The else clause of a for loop executes after the loop completes normally (not via break). It runs after each inner loop iteration.",
+      "tags": [
+        "for",
+        "else",
+        "continue",
+        "loop"
+      ]
+    },
+    {
+      "id": 5,
+      "language": "Java",
+      "difficulty": "Hard",
+      "category": "Inheritance",
+      "question": "What is the output?\n\nclass A {\n    public void method() { System.out.print(\"A\"); }\n}\nclass B extends A {\n    public void method() { System.out.print(\"B\"); }\n    public void method(int x) { System.out.print(\"B2\"); }\n}\nA obj = new B();\nobj.method();",
+      "options": [
+        "A",
+        "B",
+        "B2",
+        "Compilation error"
+      ],
+      "correct_answer": 1,
+      "explanation": "Runtime polymorphism: the method in the actual object type (B) is called, not the reference type (A).",
+      "tags": [
+        "polymorphism",
+        "inheritance",
+        "override",
+        "runtime"
+      ]
+    },
+    {
+      "id": 6,
+      "language": "Python",
+      "difficulty": "Hard",
+      "category": "Decorators",
+      "question": "What is printed?\n\ndef decorator(func):\n    def wrapper():\n        print(\"Before\")\n        result = func()\n        print(\"After\")\n        return result\n    return wrapper\n\n@decorator\ndef greet():\n    print(\"Hello\")\n    return \"Done\"\n\nprint(greet())",
+      "options": [
+        "Before\\nHello\\nAfter\\nDone",
+        "Hello\\nBefore\\nAfter\\nDone",
+        "Before\\nAfter\\nHello\\nDone",
+        "Hello\\nDone"
+      ],
+      "correct_answer": 0,
+      "explanation": "The decorator wraps the function, executing code before and after the original function call.",
+      "tags": [
+        "decorator",
+        "wrapper",
+        "function",
+        "order"
+      ]
+    },
+    {
+      "id": 7,
+      "language": "Java",
+      "difficulty": "Medium",
+      "category": "Exception",
+      "question": "What happens?\n\ntry {\n    int x = 10 / 0;\n} catch (ArithmeticException e) {\n    System.out.print(\"Caught\");\n} finally {\n    System.out.print(\"Finally\");\n}\nSystem.out.print(\"End\");",
+      "options": [
+        "CaughtFinallyEnd",
+        "CaughtEnd",
+        "FinallyEnd",
+        "Exception thrown"
+      ],
+      "correct_answer": 0,
+      "explanation": "The exception is caught, finally block always executes, then normal execution continues.",
+      "tags": [
+        "exception",
+        "finally",
+        "catch",
+        "arithmetic"
+      ]
+    },
+    {
+      "id": 8,
+      "language": "Python",
+      "difficulty": "Medium",
+      "category": "Lambda",
+      "question": "What is the output?\n\nfuncs = []\nfor i in range(3):\n    funcs.append(lambda: i)\n\nfor f in funcs:\n    print(f(), end='')",
+      "options": [
+        "012",
+        "222",
+        "000",
+        "Error"
+      ],
+      "correct_answer": 1,
+      "explanation": "Late binding closure: all lambdas capture the same variable i, which has value 2 after the loop ends.",
+      "tags": [
+        "lambda",
+        "closure",
+        "binding",
+        "scope"
+      ]
+    },
+    {
+      "id": 9,
+      "language": "Java",
+      "difficulty": "Hard",
+      "category": "Static",
+      "question": "What is the output?\n\nclass Test {\n    static {\n        System.out.print(\"Static\");\n    }\n    {\n        System.out.print(\"Instance\");\n    }\n    public Test() {\n        System.out.print(\"Constructor\");\n    }\n}\nnew Test();\nnew Test();",
+      "options": [
+        "StaticInstanceConstructorInstanceConstructor",
+        "InstanceConstructorInstanceConstructor",
+        "StaticConstructorConstructor",
+        "StaticInstanceConstructorStaticInstanceConstructor"
+      ],
+      "correct_answer": 0,
+      "explanation": "Static block runs once when class is loaded, instance block runs before each constructor call.",
+      "tags": [
+        "static",
+        "instance",
+        "constructor",
+        "initialization"
+      ]
+    },
+    {
+      "id": 10,
+      "language": "Python",
+      "difficulty": "Hard",
+      "category": "Generator",
+      "question": "What is the output?\n\ndef gen():\n    yield 1\n    yield 2\n    return 3\n\ng = gen()\nprint(next(g))\nprint(next(g))\ntry:\n    print(next(g))\nexcept StopIteration as e:\n    print(e.value)",
+      "options": [
+        "1\\n2\\n3",
+        "1\\n2\\nStopIteration",
+        "1\\n2\\nNone",
+        "Error"
+      ],
+      "correct_answer": 0,
+      "explanation": "Generator's return value becomes the value attribute of the StopIteration exception.",
+      "tags": [
+        "generator",
+        "yield",
+        "return",
+        "stopiteration"
+      ]
+    },
+    {
+      "id": 11,
+      "language": "Java",
+      "difficulty": "Medium",
+      "category": "Array",
+      "question": "What is the output?\n\nint[] arr = {1, 2, 3};\nfor (int x : arr) {\n    x = x * 2;\n}\nSystem.out.println(Arrays.toString(arr));",
+      "options": [
+        "[2, 4, 6]",
+        "[1, 2, 3]",
+        "Compilation error",
+        "Runtime error"
+      ],
+      "correct_answer": 1,
+      "explanation": "Enhanced for loop creates a copy of each element. Modifying x doesn't affect the original array.",
+      "tags": [
+        "array",
+        "enhanced-for",
+        "copy",
+        "reference"
+      ]
+    },
+    {
+      "id": 12,
+      "language": "Python",
+      "difficulty": "Medium",
+      "category": "Dictionary",
+      "question": "What is the output?\n\nd = {'a': 1}\nprint(d.get('b', []).append(2))\nprint(d)",
+      "options": [
+        "None\\n{'a': 1, 'b': [2]}",
+        "None\\n{'a': 1}",
+        "[2]\\n{'a': 1}",
+        "Error"
+      ],
+      "correct_answer": 1,
+      "explanation": "get() returns a new list []. append() modifies this temporary list and returns None. The dictionary is unchanged.",
+      "tags": [
+        "dictionary",
+        "get",
+        "append",
+        "temporary"
+      ]
+    },
+    {
+      "id": 13,
+      "language": "Java",
+      "difficulty": "Hard",
+      "category": "Autoboxing",
+      "question": "What is the output?\n\nInteger a = 128;\nInteger b = 128;\nInteger c = 127;\nInteger d = 127;\nSystem.out.println(a == b);\nSystem.out.println(c == d);",
+      "options": [
+        "false\\ntrue",
+        "true\\nfalse",
+        "false\\nfalse",
+        "true\\ntrue"
+      ],
+      "correct_answer": 0,
+      "explanation": "Integer cache for values -128 to 127. c and d reference the same cached object, a and b are different objects.",
+      "tags": [
+        "autoboxing",
+        "cache",
+        "integer",
+        "reference"
+      ]
+    },
+    {
+      "id": 14,
+      "language": "Python",
+      "difficulty": "Medium",
+      "category": "Class",
+      "question": "What is the output?\n\nclass Counter:\n    count = 0\n    def __init__(self):\n        Counter.count += 1\n\nc1 = Counter()\nc2 = Counter()\nprint(c1.count, c2.count, Counter.count)",
+      "options": [
+        "1 1 2",
+        "2 2 2",
+        "1 2 2",
+        "0 0 2"
+      ],
+      "correct_answer": 1,
+      "explanation": "count is a class variable, shared by all instances. Each instance can access it through the class or instance.",
+      "tags": [
+        "class",
+        "variable",
+        "instance",
+        "shared"
+      ]
+    },
+    {
+      "id": 15,
+      "language": "Java",
+      "difficulty": "Medium",
+      "category": "Method Overloading",
+      "question": "Which method is called?\n\npublic void method(Object o) { System.out.print(\"Object\"); }\npublic void method(String s) { System.out.print(\"String\"); }\npublic void method(Integer i) { System.out.print(\"Integer\"); }\n\nmethod(null);",
+      "options": [
+        "Object",
+        "String",
+        "Integer",
+        "Compilation error"
+      ],
+      "correct_answer": 3,
+      "explanation": "Ambiguous call: null can be cast to both String and Integer. The compiler cannot determine which overloaded method to call.",
+      "tags": [
+        "overloading",
+        "null",
+        "ambiguous",
+        "compilation"
+      ]
+    },
+    {
+      "id": 16,
+      "language": "Python",
+      "difficulty": "Hard",
+      "category": "Metaclass",
+      "question": "What is the output?\n\nclass Meta(type):\n    def __call__(cls, *args):\n        print(\"Creating instance\")\n        return super().__call__(*args)\n\nclass MyClass(metaclass=Meta):\n    def __init__(self):\n        print(\"Init called\")\n\nobj = MyClass()",
+      "options": [
+        "Creating instance\\nInit called",
+        "Init called\\nCreating instance",
+        "Creating instance",
+        "Init called"
+      ],
+      "correct_answer": 0,
+      "explanation": "Metaclass __call__ method is invoked when creating instances, before __init__ is called.",
+      "tags": [
+        "metaclass",
+        "call",
+        "init",
+        "instance"
+      ]
+    },
+    {
+      "id": 17,
+      "language": "Java",
+      "difficulty": "Hard",
+      "category": "Generic",
+      "question": "Will this compile?\n\nList<String> list = new ArrayList<>();\nList<Object> objList = list;",
+      "options": [
+        "Yes, compiles fine",
+        "No, compilation error",
+        "Compiles with warning",
+        "Runtime error"
+      ],
+      "correct_answer": 1,
+      "explanation": "Generic types are invariant in Java. List<String> is not a subtype of List<Object>, even though String is a subtype of Object.",
+      "tags": [
+        "generic",
+        "invariant",
+        "subtype",
+        "compilation"
+      ]
+    },
+    {
+      "id": 18,
+      "language": "Python",
+      "difficulty": "Medium",
+      "category": "Import",
+      "question": "What happens with this code?\n\n# file: module.py\nprint(\"Module loaded\")\nx = 10\n\n# main.py\nimport module\nimport module\nprint(module.x)",
+      "options": [
+        "Module loaded\\nModule loaded\\n10",
+        "Module loaded\\n10",
+        "10",
+        "Error"
+      ],
+      "correct_answer": 1,
+      "explanation": "Python caches imported modules. The module is executed only once on first import, subsequent imports use the cached version.",
+      "tags": [
+        "import",
+        "cache",
+        "module",
+        "execution"
+      ]
+    },
+    {
+      "id": 19,
+      "language": "Java",
+      "difficulty": "Medium",
+      "category": "Interface",
+      "question": "What is the output?\n\ninterface I {\n    default void method() { System.out.print(\"I\"); }\n}\nclass C implements I {\n    public void method() { System.out.print(\"C\"); }\n}\nnew C().method();",
+      "options": [
+        "I",
+        "C",
+        "IC",
+        "Compilation error"
+      ],
+      "correct_answer": 1,
+      "explanation": "Class method overrides interface default method. The concrete implementation in class C is called.",
+      "tags": [
+        "interface",
+        "default",
+        "override",
+        "implementation"
+      ]
+    },
+    {
+      "id": 20,
+      "language": "Python",
+      "difficulty": "Hard",
+      "category": "Descriptor",
+      "question": "What is the output?\n\nclass Descriptor:\n    def __get__(self, obj, type=None):\n        return \"Descriptor value\"\n\nclass MyClass:\n    attr = Descriptor()\n\nobj = MyClass()\nprint(obj.attr)\nprint(MyClass.attr)",
+      "options": [
+        "Descriptor value\\nDescriptor value",
+        "<__main__.Descriptor object>\\nDescriptor value",
+        "Descriptor value\\n<__main__.Descriptor object>",
+        "Error"
+      ],
+      "correct_answer": 0,
+      "explanation": "Descriptors work for both instance and class access. The __get__ method is called in both cases.",
+      "tags": [
+        "descriptor",
+        "get",
+        "attribute",
+        "access"
+      ]
+    },
+    {
+      "language": "Python",
+      "difficulty": "Easy",
+      "category": "Test",
+      "question": "What is 2 + 2?",
+      "options": [
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "correct_answer": 1,
+      "explanation": "Basic arithmetic: 2 + 2 = 4",
+      "tags": [
+        "test",
+        "arithmetic"
+      ],
+      "id": 21
+    }
+  ],
+  "user_stats": {
+    "total_attempts": 1,
+    "correct_answers": 1,
+    "session_history": [],
+    "best_streak": 0,
+    "language_stats": {
+      "Python": {
+        "attempted": 1,
+        "correct": 1
+      },
+      "Java": {
+        "attempted": 0,
+        "correct": 0
+      }
+    },
+    "difficulty_stats": {
+      "Easy": {
+        "attempted": 1,
+        "correct": 1
+      },
+      "Medium": {
+        "attempted": 0,
+        "correct": 0
+      },
+      "Hard": {
+        "attempted": 0,
+        "correct": 0
+      }
+    }
+  }
+}
