@@ -49,3 +49,35 @@ To run the unit tests and verify the correctness of the sorting algorithms, exec
 
 ```bash
 python sorting_algorithms.py
+```
+
+## AI Development Guidelines
+
+This repository includes comprehensive guidelines for implementing AI features in software development projects.
+
+### 📚 [AI Feature Guidelines](ai_feature_guidelines.md)
+
+Complete guide covering:
+- **LLMs, Prompt Engineering, RAG, Vector Databases, AI Agents**
+- **Practical Python examples** based on real implementations
+- **Progressive learning paths** from beginner to expert
+- **Working code samples** you can run immediately
+- **Best practices** and security considerations
+
+**Example projects in this repository:**
+- [Flight Tracker AI](ai-flight-tracker/) - Simple LLM integration with real-time data
+- [Trading Simulator](nasdaq-cse/) - Advanced AI assistant with ML predictions  
+- [Go Implementation](nasdaq-cse-go/) - Performance-optimized AI features
+
+**Quick start:**
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Try the flight tracker AI
+cd ai-flight-tracker
+python flight_tracker.py
+
+# Or run the trading simulator
+cd nasdaq-cse  
+python main.py
