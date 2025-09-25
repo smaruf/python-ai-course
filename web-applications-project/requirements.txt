@@ -1,0 +1,9 @@
+Flask>=2.0.0
+FastAPI>=0.68.0
+SQLAlchemy>=1.4.0
+Pydantic>=1.8.0
+uvicorn>=0.15.0
+pytest>=7.0.0
+requests>=2.25.0
+# Optional for Elasticsearch integration
+elasticsearch>=7.0.0
