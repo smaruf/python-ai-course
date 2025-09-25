@@ -17,8 +17,8 @@ def main():
     
     # Create different types of employees
     employees = [
-        ("full-time", 25.0),
-        ("part-time", 15.0),
+        ("fulltime", 25.0),
+        ("parttime", 15.0),
         ("temporary", 20.0),
         ("contractor", 50.0)
     ]

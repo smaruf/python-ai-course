@@ -62,7 +62,7 @@ from src.factory.employee_factory import EmployeeFactory
 factory = EmployeeFactory()
 
 # Create a full-time employee
-full_time = factory.create_employee("full-time", 25.0)
+full_time = factory.create_employee("fulltime", 25.0)
 full_time.say()  # Output: I am a FullTimeEmployee employee, and my hourly rate is 25.0.
 
 # Create a contractor
@@ -70,7 +70,7 @@ contractor = factory.create_employee("contractor", 50.0)
 contractor.say()  # Output: I am a Contractor employee, and my hourly rate is 50.0.
 
 # Create a part-time employee
-part_time = factory.create_employee("part-time", 15.0)
+part_time = factory.create_employee("parttime", 15.0)
 part_time.say()  # Output: I am a PartTimeEmployee employee, and my hourly rate is 15.0.
 ```
 

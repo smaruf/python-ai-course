@@ -20,13 +20,13 @@ class TestEmployeeFactory:
     
     def test_create_full_time_employee(self):
         """Test creating a full-time employee."""
-        employee = self.factory.create_employee("full-time", 25.0)
+        employee = self.factory.create_employee("fulltime", 25.0)
         assert isinstance(employee, FullTimeEmployee)
         assert employee.hourly_rate == 25.0
     
     def test_create_part_time_employee(self):
         """Test creating a part-time employee."""
-        employee = self.factory.create_employee("part-time", 15.0)
+        employee = self.factory.create_employee("parttime", 15.0)
         assert isinstance(employee, PartTimeEmployee)
         assert employee.hourly_rate == 15.0
     
@@ -49,7 +49,7 @@ class TestEmployeeFactory:
     
     def test_all_employees_inherit_from_employee(self):
         """Test that all created employees inherit from Employee base class."""
-        employee_types = ["full-time", "part-time", "temporary", "contractor"]
+        employee_types = ["fulltime", "parttime", "temporary", "contractor"]
         
         for emp_type in employee_types:
             employee = self.factory.create_employee(emp_type, 25.0)
@@ -57,7 +57,7 @@ class TestEmployeeFactory:
     
     def test_employee_say_method(self):
         """Test that all employees have the say method."""
-        employee_types = ["full-time", "part-time", "temporary", "contractor"]
+        employee_types = ["fulltime", "parttime", "temporary", "contractor"]
         
         for emp_type in employee_types:
             employee = self.factory.create_employee(emp_type, 25.0)
@@ -69,7 +69,7 @@ class TestEmployeeFactory:
         rates = [10.0, 15.5, 20.25, 50.75]
         
         for rate in rates:
-            employee = self.factory.create_employee("full-time", rate)
+            employee = self.factory.create_employee("fulltime", rate)
             assert employee.hourly_rate == rate
 
 if __name__ == "__main__":

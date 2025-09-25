@@ -1,1 +1,60 @@
+# Original scattered files (now organized into project folders)
+# These files are preserved but not tracked to avoid confusion
+all_basic_sort_algoritm_with_test.py
+app.py
+app_with_es.py
+dijkstra_search.py
+dijkstra_search_tests.py
+employee_factory.py
+project_create_single.py
+project_create_tests.py
+quicksort_animation*.py
+radix_sort*.py
+keywords.txt
+Dijkstra_search_document.tex
+RadixSort.java
+
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database files
+*.db
+*.sqlite3
+
+# Logs
+*.log
