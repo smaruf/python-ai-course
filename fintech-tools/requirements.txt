@@ -1,0 +1,55 @@
+# FastAPI and Web Framework
+fastapi[all]==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Security and Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.1
+
+# Database
+sqlalchemy==2.0.23
+alembic==1.12.1
+
+# Data Validation
+pydantic==2.5.0
+pydantic-settings==2.1.0
+email-validator==2.1.0
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+httpx==0.25.1
+
+# Financial Libraries
+simplefix==1.0.14  # FIX protocol
+quickfix==1.15.1   # Alternative FIX implementation
+
+# Data Processing
+pandas==2.1.3
+numpy==1.26.2
+
+# Utilities
+python-dotenv==1.0.0
+python-dateutil==2.8.2
+
+# Async Support
+aiofiles==23.2.1
+aiohttp==3.9.1
+
+# Monitoring and Logging
+python-json-logger==2.0.7
+
+# Rate Limiting
+slowapi==0.1.9
+
+# CORS
+python-cors==1.0.0
+
+# Encryption
+cryptography==41.0.7
+
+# Time handling
+pytz==2023.3
