@@ -64,6 +64,13 @@ Object-oriented design pattern implementations with real-world examples.
 - **Features**: Employee management system, comprehensive examples
 - **Educational**: SOLID principles, OOP best practices
 
+#### 🏦 [Fintech Tools Project](./fintech-tools/) ⭐ **NEW**
+Comprehensive fintech toolkit for banking, payments, and financial protocols.
+- **Features**: Banking operations, payment processing, FIX/FAST/ITCH protocols
+- **Modules**: Account management (BO & Client), back-office operations
+- **Security**: JWT authentication, RBAC, password hashing
+- **Tech Stack**: FastAPI, Pydantic, SQLAlchemy, industry-standard protocols
+
 ### **Advanced Specialized Projects**
 
 #### 🤖 [AI Development Project](./ai-development-project/) ⭐ **NEW**
@@ -125,6 +132,7 @@ This repository provides:
 | Project | Language | Complexity | Focus Area | Key Technologies |
 |---------|----------|------------|------------|------------------|
 | **AI Development** | **Python** | **🟢→🔴 Progressive** | **AI Development** | **LLMs, RAG, Vector DBs, Agents** |
+| **Fintech Tools** | **Python** | **Intermediate-Advanced** | **Financial Technology** | **FastAPI, FIX/FAST/ITCH, JWT Auth** |
 | Sorting Algorithms | Python | Beginner | Algorithms | Matplotlib, NumPy |
 | Web Applications | Python | Intermediate | Web Development | Flask, FastAPI, SQLAlchemy |
 | Algorithms & DS | Python | Intermediate | Computer Science | Graph theory, Academic documentation |
@@ -167,17 +175,17 @@ python -m pytest tests/ -v
 3. **Design Patterns** → Understand OOP and software design principles
 4. **Algorithms & Data Structures** → Advanced CS concepts and graph theory
 5. **Web Applications** → Full-stack development with modern frameworks
-6. **NASDAQ CSE** → Complex system integration with real-time trading
-7. **Bayesian Stats** → Advanced data science and statistical AI
+6. **Fintech Tools** → Financial technology with banking and messaging protocols
+7. **NASDAQ CSE** → Complex system integration with real-time trading
+8. **Bayesian Stats** → Advanced data science and statistical AI
 
 ### 🎯 Quick Start Recommendations
 
 **New to Programming?** → Start with **Sorting Algorithms Project**
 **New to AI?** → Start with **AI Development Project** (🟢 Beginner level)
 **Experienced Developer?** → Jump to **AI Development Project** (🟡 Intermediate level)
+**Interest in Finance/Trading?** → Explore **Fintech Tools Project** or **NASDAQ CSE Project**
 **Want Full-Stack Skills?** → Try **Web Applications Project**
-**Interest in Finance/Trading?** → Explore **NASDAQ CSE Project**
-6. **Bayesian Stats** → Advanced data science and AI
 
 ## 🤝 Contributing
 
