@@ -34,7 +34,7 @@ class LangGraphIntegration:
                 self.pattern = pattern
 
             def run(self, query: str):
-                texts = " ".join([item.get("id","") for item in self.index.get("items", [])])
+                texts = " ".join([item.get("text","")[:50] for item in self.index.get("items", [])])
                 # Mocked response structure
                 return {
                     "query": query,
