@@ -1,0 +1,28 @@
+# Preset variants for AI fields — switch profiles easily
+variants:
+  openai-faiss-qa:
+    ingest_source: "projects/langchain-langgraph-standalone/examples/sample.txt"
+    embedding_model: "openai/text-embedding-3-small"
+    vector_store: "faiss"
+    llm_provider: "openai"
+    chain_pattern: "qa"
+    params:
+      example_query: "Summarize the document in one paragraph."
+
+  local-onnx-faiss-summarization:
+    ingest_source: "projects/langchain-langgraph-standalone/examples/sample.txt"
+    embedding_model: "local-onnx-embedder"
+    vector_store: "faiss"
+    llm_provider: "local-onnx"
+    chain_pattern: "summarization"
+    params:
+      example_query: "Create a short summary."
+
+  pinecone-openai-qa:
+    ingest_source: "projects/langchain-langgraph-standalone/examples/sample.txt"
+    embedding_model: "openai/text-embedding-3-small"
+    vector_store: "pinecone"
+    llm_provider: "openai"
+    chain_pattern: "qa"
+    params:
+      example_query: "What are the key points?"

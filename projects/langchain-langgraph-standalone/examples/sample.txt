@@ -1,0 +1,2 @@
+This is a sample document for the LangChain + LangGraph standalone example.
+Use it to run the quickstart demonstration for the pipeline.
