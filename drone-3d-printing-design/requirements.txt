@@ -1,0 +1,38 @@
+# Core CAD Libraries
+cadquery==2.4.0
+cadquery-ocp==7.7.2
+
+# Scientific Computing
+numpy>=1.24.0
+scipy>=1.10.0
+sympy>=1.12
+
+# Visualization (optional, for CQ-Editor)
+# CQ-Editor should be installed separately from https://github.com/CadQuery/CQ-editor
+
+# 3D File Handling
+trimesh>=4.0.0
+pyvista>=0.43.0
+
+# Engineering Calculations
+matplotlib>=3.7.0
+pandas>=2.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Utilities
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+
+# Optional: FEA Integration
+# pyansys (requires ANSYS installation)
+# pycalculix (for CalculiX integration)
+
+# Type Checking
+mypy>=1.5.0
+
+# Code Quality
+black>=23.0.0
+flake8>=6.0.0
