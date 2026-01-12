@@ -447,11 +447,12 @@ To get started quickly with your 3D printed aircraft designs, consider integrati
   - Mobile app provides real-time telemetry
 
 ### Camera Stabilization
-- **[Next Generation Smartphone Gimbal Stabilizer](https://amazon.com/Next-Generation-Smartphone-Controlled-Controlled-Stabilizer/dp/B08JLZVB3Z)** 
-  - Smartphone-controlled stabilization
+- **Next Generation Smartphone Gimbal Stabilizer** 
+  - Smartphone-controlled stabilization systems
   - Can be adapted for lightweight drone camera mounts
   - Learn gimbal mechanics and integration
   - Useful for FPV and aerial photography experiments
+  - Example products available on Amazon and other retailers
 
 ### Getting Started with Simple Tools
 These tools are perfect for:
