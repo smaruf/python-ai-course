@@ -71,6 +71,14 @@ Comprehensive fintech toolkit for banking, payments, and financial protocols.
 - **Security**: JWT authentication, RBAC, password hashing
 - **Tech Stack**: FastAPI, Pydantic, SQLAlchemy, industry-standard protocols
 
+#### ✈️ [Drone 3D Printing Design Project](./drone-3d-printing-design/) ⭐ **NEW**
+Learn to design parametric drone/RC aircraft parts for 3D printing using Python.
+- **Features**: Parametric CAD with CadQuery, STL export, engineering validation
+- **Phases**: 7 progressive phases from Python basics to flight-ready parts
+- **Parts**: Motor mounts, arms, frames, camera mounts, battery trays, landing gear
+- **Learning Path**: 12-week structured course from beginner to advanced
+- **Tech Stack**: CadQuery, NumPy, SciPy, 3D printing optimization
+
 ### **Advanced Specialized Projects**
 
 #### 🤖 [AI Development Project](./ai-development-project/) ⭐ **NEW**
@@ -133,6 +141,7 @@ This repository provides:
 |---------|----------|------------|------------|------------------|
 | **AI Development** | **Python** | **🟢→🔴 Progressive** | **AI Development** | **LLMs, RAG, Vector DBs, Agents** |
 | **Fintech Tools** | **Python** | **Intermediate-Advanced** | **Financial Technology** | **FastAPI, FIX/FAST/ITCH, JWT Auth** |
+| **Drone 3D Design** | **Python** | **🟢→🔴 Progressive** | **CAD & 3D Printing** | **CadQuery, NumPy, Parametric Design** |
 | Sorting Algorithms | Python | Beginner | Algorithms | Matplotlib, NumPy |
 | Web Applications | Python | Intermediate | Web Development | Flask, FastAPI, SQLAlchemy |
 | Algorithms & DS | Python | Intermediate | Computer Science | Graph theory, Academic documentation |
@@ -176,8 +185,9 @@ python -m pytest tests/ -v
 4. **Algorithms & Data Structures** → Advanced CS concepts and graph theory
 5. **Web Applications** → Full-stack development with modern frameworks
 6. **Fintech Tools** → Financial technology with banking and messaging protocols
-7. **NASDAQ CSE** → Complex system integration with real-time trading
-8. **Bayesian Stats** → Advanced data science and statistical AI
+7. **Drone 3D Design** → Parametric CAD design for 3D printing and hardware
+8. **NASDAQ CSE** → Complex system integration with real-time trading
+9. **Bayesian Stats** → Advanced data science and statistical AI
 
 ### 🎯 Quick Start Recommendations
 
@@ -186,6 +196,7 @@ python -m pytest tests/ -v
 **Experienced Developer?** → Jump to **AI Development Project** (🟡 Intermediate level)
 **Interest in Finance/Trading?** → Explore **Fintech Tools Project** or **NASDAQ CSE Project**
 **Want Full-Stack Skills?** → Try **Web Applications Project**
+**Interest in Hardware/Drones/3D Printing?** → Check out **Drone 3D Printing Design Project**
 
 ## 🤝 Contributing
 
