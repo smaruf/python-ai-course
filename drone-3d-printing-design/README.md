@@ -257,15 +257,19 @@ cq.exporters.export(mount, "motor_mount.stl")
 - **Camera mount** - Angled platform with vibration dampening
 - **Antenna holder** - Vertical mount with cable management
 - **Battery tray** - Secure holder with strap slots
+- **Simple glider** - Basic fixed-wing design with wing and fuselage
 
 **Skills:**
 - Parametric dimensions
 - Screw hole tolerances
 - Fillets for strength
+- Airfoil design basics
+- Fixed-wing aircraft principles
 
 **Examples:**
 - `examples/beginner/simple_motor_mount.py`
 - `examples/beginner/camera_holder.py`
+- `examples/beginner/simple_glider.py`
 
 #### 🟡 Intermediate Parts
 - **Drone arm** - Tapered arm with motor mounting
@@ -395,6 +399,12 @@ By the end of this course, you'll complete:
 - Motor mounts for various motor sizes
 - Battery compartment with adjustable size
 
+✅ **Simple 3D printed glider**
+- Wing with airfoil design
+- Streamlined fuselage for electronics
+- Integration with PowerUp or similar control modules
+- Optimized for flight performance
+
 ✅ **Weight-optimized motor mount**
 - Parametric design for any motor size
 - Structural validation
@@ -422,6 +432,46 @@ python -m pytest tests/test_cad.py -v
 # Run with coverage
 python -m pytest tests/ --cov=src --cov-report=html
 ```
+
+---
+
+## 🛠️ Simple Tools & Integration Kits
+
+To get started quickly with your 3D printed aircraft designs, consider integrating these accessible tools and kits:
+
+### Smartphone-Controlled Systems
+- **[PowerUp Toys](https://www.poweruptoys.com/)** - Smartphone-controlled paper airplane and glider kits
+  - PowerUp 4.0: Bluetooth-controlled module with thrust and rudder control
+  - Easy integration with 3D printed glider designs
+  - Great for learning flight control basics
+  - Mobile app provides real-time telemetry
+
+### Camera Stabilization
+- **[Next Generation Smartphone Gimbal Stabilizer](https://amazon.com/Next-Generation-Smartphone-Controlled-Controlled-Stabilizer/dp/B08JLZVB3Z)** 
+  - Smartphone-controlled stabilization
+  - Can be adapted for lightweight drone camera mounts
+  - Learn gimbal mechanics and integration
+  - Useful for FPV and aerial photography experiments
+
+### Getting Started with Simple Tools
+These tools are perfect for:
+- **Beginners**: Learn flight principles without complex electronics
+- **Rapid Prototyping**: Test aerodynamic designs quickly
+- **Education**: Understand control systems with visual feedback
+- **Integration Practice**: Learn to design mounts and interfaces for commercial modules
+
+### Design Integration Tips
+1. **PowerUp Module Integration**
+   - Design fuselage with 30-40mm mounting bay
+   - Include wire routing channels
+   - Add battery compartment for balanced CG
+   - See `examples/beginner/simple_glider.py` for reference
+
+2. **Gimbal/Stabilizer Mounts**
+   - Design vibration-dampening mounts (rubber grommets)
+   - Account for gimbal movement range
+   - Balance weight for stable flight
+   - See `examples/beginner/camera_holder.py` for mounting patterns
 
 ---
 
