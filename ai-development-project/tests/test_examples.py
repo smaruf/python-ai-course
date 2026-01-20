@@ -18,6 +18,7 @@ examples_path = os.path.join(os.path.dirname(__file__), '..', 'examples')
 sys.path.insert(0, examples_path)
 sys.path.insert(0, os.path.join(examples_path, '01_simple_llm'))
 sys.path.insert(0, os.path.join(examples_path, '02_contextual_ai'))
+sys.path.insert(0, os.path.join(examples_path, '03_physics_deep_learning'))
 
 
 class TestSimpleLLM:
@@ -172,6 +173,228 @@ class TestContextualAI:
         assert "1" in response  # Number of positions
 
 
+class TestPhysicsDeepLearning:
+    """Test physics deep learning examples"""
+    
+    def test_import_aerodynamics(self):
+        """Test that aerodynamics module can be imported"""
+        try:
+            from aerodynamics_predictor import AerodynamicsAI, AirfoilGeometry, FlowConditions
+            assert AerodynamicsAI is not None
+            assert AirfoilGeometry is not None
+            assert FlowConditions is not None
+        except ImportError as e:
+            pytest.skip(f"Cannot import aerodynamics_predictor: {e}")
+    
+    def test_import_hydrodynamics(self):
+        """Test that hydrodynamics module can be imported"""
+        try:
+            from hydrodynamics_analyzer import HydrodynamicsAI, VesselGeometry, WaterConditions
+            assert HydrodynamicsAI is not None
+            assert VesselGeometry is not None
+            assert WaterConditions is not None
+        except ImportError as e:
+            pytest.skip(f"Cannot import hydrodynamics_analyzer: {e}")
+    
+    def test_import_thermodynamics(self):
+        """Test that thermodynamics module can be imported"""
+        try:
+            from thermodynamics_optimizer import ThermodynamicsAI, ThermalSystem, ThermalConditions
+            assert ThermodynamicsAI is not None
+            assert ThermalSystem is not None
+            assert ThermalConditions is not None
+        except ImportError as e:
+            pytest.skip(f"Cannot import thermodynamics_optimizer: {e}")
+    
+    def test_airfoil_geometry_creation(self):
+        """Test AirfoilGeometry structure"""
+        from aerodynamics_predictor import AirfoilGeometry
+        
+        airfoil = AirfoilGeometry(
+            name="NACA 0012",
+            chord_length=1.0,
+            thickness_ratio=12.0,
+            camber=0.0,
+            angle_of_attack=5.0
+        )
+        
+        assert airfoil.name == "NACA 0012"
+        assert airfoil.chord_length == 1.0
+        assert airfoil.angle_of_attack == 5.0
+    
+    def test_flow_conditions_reynolds_number(self):
+        """Test FlowConditions Reynolds number calculation"""
+        from aerodynamics_predictor import FlowConditions
+        
+        flow = FlowConditions(
+            velocity=50.0,
+            density=1.225,
+            viscosity=1.81e-5,
+            temperature=288.15
+        )
+        
+        re = flow.reynolds_number
+        assert re > 0
+        assert isinstance(re, float)
+    
+    def test_vessel_geometry_creation(self):
+        """Test VesselGeometry structure"""
+        from hydrodynamics_analyzer import VesselGeometry
+        
+        vessel = VesselGeometry(
+            name="Test Yacht",
+            length=12.0,
+            beam=3.5,
+            draft=2.0,
+            displacement=8000.0,
+            hull_form="displacement"
+        )
+        
+        assert vessel.name == "Test Yacht"
+        assert vessel.length == 12.0
+        assert vessel.hull_form == "displacement"
+    
+    def test_water_conditions_froude_number(self):
+        """Test WaterConditions Froude number calculation"""
+        from hydrodynamics_analyzer import WaterConditions
+        
+        conditions = WaterConditions(
+            velocity=5.0,
+            water_density=1025.0,
+            kinematic_viscosity=1.19e-6,
+            wave_height=0.5,
+            wave_period=4.0,
+            depth=50.0
+        )
+        
+        fn = conditions.froude_number
+        assert fn > 0
+        assert isinstance(fn, float)
+    
+    def test_thermal_system_creation(self):
+        """Test ThermalSystem structure"""
+        from thermodynamics_optimizer import ThermalSystem
+        
+        system = ThermalSystem(
+            name="Test HX",
+            system_type="heat_exchanger",
+            geometry={'area': 10.0, 'length': 2.0},
+            materials={'shell': 'steel'}
+        )
+        
+        assert system.name == "Test HX"
+        assert system.system_type == "heat_exchanger"
+        assert system.geometry['area'] == 10.0
+    
+    def test_thermal_conditions_temp_difference(self):
+        """Test ThermalConditions temperature difference"""
+        from thermodynamics_optimizer import ThermalConditions
+        
+        conditions = ThermalConditions(
+            hot_temperature=363.15,
+            cold_temperature=293.15,
+            flow_rate_hot=2.0,
+            flow_rate_cold=2.5,
+            ambient_temperature=298.15,
+            pressure=1e5
+        )
+        
+        delta_t = conditions.temperature_difference
+        assert delta_t == 70.0
+        assert isinstance(delta_t, float)
+    
+    @pytest.mark.asyncio
+    async def test_aerodynamics_analysis(self):
+        """Test basic aerodynamics analysis"""
+        from aerodynamics_predictor import AerodynamicsAI, AirfoilGeometry, FlowConditions
+        
+        aero_ai = AerodynamicsAI()
+        
+        airfoil = AirfoilGeometry(
+            name="Test Airfoil",
+            chord_length=1.0,
+            thickness_ratio=12.0,
+            camber=2.0,
+            angle_of_attack=5.0
+        )
+        
+        flow = FlowConditions(
+            velocity=50.0,
+            density=1.225,
+            viscosity=1.81e-5,
+            temperature=288.15
+        )
+        
+        analysis = await aero_ai.analyze_airfoil(airfoil, flow)
+        
+        assert 'geometry' in analysis
+        assert 'coefficients' in analysis
+        assert 'performance' in analysis
+        assert len(aero_ai.analysis_history) == 1
+    
+    @pytest.mark.asyncio
+    async def test_hydrodynamics_analysis(self):
+        """Test basic hydrodynamics analysis"""
+        from hydrodynamics_analyzer import HydrodynamicsAI, VesselGeometry, WaterConditions
+        
+        hydro_ai = HydrodynamicsAI()
+        
+        vessel = VesselGeometry(
+            name="Test Vessel",
+            length=10.0,
+            beam=3.0,
+            draft=1.5,
+            displacement=5000.0,
+            hull_form="displacement"
+        )
+        
+        conditions = WaterConditions(
+            velocity=5.0,
+            water_density=1025.0,
+            kinematic_viscosity=1.19e-6,
+            wave_height=0.5,
+            wave_period=4.0,
+            depth=50.0
+        )
+        
+        analysis = await hydro_ai.analyze_vessel(vessel, conditions)
+        
+        assert 'vessel' in analysis
+        assert 'resistance' in analysis
+        assert 'power' in analysis
+        assert len(hydro_ai.analysis_history) == 1
+    
+    @pytest.mark.asyncio
+    async def test_thermodynamics_analysis(self):
+        """Test basic thermodynamics analysis"""
+        from thermodynamics_optimizer import ThermodynamicsAI, ThermalSystem, ThermalConditions
+        
+        thermo_ai = ThermodynamicsAI()
+        
+        system = ThermalSystem(
+            name="Test HX",
+            system_type="heat_exchanger",
+            geometry={'area': 10.0, 'length': 2.0},
+            materials={'shell': 'steel'}
+        )
+        
+        conditions = ThermalConditions(
+            hot_temperature=363.15,
+            cold_temperature=293.15,
+            flow_rate_hot=2.0,
+            flow_rate_cold=2.5,
+            ambient_temperature=298.15,
+            pressure=1e5
+        )
+        
+        analysis = await thermo_ai.analyze_heat_exchanger(system, conditions)
+        
+        assert 'system' in analysis
+        assert 'performance' in analysis
+        assert 'efficiency' in analysis or 'losses' in analysis
+        assert len(thermo_ai.analysis_history) == 1
+
+
 class TestProjectStructure:
     """Test project structure and files"""
     
@@ -196,7 +419,8 @@ class TestProjectStructure:
         # Check example directories exist
         expected_examples = [
             '01_simple_llm',
-            '02_contextual_ai'
+            '02_contextual_ai',
+            '03_physics_deep_learning'
         ]
         
         for example in expected_examples:
