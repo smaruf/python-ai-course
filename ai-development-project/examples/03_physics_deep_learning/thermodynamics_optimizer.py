@@ -598,13 +598,17 @@ class ThermodynamicsAI:
         
         optimal_analysis = await self.analyze_heat_exchanger(optimal_system, conditions)
         
+        # Calculate improvement percentage
+        original_area = system.geometry.get('area', 10.0)
+        area_change_percent = ((optimal_area - original_area) / original_area) * 100
+        
         return {
             'optimal_area': f"{optimal_area:.2f} m²",
-            'original_area': f"{system.geometry.get('area', 10.0):.2f} m²",
+            'original_area': f"{original_area:.2f} m²",
             'target_effectiveness': target_effectiveness,
             'achieved_effectiveness': optimal_analysis['performance']['effectiveness'],
             'cost_estimate': f"${min_cost:.2f}",
-            'improvement': f"Area {((optimal_area - system.geometry.get('area', 10.0))/system.geometry.get('area', 10.0)*100):+.1f}%",
+            'improvement': f"Area {area_change_percent:+.1f}%",
             'full_analysis': optimal_analysis
         }
     
