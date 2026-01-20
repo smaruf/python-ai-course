@@ -16,13 +16,15 @@ ai-development-project/
 ├── docs/                        # Additional documentation
 │   ├── concepts.md             # Core AI concepts explained
 │   ├── best-practices.md       # Production best practices
-│   └── learning-path.md        # Structured learning progression
+│   ├── learning-path.md        # Structured learning progression
+│   └── physics-applications.md # Physics + Deep Learning guide
 ├── examples/                   # Working code examples
 │   ├── 01_simple_llm/         # Basic LLM integration
 │   ├── 02_contextual_ai/      # Context-aware AI assistant
-│   ├── 03_rag_system/         # RAG implementation
-│   ├── 04_vector_db/          # Vector database examples
-│   └── 05_ai_agents/          # AI agent framework
+│   ├── 03_physics_deep_learning/ # Physics AI (Aero/Hydro/Thermo)
+│   ├── 04_rag_system/         # RAG implementation
+│   ├── 05_vector_db/          # Vector database examples
+│   └── 06_ai_agents/          # AI agent framework
 ├── src/                       # Reusable AI components
 │   ├── llm_client.py          # LLM client wrapper
 │   ├── rag_engine.py          # RAG implementation
@@ -119,21 +121,28 @@ An AI that understands application context:
 - Smart routing
 - Memory management
 
-### 3. RAG Knowledge System (`examples/03_rag_system/`)
+### 3. Physics Deep Learning (`examples/03_physics_deep_learning/`)
+AI-powered physics analysis for engineering:
+- **Aerodynamics**: Airfoil analysis, lift/drag prediction, CFD with AI
+- **Hydrodynamics**: Ship resistance, wave patterns, marine engineering
+- **Thermodynamics**: Heat exchangers, thermal engines, efficiency optimization
+- **Unified Physics AI**: Interactive multi-domain consultant
+
+### 4. RAG Knowledge System (`examples/04_rag_system/`)
 Retrieval-augmented generation implementation:
 - Document processing
 - Semantic search
 - Context retrieval
 - Answer generation
 
-### 4. Vector Database (`examples/04_vector_db/`)
+### 5. Vector Database (`examples/05_vector_db/`)
 Semantic search and similarity matching:
 - Text embeddings
 - Vector storage
 - Similarity search
 - Knowledge base management
 
-### 5. AI Agent Framework (`examples/05_ai_agents/`)
+### 6. AI Agent Framework (`examples/06_ai_agents/`)
 Autonomous AI agents that can:
 - Plan multi-step tasks
 - Use tools and APIs
@@ -158,6 +167,7 @@ python -m pytest tests/test_examples.py::test_simple_llm -v
 - **[Core Concepts](docs/concepts.md)**: Deep dive into AI concepts
 - **[Best Practices](docs/best-practices.md)**: Production-ready patterns
 - **[Learning Path](docs/learning-path.md)**: Week-by-week progression
+- **[Physics Applications](docs/physics-applications.md)**: Deep learning for physics
 
 ## 🛠️ Features
 
