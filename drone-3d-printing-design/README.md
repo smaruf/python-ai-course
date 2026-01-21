@@ -27,6 +27,11 @@ drone-3d-printing-design/
 │   │   └── geometry_calc.py       # Geometry calculations
 │   ├── phase1_aircraft_basics/    # Aircraft & drone basics
 │   │   ├── __init__.py
+│   │   ├── aircraft_types.py      # Aircraft type definitions & build methods
+│   │   ├── flying_wing_design.py  # Flying-wing design & control logic
+│   │   ├── fixed_wing_design.py   # Fixed-wing design & control logic
+│   │   ├── rotorcraft_design.py   # Multirotor/drone design & control
+│   │   ├── autogyro_design.py     # Autogyro design & control logic
 │   │   ├── aerodynamics.py        # Lift, thrust, drag calculations
 │   │   ├── load_paths.py          # Load path analysis
 │   │   └── components.py          # Aircraft component models
@@ -67,6 +72,8 @@ drone-3d-printing-design/
 │   │   ├── camera_holder.py
 │   │   └── antenna_mount.py
 │   ├── intermediate/
+│   │   ├── flying_wing_design.py   # Complete flying-wing design example
+│   │   ├── all_aircraft_types.py   # All 4 aircraft types comparison
 │   │   ├── parametric_arm.py
 │   │   ├── frame_system.py
 │   │   └── landing_gear_assembly.py
@@ -125,6 +132,13 @@ pip install -r requirements.txt
 # Run the main demo
 python main.py
 
+# 🆕 NEW: Try the aircraft design system
+# Design all four aircraft types
+python examples/intermediate/all_aircraft_types.py
+
+# Design a flying-wing aircraft
+python examples/intermediate/flying_wing_design.py
+
 # Try your first motor mount design
 python examples/beginner/simple_motor_mount.py
 
@@ -158,24 +172,64 @@ python -m pytest tests/ -v
 ### 📍 Phase 1: Aircraft & Drone Basics (2 weeks)
 **Goal:** Understand what you're designing for
 
+**🆕 NEW: Complete Aircraft Design System**
+
+This phase now includes a comprehensive aircraft design system supporting four aircraft types:
+
+#### ✈️ Aircraft Types Supported
+
+| Aircraft Type | Description | Key Features | Best For |
+|--------------|-------------|--------------|----------|
+| **Fixed-Wing** | Traditional aircraft with wings + fuselage | Stable, efficient cruise | Long-range, training |
+| **Flying-Wing** | No fuselage, all-wing design | Low drag, high efficiency | FPV racing, photography |
+| **Rotorcraft** | Multirotor drones (quad, hex, octo) | VTOL, hover capability | Aerial video, racing |
+| **Autogyro** | Free-spinning rotor + propeller | Cannot stall, unique flight | Experimental, education |
+
+#### 🛠️ Build Methods
+
+| Method | Cost Range | Difficulty | Best For |
+|--------|-----------|------------|----------|
+| **Hand-Built** | $10-$500+ | Beginner-Advanced | Traditional RC, custom shapes |
+| **3D Printed** | $20-$400 | Beginner-Advanced | Precise parts, repeatability |
+| **Hybrid** | $40-$250 | Intermediate | Best of both worlds |
+
+#### 💰 Material Cost Categories
+
+- **Low-Cost**: PLA, EPP foam, balsa wood ($10-$50)
+- **Medium-Cost**: PETG, depron, carbon tubes ($50-$200)
+- **High-End**: Nylon, carbon fiber, advanced composites ($150-$500+)
+
 **Key Concepts:**
 - Lift, thrust, drag, weight
 - Load paths in airframes
 - Vibration & resonance
 - Weight vs strength tradeoff
+- Structural parameter calculations
+- Control surface sizing
+- CG (Center of Gravity) analysis
 
 **Component Types:**
 
-| Aircraft Type | Parts to Design                           |
-|---------------|-------------------------------------------|
-| Multirotor    | Frame, arms, motor mounts, battery tray   |
-| Fixed-wing    | Fuselage ribs, servo mounts, landing gear |
-| Hybrid        | Structural connectors, payload mounts     |
+| Aircraft Type | Parts to Design                           | Design Files Available |
+|---------------|-------------------------------------------|----------------------|
+| Fixed-wing    | Fuselage ribs, servo mounts, landing gear | ✅ `fixed_wing_design.py` |
+| Flying-wing   | Wing structure, elevons, integrated bay    | ✅ `flying_wing_design.py` |
+| Rotorcraft    | Frame, arms, motor mounts, battery tray   | ✅ `rotorcraft_design.py` |
+| Autogyro      | Rotor hub, fuselage, tail boom            | ✅ `autogyro_design.py` |
 
 **Files:**
+- `src/phase1_aircraft_basics/aircraft_types.py` - 🆕 Aircraft type definitions & build methods
+- `src/phase1_aircraft_basics/flying_wing_design.py` - 🆕 Flying-wing design & control
+- `src/phase1_aircraft_basics/fixed_wing_design.py` - 🆕 Fixed-wing design & control
+- `src/phase1_aircraft_basics/rotorcraft_design.py` - 🆕 Rotorcraft design & control
+- `src/phase1_aircraft_basics/autogyro_design.py` - 🆕 Autogyro design & control
 - `src/phase1_aircraft_basics/aerodynamics.py`
 - `src/phase1_aircraft_basics/load_paths.py`
 - `src/phase1_aircraft_basics/components.py`
+
+**Examples:**
+- `examples/intermediate/all_aircraft_types.py` - 🆕 Complete demo of all 4 aircraft types
+- `examples/intermediate/flying_wing_design.py` - 🆕 Detailed flying-wing design example
 
 ---
 
