@@ -389,6 +389,6 @@ if __name__ == "__main__":
         rotor_rpm=design['rotor_rpm'],
         rotor_diameter=spec.rotor_diameter
     )
-    print(f"Airspeed: {rotor_state['descent_rate_ms']} m/s descent")
+    print(f"Descent Rate: {rotor_state['descent_rate_ms']} m/s")
     print(f"Rotor RPM: {rotor_state['rotor_rpm']:.0f}")
     print(f"Status: {rotor_state['status']}")

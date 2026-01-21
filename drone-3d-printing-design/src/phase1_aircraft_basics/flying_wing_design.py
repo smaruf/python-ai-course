@@ -49,17 +49,25 @@ class FlyingWingStructure:
         self.wing_area = (self.chord_root + self.chord_tip) * self.wingspan / 2
         
         # Calculate mean aerodynamic chord (MAC)
-        self.mean_aerodynamic_chord = (2/3) * self.chord_root * (
-            (1 + self.chord_tip/self.chord_root + (self.chord_tip/self.chord_root)**2) /
-            (1 + self.chord_tip/self.chord_root)
-        )
+        if self.chord_root > 0:
+            self.mean_aerodynamic_chord = (2/3) * self.chord_root * (
+                (1 + self.chord_tip/self.chord_root + (self.chord_tip/self.chord_root)**2) /
+                (1 + self.chord_tip/self.chord_root)
+            )
+        else:
+            self.mean_aerodynamic_chord = 0
         
         # Calculate aspect ratio
-        self.aspect_ratio = self.wingspan**2 / self.wing_area
+        if self.wing_area > 0:
+            self.aspect_ratio = self.wingspan**2 / self.wing_area
+        else:
+            self.aspect_ratio = 0
         
         # Calculate taper ratio
         if self.chord_root > 0:
             self.taper_ratio = self.chord_tip / self.chord_root
+        else:
+            self.taper_ratio = 0
         
         # Calculate spar height if not specified
         if self.spar_height == 0:

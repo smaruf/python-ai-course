@@ -131,7 +131,8 @@ class RotorcraftDesignRules:
         
         # Round down to common sizes
         common_sizes = [3, 4, 5, 6, 7, 8, 9, 10]
-        recommended_size = max([s for s in common_sizes if s <= max_prop_inches], default=3)
+        valid_sizes = [s for s in common_sizes if s <= max_prop_inches]
+        recommended_size = max(valid_sizes) if valid_sizes else 3
         
         # Pitch recommendations based on KV
         if kv_rating > 3000:
