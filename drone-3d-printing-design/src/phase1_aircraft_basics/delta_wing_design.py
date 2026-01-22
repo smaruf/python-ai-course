@@ -13,7 +13,7 @@ Delta wings are characterized by:
 """
 
 import math
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 from dataclasses import dataclass, field
 from .aircraft_types import DeltaWingSpec, BuildMethod, MaterialCost
 
@@ -450,7 +450,7 @@ class DeltaWingControlLogic:
         angle_of_attack: float,
         pitch_input: float,
         vortex_burst_aoa: float = 35.0
-    ) -> Dict[str, any]:
+    ) -> Dict[str, Any]:
         """
         Calculate control effectiveness at high angle of attack.
         
@@ -506,7 +506,7 @@ class DeltaWingControlLogic:
         current_cg: float,
         target_cg: float,
         mac: float
-    ) -> Dict[str, any]:
+    ) -> Dict[str, Any]:
         """
         Calculate the effect of CG position on delta wing stability.
         
@@ -562,7 +562,7 @@ def design_simple_delta_wing(
     build_method: BuildMethod,
     material_cost: MaterialCost,
     sweep_angle: float = 50.0
-) -> Dict[str, any]:
+) -> Dict[str, Any]:
     """
     Design a simple delta wing based on basic parameters.
     
