@@ -182,6 +182,7 @@ This phase now includes a comprehensive aircraft design system supporting four a
 |--------------|-------------|--------------|----------|
 | **Fixed-Wing** | Traditional aircraft with wings + fuselage | Stable, efficient cruise | Long-range, training |
 | **Flying-Wing** | No fuselage, all-wing design | Low drag, high efficiency | FPV racing, photography |
+| **Delta-Wing** | Triangular wing with high sweep angle | High speed, high-alpha capability | High-speed FPV, scale jets |
 | **Rotorcraft** | Multirotor drones (quad, hex, octo) | VTOL, hover capability | Aerial video, racing |
 | **Autogyro** | Free-spinning rotor + propeller | Cannot stall, unique flight | Experimental, education |
 
@@ -214,12 +215,14 @@ This phase now includes a comprehensive aircraft design system supporting four a
 |---------------|-------------------------------------------|----------------------|
 | Fixed-wing    | Fuselage ribs, servo mounts, landing gear | ✅ `fixed_wing_design.py` |
 | Flying-wing   | Wing structure, elevons, integrated bay    | ✅ `flying_wing_design.py` |
+| Delta-wing    | Triangular wing, vertical tail, elevons   | ✅ `delta_wing_design.py` |
 | Rotorcraft    | Frame, arms, motor mounts, battery tray   | ✅ `rotorcraft_design.py` |
 | Autogyro      | Rotor hub, fuselage, tail boom            | ✅ `autogyro_design.py` |
 
 **Files:**
 - `src/phase1_aircraft_basics/aircraft_types.py` - 🆕 Aircraft type definitions & build methods
 - `src/phase1_aircraft_basics/flying_wing_design.py` - 🆕 Flying-wing design & control
+- `src/phase1_aircraft_basics/delta_wing_design.py` - 🆕 Delta-wing design & control
 - `src/phase1_aircraft_basics/fixed_wing_design.py` - 🆕 Fixed-wing design & control
 - `src/phase1_aircraft_basics/rotorcraft_design.py` - 🆕 Rotorcraft design & control
 - `src/phase1_aircraft_basics/autogyro_design.py` - 🆕 Autogyro design & control
@@ -228,8 +231,9 @@ This phase now includes a comprehensive aircraft design system supporting four a
 - `src/phase1_aircraft_basics/components.py`
 
 **Examples:**
-- `examples/intermediate/all_aircraft_types.py` - 🆕 Complete demo of all 4 aircraft types
+- `examples/intermediate/all_aircraft_types.py` - 🆕 Complete demo of all aircraft types
 - `examples/intermediate/flying_wing_design.py` - 🆕 Detailed flying-wing design example
+- `examples/intermediate/delta_wing_design.py` - 🆕 Detailed delta-wing design example
 
 ---
 

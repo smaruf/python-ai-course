@@ -16,6 +16,7 @@ from phase1_aircraft_basics.aircraft_types import (
     MaterialCost,
     FixedWingSpec,
     FlyingWingSpec,
+    DeltaWingSpec,
     AutogyroSpec,
     RotorcraftSpec,
     get_aircraft_description,
@@ -50,6 +51,13 @@ from phase1_aircraft_basics.autogyro_design import (
     design_simple_autogyro
 )
 
+from phase1_aircraft_basics.delta_wing_design import (
+    DeltaWingStructure,
+    DeltaWingDesignRules,
+    DeltaWingControlLogic,
+    design_simple_delta_wing
+)
+
 
 class TestAircraftTypes:
     """Test aircraft type definitions and specifications."""
@@ -58,6 +66,7 @@ class TestAircraftTypes:
         """Test aircraft type enumeration."""
         assert AircraftType.FIXED_WING.value == "fixed_wing"
         assert AircraftType.FLYING_WING.value == "flying_wing"
+        assert AircraftType.DELTA_WING.value == "delta_wing"
         assert AircraftType.AUTOGYRO.value == "autogyro"
         assert AircraftType.ROTORCRAFT.value == "rotorcraft"
     
@@ -333,6 +342,238 @@ class TestAutogyroDesign:
         assert "structure" in design
         assert "rotor_rpm" in design
         assert "disc_loading_kg_m2" in design
+
+
+class TestDeltaWingSpec:
+    """Test delta-wing specification."""
+    
+    def test_create_delta_wing_spec(self):
+        """Test creating a delta-wing specification."""
+        spec = DeltaWingSpec(
+            name="Test Delta",
+            build_method=BuildMethod.THREE_D_PRINTED,
+            material_cost=MaterialCost.MEDIUM_COST,
+            wingspan=1000,
+            chord_root=350,
+            sweep_angle=55,
+            weight_target=550
+        )
+        assert spec.name == "Test Delta"
+        assert spec.aircraft_type == AircraftType.DELTA_WING
+        assert spec.wingspan == 1000
+        assert spec.sweep_angle == 55
+        # Wing area should be calculated (triangular planform)
+        assert spec.wing_area > 0
+    
+    def test_delta_wing_area_calculation(self):
+        """Test automatic wing area calculation for delta wing."""
+        spec = DeltaWingSpec(
+            name="Area Test",
+            build_method=BuildMethod.THREE_D_PRINTED,
+            material_cost=MaterialCost.LOW_COST,
+            wingspan=1000,
+            chord_root=400,
+            sweep_angle=50,
+            weight_target=500
+        )
+        # For delta: area = 0.5 * wingspan * chord_root
+        expected_area = 0.5 * 1000 * 400
+        assert abs(spec.wing_area - expected_area) < 1
+
+
+class TestDeltaWingDesign:
+    """Test delta-wing design functionality."""
+    
+    def test_delta_wing_structure(self):
+        """Test delta-wing structure creation."""
+        structure = DeltaWingStructure(
+            wingspan=1000,
+            chord_root=350,
+            sweep_angle=55,
+            thickness_ratio=0.06
+        )
+        assert structure.wingspan == 1000
+        assert structure.wing_area > 0
+        assert structure.aspect_ratio > 0
+        assert structure.mean_aerodynamic_chord > 0
+        # MAC for pure delta should be 2/3 of root chord
+        expected_mac = (2.0 / 3.0) * structure.chord_root
+        assert abs(structure.mean_aerodynamic_chord - expected_mac) < 1
+    
+    def test_delta_wing_aspect_ratio(self):
+        """Test aspect ratio calculation."""
+        structure = DeltaWingStructure(
+            wingspan=1000,
+            chord_root=350,
+            sweep_angle=55
+        )
+        # AR = wingspan^2 / area
+        expected_ar = (1000 ** 2) / structure.wing_area
+        assert abs(structure.aspect_ratio - expected_ar) < 0.1
+    
+    def test_delta_wing_validation(self):
+        """Test delta-wing design validation."""
+        structure = DeltaWingStructure(
+            wingspan=1000,
+            chord_root=350,
+            sweep_angle=55
+        )
+        validation = DeltaWingDesignRules.validate_design(structure)
+        assert "warnings" in validation
+        assert "errors" in validation
+        assert isinstance(validation["warnings"], list)
+        assert isinstance(validation["errors"], list)
+    
+    def test_delta_wing_vortex_lift(self):
+        """Test vortex lift coefficient calculation."""
+        # At low AoA, vortex lift should be minimal
+        cl_vortex_low = DeltaWingDesignRules.calculate_vortex_lift_coefficient(
+            angle_of_attack=5,
+            sweep_angle=55
+        )
+        assert cl_vortex_low >= 0
+        assert cl_vortex_low < 0.01
+        
+        # At high AoA, vortex lift should be significant
+        cl_vortex_high = DeltaWingDesignRules.calculate_vortex_lift_coefficient(
+            angle_of_attack=25,
+            sweep_angle=55
+        )
+        assert cl_vortex_high > 0.05
+        assert cl_vortex_high > cl_vortex_low
+    
+    def test_delta_wing_total_lift(self):
+        """Test total lift coefficient calculation."""
+        cl_total = DeltaWingDesignRules.calculate_total_lift_coefficient(
+            angle_of_attack=20,
+            sweep_angle=55,
+            aspect_ratio=2.5
+        )
+        assert cl_total > 0
+        # Should be reasonable value (not exceeding ~2.0)
+        assert cl_total <= 2.0
+    
+    def test_delta_wing_structural_weight(self):
+        """Test structural weight estimation."""
+        structure = DeltaWingStructure(
+            wingspan=1000,
+            chord_root=350,
+            sweep_angle=55
+        )
+        weight = DeltaWingDesignRules.calculate_structural_weight(
+            structure,
+            material_density=1.24  # PLA
+        )
+        assert weight > 0
+        # Should be reasonable for this size
+        assert 200 < weight < 1000
+
+
+class TestDeltaWingControl:
+    """Test delta-wing control logic."""
+    
+    def test_elevon_deflection(self):
+        """Test elevon deflection calculation."""
+        left, right = DeltaWingControlLogic.calculate_elevon_deflection(
+            pitch_input=0.5,
+            roll_input=0.0,
+            max_deflection=25
+        )
+        # Pure pitch - both elevons should deflect equally
+        assert left == right
+        assert abs(left - 12.5) < 0.1  # 50% of 25 degrees
+    
+    def test_elevon_roll_control(self):
+        """Test elevon roll control."""
+        left, right = DeltaWingControlLogic.calculate_elevon_deflection(
+            pitch_input=0.0,
+            roll_input=0.5,
+            max_deflection=25
+        )
+        # Pure roll - elevons should deflect opposite
+        assert left == -right
+        assert abs(left - 12.5) < 0.1
+    
+    def test_elevon_mixed_control(self):
+        """Test elevon mixed pitch and roll."""
+        left, right = DeltaWingControlLogic.calculate_elevon_deflection(
+            pitch_input=0.5,
+            roll_input=0.3,
+            max_deflection=25
+        )
+        # Mixed control
+        assert left != right  # Should be different
+        assert abs(left) <= 25  # Within limits
+        assert abs(right) <= 25
+    
+    def test_yaw_from_roll_coupling(self):
+        """Test roll-yaw coupling (proverse yaw)."""
+        yaw_rate = DeltaWingControlLogic.calculate_yaw_from_roll(
+            roll_input=0.5,
+            speed=10,
+            coupling_factor=0.3
+        )
+        assert yaw_rate > 0  # Positive roll should induce yaw
+    
+    def test_high_alpha_control_normal(self):
+        """Test control at normal AoA."""
+        result = DeltaWingControlLogic.calculate_high_alpha_control(
+            angle_of_attack=15,
+            pitch_input=0.5
+        )
+        assert result["flight_regime"] == "normal"
+        assert result["control_effectiveness"] == 1.0
+    
+    def test_high_alpha_control_vortex(self):
+        """Test control at high AoA with vortex lift."""
+        result = DeltaWingControlLogic.calculate_high_alpha_control(
+            angle_of_attack=25,
+            pitch_input=0.5
+        )
+        assert result["flight_regime"] == "high_alpha"
+        assert 0 < result["control_effectiveness"] < 1
+    
+    def test_high_alpha_control_post_burst(self):
+        """Test control post vortex burst."""
+        result = DeltaWingControlLogic.calculate_high_alpha_control(
+            angle_of_attack=37,
+            pitch_input=0.5
+        )
+        assert result["flight_regime"] == "post_stall"
+        assert result["control_effectiveness"] < 0.5
+        assert len(result["warnings"]) > 0
+    
+    def test_cg_effect(self):
+        """Test CG effect calculation."""
+        result = DeltaWingControlLogic.calculate_cg_effect(
+            current_cg=0.35,
+            target_cg=0.35,
+            mac=250
+        )
+        assert result["status"] == "OPTIMAL"
+        assert abs(result["difference_mm"]) < 1
+    
+    def test_design_simple_delta_wing(self):
+        """Test automated delta-wing design."""
+        design = design_simple_delta_wing(
+            wingspan=1000,
+            target_weight=550,
+            build_method=BuildMethod.THREE_D_PRINTED,
+            material_cost=MaterialCost.MEDIUM_COST,
+            sweep_angle=55
+        )
+        assert "specification" in design
+        assert "structure" in design
+        assert "validation" in design
+        assert "wing_area_dm2" in design
+        assert "wing_loading_g_dm2" in design
+        assert "estimated_stall_speed_ms" in design
+        
+        # Check that calculations are reasonable
+        spec = design["specification"]
+        assert spec.aircraft_type == AircraftType.DELTA_WING
+        assert design["aspect_ratio"] > 0
+        assert design["estimated_structural_weight"] > 0
 
 
 if __name__ == "__main__":

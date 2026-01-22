@@ -4,6 +4,7 @@ Phase 1: Aircraft Types and Basic Definitions
 This module defines the different types of aircraft that can be designed:
 - Fixed-wing
 - Flying-wing
+- Delta-wing
 - Autogyro
 - Rotorcraft (multirotor)
 """
@@ -17,6 +18,7 @@ class AircraftType(Enum):
     """Types of aircraft supported by the design system."""
     FIXED_WING = "fixed_wing"
     FLYING_WING = "flying_wing"
+    DELTA_WING = "delta_wing"
     AUTOGYRO = "autogyro"
     ROTORCRAFT = "rotorcraft"
 
@@ -99,6 +101,30 @@ class FlyingWingSpec(AircraftSpecification):
 
 
 @dataclass
+class DeltaWingSpec(AircraftSpecification):
+    """Specification for delta-wing aircraft."""
+    chord_root: float = 0  # mm (root chord at fuselage)
+    chord_tip: float = 0  # mm (tip chord, often very small or zero)
+    sweep_angle: float = 45  # degrees (leading edge sweep, typical 40-60° for delta)
+    wing_area: float = 0  # mm²
+    center_of_gravity: float = 0.35  # ratio from apex (35-40% is typical for delta)
+    control_surface_type: str = "elevons"  # elevons or canards
+    vertical_tail: bool = True  # Most deltas have vertical stabilizers
+    aspect_ratio_target: float = 2.0  # Low aspect ratio typical for deltas
+    thickness_ratio: float = 0.06  # Thin airfoil typical for delta wings
+    
+    def __post_init__(self):
+        """Initialize and calculate missing values."""
+        super().__post_init__()
+        self.aircraft_type = AircraftType.DELTA_WING
+        
+        # Calculate wing area if not provided (triangular/delta planform)
+        # For delta wing: Area = 0.5 * wingspan * root_chord
+        if self.wing_area == 0 and self.chord_root > 0:
+            self.wing_area = 0.5 * self.wingspan * self.chord_root
+
+
+@dataclass
 class AutogyroSpec(AircraftSpecification):
     """Specification for autogyro aircraft."""
     rotor_diameter: float = 0  # mm
@@ -171,6 +197,18 @@ def get_aircraft_description(aircraft_type: AircraftType) -> Dict[str, str]:
             "typical_uses": "Long-range FPV, aerial photography, racing",
             "key_components": "Main wing structure, elevons (combined elevator and ailerons), "
                              "integrated fuselage bay"
+        },
+        AircraftType.DELTA_WING: {
+            "name": "Delta-Wing Aircraft",
+            "description": "Triangular wing planform with high sweep angle. "
+                          "Inspired by supersonic fighters, adapted for RC/FPV use.",
+            "advantages": "High speed capability, excellent high-alpha performance, stable at speed, "
+                         "simple structure, good roll rate",
+            "disadvantages": "High drag at low speed, higher landing speed, less efficient cruise, "
+                            "larger wing area needed",
+            "typical_uses": "High-speed FPV, aerobatic flying, scale military models, jet-powered aircraft",
+            "key_components": "Triangular wing with high sweep, elevons or trailing edge controls, "
+                             "vertical stabilizer(s), often includes canards for pitch control"
         },
         AircraftType.AUTOGYRO: {
             "name": "Autogyro (Gyroplane)",
