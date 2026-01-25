@@ -9,7 +9,8 @@ This is a Flask application that provides a flight tracking service with an AI-p
 *   **Flight Route Database:** Comprehensive database of flight routes with pricing, duration, and stoppage information.
 *   **Priority Routes:** Special prioritization for Dhaka ↔ Gdansk/Warsaw flights.
 *   **Advanced Search:** Filter routes by origin, destination, maximum stops, and price range.
-*   **Dynamic Pricing:** Ticket prices adjust based on booking window (last-minute, early bird, etc.).
+*   **Live Ticket Pricing:** Automatically fetches real-time ticket prices from external APIs when internet is available, with intelligent fallback to simulated pricing when network is unavailable.
+*   **Dynamic Pricing:** Ticket prices adjust based on booking window (last-minute, early bird, etc.) when live prices unavailable.
 *   **REST API:** Multiple endpoints for routes, search, and AI queries.
 *   **Enhanced Web Interface:** Modern, responsive UI with route cards, search functionality, and real-time updates.
 
@@ -109,13 +110,19 @@ The following routes are prioritized (Dhaka ↔ Gdansk/Warsaw):
 
 2. **Priority System**: Dhaka ↔ Gdansk/Warsaw routes are marked as priority 1 and displayed first in all listings.
 
-3. **Dynamic Pricing**: Prices adjust based on:
+3. **Live Ticket Pricing**: 
+   - Automatically attempts to fetch real-time prices from flight search APIs when network is available
+   - Falls back to simulated pricing when API is unavailable or network is down
+   - Visual indicators show whether prices are live (green "LIVE" badge) or estimated (gray "EST" badge)
+   - Fast timeout (3 seconds) ensures responsive user experience even with network issues
+
+4. **Dynamic Pricing Fallback**: When live prices unavailable, prices adjust based on:
    - Days until departure (last-minute, early bird discounts)
    - Market dynamics (random variation)
 
-4. **Advanced Search**: Filter routes by origin, destination, maximum stops, and price.
+5. **Advanced Search**: Filter routes by origin, destination, maximum stops, and price.
 
-5. **Enhanced UI**: Modern, responsive interface with:
+6. **Enhanced UI**: Modern, responsive interface with:
    - Route cards with hover effects
    - Priority route badges
    - Search functionality

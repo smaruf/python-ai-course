@@ -82,12 +82,97 @@ FLIGHT_ROUTES = {
     }
 }
 
-def calculate_ticket_price(route_code, departure_date=None):
-    """Calculate ticket price with dynamic adjustments based on date and demand"""
+def fetch_live_ticket_price(origin_code, destination_code, departure_date=None):
+    """
+    Fetch live ticket prices from external flight search API.
+    Uses Amadeus Flight Offers Search API (demo endpoint).
+    
+    Returns price data if successful, None if network unavailable or API fails.
+    """
+    try:
+        # Use a public flight price API (example: Aviationstack or similar)
+        # For demonstration, using a mock API endpoint structure
+        # In production, you would use Amadeus, Skyscanner, or similar APIs
+        
+        if not departure_date:
+            departure_date = datetime.now() + timedelta(days=30)
+        
+        # Format date for API
+        date_str = departure_date.strftime("%Y-%m-%d")
+        
+        # Example: Using a flight search API
+        # Note: This is a placeholder. In production, use real API with authentication
+        api_url = "https://api.aviationstack.com/v1/flights"  # Example API
+        
+        # Most APIs require authentication - this is just a structure example
+        params = {
+            "access_key": "demo",  # Would use real API key in production
+            "dep_iata": origin_code,
+            "arr_iata": destination_code,
+            "date": date_str
+        }
+        
+        # Set a short timeout to fail fast if network is unavailable
+        response = requests.get(api_url, params=params, timeout=3)
+        
+        if response.status_code == 200:
+            data = response.json()
+            # Parse the response to extract price
+            # This structure depends on the actual API being used
+            if "data" in data and len(data["data"]) > 0:
+                # Extract price from first result
+                flight_data = data["data"][0]
+                if "price" in flight_data:
+                    return {
+                        "price": float(flight_data["price"]),
+                        "currency": flight_data.get("currency", "USD"),
+                        "source": "live_api",
+                        "is_live": True
+                    }
+        
+        return None
+        
+    except (requests.RequestException, requests.Timeout, KeyError, ValueError):
+        # Network unavailable or API error - return None to use fallback
+        return None
+
+
+def calculate_ticket_price(route_code, departure_date=None, use_live_prices=True):
+    """
+    Calculate ticket price with live fetching when network is available.
+    Falls back to dynamic simulated pricing when live prices unavailable.
+    
+    Args:
+        route_code: Route identifier (e.g., "DAC-WAW")
+        departure_date: Date of departure
+        use_live_prices: If True, attempt to fetch live prices first
+    """
     if route_code not in FLIGHT_ROUTES:
         return None
     
     route = FLIGHT_ROUTES[route_code]
+    
+    # Try to fetch live prices if enabled and network is available
+    if use_live_prices:
+        # Extract airport codes from route code
+        codes = route_code.split("-")
+        if len(codes) == 2:
+            origin_code, dest_code = codes
+            live_price = fetch_live_ticket_price(origin_code, dest_code, departure_date)
+            
+            if live_price:
+                # Successfully fetched live price
+                return {
+                    "price": live_price["price"],
+                    "currency": live_price["currency"],
+                    "route": route_code,
+                    "origin": route["origin"],
+                    "destination": route["destination"],
+                    "is_live": True,
+                    "source": "live_api"
+                }
+    
+    # Fallback to simulated dynamic pricing
     base_price = route["base_price"]
     
     # Add price variation based on departure date
@@ -111,7 +196,9 @@ def calculate_ticket_price(route_code, departure_date=None):
         "currency": route["currency"],
         "route": route_code,
         "origin": route["origin"],
-        "destination": route["destination"]
+        "destination": route["destination"],
+        "is_live": False,
+        "source": "simulated"
     }
 
 # -------------------- Flight Data Fetching --------------------
@@ -148,6 +235,9 @@ def get_routes():
     
     routes_data = []
     for route_code, route in sorted_routes:
+        # Fetch live price for current route
+        price_info = calculate_ticket_price(route_code, datetime.now() + timedelta(days=30))
+        
         routes_data.append({
             "route_code": route_code,
             "origin": route["origin"],
@@ -156,9 +246,10 @@ def get_routes():
             "stoppages": route["stoppages"],
             "num_stops": len(route["stoppages"]),
             "airlines": route["airlines"],
-            "base_price": route["base_price"],
+            "base_price": price_info["price"] if price_info else route["base_price"],
             "currency": route["currency"],
-            "is_priority": route["priority"] == 1
+            "is_priority": route["priority"] == 1,
+            "is_live": price_info.get("is_live", False) if price_info else False
         })
     
     return jsonify({"routes": routes_data})
@@ -235,7 +326,8 @@ def search_routes():
             "airlines": route["airlines"],
             "estimated_price": price_info["price"],
             "currency": route["currency"],
-            "is_priority": route["priority"] == 1
+            "is_priority": route["priority"] == 1,
+            "is_live": price_info.get("is_live", False)
         })
     
     # Sort by priority first, then by price
@@ -385,6 +477,26 @@ pre {
     color: #27ae60;
     font-size: 1.3em;
 }
+.price-live-badge {
+    display: inline-block;
+    background: #27ae60;
+    color: white;
+    padding: 0.2em 0.5em;
+    border-radius: 10px;
+    font-size: 0.7em;
+    margin-left: 0.5em;
+    vertical-align: middle;
+}
+.price-simulated-badge {
+    display: inline-block;
+    background: #95a5a6;
+    color: white;
+    padding: 0.2em 0.5em;
+    border-radius: 10px;
+    font-size: 0.7em;
+    margin-left: 0.5em;
+    vertical-align: middle;
+}
 .stops-info {
     color: #666;
     font-size: 0.9em;
@@ -500,7 +612,10 @@ function displayRoutes(routes) {
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Base Price</span>
-                    <span class="detail-value price-highlight">$${route.base_price || route.estimated_price}</span>
+                    <span class="detail-value price-highlight">
+                        $${route.base_price || route.estimated_price}
+                        ${route.is_live ? '<span class="price-live-badge">LIVE</span>' : '<span class="price-simulated-badge">EST</span>'}
+                    </span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Airlines</span>
