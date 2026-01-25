@@ -1,57 +1,123 @@
-# Flight Tracker AI
+# Flight Tracker AI - Enhanced Edition
 
-This is a Spring Boot application that provides a flight tracking service with an AI-powered assistant. It uses real-time flight data from the OpenSky Network and allows users to query the data using natural language.
+This is a Flask application that provides a flight tracking service with an AI-powered assistant. It uses real-time flight data from the OpenSky Network and allows users to query the data using natural language, along with comprehensive flight route search capabilities.
 
 ## Features
 
 *   **Real-time Flight Data:** Fetches live flight data from the OpenSky Network API.
-*   **AI Assistant:** Uses Langchain4j and Ollama to provide a natural language interface for querying flight data.
-*   **REST API:** Exposes a simple REST API for asking questions about flights.
-*   **Web Interface:** Includes a basic web interface for interacting with the AI assistant.
+*   **AI Assistant:** Uses Ollama to provide a natural language interface for querying flight data.
+*   **Flight Route Database:** Comprehensive database of flight routes with pricing, duration, and stoppage information.
+*   **Priority Routes:** Special prioritization for Dhaka ↔ Gdansk/Warsaw flights.
+*   **Advanced Search:** Filter routes by origin, destination, maximum stops, and price range.
+*   **Dynamic Pricing:** Ticket prices adjust based on booking window (last-minute, early bird, etc.).
+*   **REST API:** Multiple endpoints for routes, search, and AI queries.
+*   **Enhanced Web Interface:** Modern, responsive UI with route cards, search functionality, and real-time updates.
 
 ## How to Run
 
 1.  **Prerequisites:**
-    *   Java 21 or later
+    *   Python 3.8 or later
+    *   Flask
     *   Docker (for running the Ollama model)
 
-2.  **Run the Ollama Model:**
+2.  **Install Dependencies:**
+    ```bash
+    pip install flask requests
+    ```
+
+3.  **Run the Ollama Model:**
     ```bash
     docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
     ```
 
-3.  **Pull the Llama3.1 Model:**
+4.  **Pull the Llama2 Model:**
     ```bash
-    docker exec -it ollama ollama pull llama3.1:8b
+    docker exec -it ollama ollama pull llama2
     ```
 
-4.  **Run the Application:**
+5.  **Run the Application:**
     ```bash
-    ./gradlew bootRun
+    python flight_tracker.py
     ```
 
-5.  **Access the Application:**
+6.  **Access the Application:**
     *   **Web Interface:** http://localhost:8080
-    *   **API Endpoint:** `POST /api/aviation/ask`
+    *   **API Endpoints:** 
+        - `GET /api/routes` - List all routes (prioritized)
+        - `GET /api/route/<route_code>` - Get detailed route info
+        - `GET /api/search` - Search routes with filters
+        - `POST /api/aviation/ask` - Ask AI questions
 
 ## API Usage
 
-You can ask questions to the AI assistant by sending a POST request to the `/api/aviation/ask` endpoint with the question in the request body.
+### Search Routes
 
-**Example:**
+Search for flight routes with filters:
+
+```bash
+# Search for routes from Dhaka to Warsaw
+curl "http://localhost:8080/api/search?origin=Dhaka&destination=Warsaw"
+
+# Search for routes with max 1 stop and max price of $800
+curl "http://localhost:8080/api/search?max_stops=1&max_price=800"
+
+# Get all routes (prioritized)
+curl "http://localhost:8080/api/routes"
+```
+
+### Get Route Details
+
+Get detailed information about a specific route:
+
+```bash
+curl "http://localhost:8080/api/route/DAC-WAW"
+```
+
+### Ask AI Assistant
+
+Ask questions to the AI assistant:
 
 ```bash
 curl -X POST http://localhost:8080/api/aviation/ask \
--H "Content-Type: text/plain" \
--d "What aircraft are currently flying near Toronto International Airport within 15 nautical miles"
+-H "Content-Type: application/json" \
+-d '{"question": "What are the cheapest flights from Dhaka to Warsaw?"}'
 ```
+
+## Priority Routes
+
+The following routes are prioritized (Dhaka ↔ Gdansk/Warsaw):
+- **DAC-GDN**: Dhaka → Gdansk (via Dubai, ~12.5 hours, ~$850)
+- **GDN-DAC**: Gdansk → Dhaka (via Istanbul, ~13 hours, ~$820)
+- **DAC-WAW**: Dhaka → Warsaw (via Doha, ~11.5 hours, ~$780)
+- **WAW-DAC**: Warsaw → Dhaka (via Abu Dhabi, ~12 hours, ~$760)
 
 ## Technologies Used
 
-*   Spring Boot 3
-*   Java 21
-*   Langchain4j
-*   Ollama
-*   Bucket4j (for rate limiting)
-*   HTML/CSS/JavaScript (for the web interface)
+*   Python 3
+*   Flask
+*   Ollama (with Llama2 model)
+*   OpenSky Network API
+*   HTML/CSS/JavaScript (for the enhanced web interface)
+
+## Key Improvements
+
+1. **Flight Route Database**: Added comprehensive route information including:
+   - Duration in hours
+   - Number and location of stoppages
+   - Base pricing with dynamic adjustments
+   - Available airlines
+
+2. **Priority System**: Dhaka ↔ Gdansk/Warsaw routes are marked as priority 1 and displayed first in all listings.
+
+3. **Dynamic Pricing**: Prices adjust based on:
+   - Days until departure (last-minute, early bird discounts)
+   - Market dynamics (random variation)
+
+4. **Advanced Search**: Filter routes by origin, destination, maximum stops, and price.
+
+5. **Enhanced UI**: Modern, responsive interface with:
+   - Route cards with hover effects
+   - Priority route badges
+   - Search functionality
+   - Real-time route loading
 
