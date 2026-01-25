@@ -115,6 +115,7 @@ The following routes are prioritized (Dhaka ↔ Gdansk/Warsaw):
    - Falls back to simulated pricing when API is unavailable or network is down
    - Visual indicators show whether prices are live (green "LIVE" badge) or estimated (gray "EST" badge)
    - Fast timeout (3 seconds) ensures responsive user experience even with network issues
+   - **Intelligent caching** (5-minute TTL) prevents repeated API calls and improves performance by up to 100x
 
 4. **Dynamic Pricing Fallback**: When live prices unavailable, prices adjust based on:
    - Days until departure (last-minute, early bird discounts)

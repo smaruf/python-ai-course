@@ -2,8 +2,26 @@ import requests
 from flask import Flask, request, jsonify, render_template_string
 from datetime import datetime, timedelta
 import random
+from functools import lru_cache
 
 app = Flask(__name__)
+
+# -------------------- Price Cache --------------------
+# Simple in-memory cache to avoid repeated API calls
+_price_cache = {}
+_cache_ttl = 300  # 5 minutes cache TTL
+
+def get_cached_price(cache_key):
+    """Get price from cache if not expired"""
+    if cache_key in _price_cache:
+        cached_data, cached_time = _price_cache[cache_key]
+        if (datetime.now() - cached_time).total_seconds() < _cache_ttl:
+            return cached_data
+    return None
+
+def set_cached_price(cache_key, price_data):
+    """Store price in cache with timestamp"""
+    _price_cache[cache_key] = (price_data, datetime.now())
 
 # -------------------- Flight Route Database --------------------
 # Sample flight routes with stoppage, duration, and pricing information
@@ -141,6 +159,7 @@ def calculate_ticket_price(route_code, departure_date=None, use_live_prices=True
     """
     Calculate ticket price with live fetching when network is available.
     Falls back to dynamic simulated pricing when live prices unavailable.
+    Uses caching to avoid repeated API calls.
     
     Args:
         route_code: Route identifier (e.g., "DAC-WAW")
@@ -152,6 +171,16 @@ def calculate_ticket_price(route_code, departure_date=None, use_live_prices=True
     
     route = FLIGHT_ROUTES[route_code]
     
+    # Create cache key
+    if not departure_date:
+        departure_date = datetime.now() + timedelta(days=30)
+    cache_key = f"{route_code}_{departure_date.strftime('%Y-%m-%d')}"
+    
+    # Check cache first
+    cached_price = get_cached_price(cache_key)
+    if cached_price:
+        return cached_price
+    
     # Try to fetch live prices if enabled and network is available
     if use_live_prices:
         # Extract airport codes from route code
@@ -162,7 +191,7 @@ def calculate_ticket_price(route_code, departure_date=None, use_live_prices=True
             
             if live_price:
                 # Successfully fetched live price
-                return {
+                result = {
                     "price": live_price["price"],
                     "currency": live_price["currency"],
                     "route": route_code,
@@ -171,6 +200,8 @@ def calculate_ticket_price(route_code, departure_date=None, use_live_prices=True
                     "is_live": True,
                     "source": "live_api"
                 }
+                set_cached_price(cache_key, result)
+                return result
     
     # Fallback to simulated dynamic pricing
     base_price = route["base_price"]
@@ -191,7 +222,7 @@ def calculate_ticket_price(route_code, departure_date=None, use_live_prices=True
     price_variation = random.uniform(0.95, 1.05)
     final_price = round(base_price * price_variation, 2)
     
-    return {
+    result = {
         "price": final_price,
         "currency": route["currency"],
         "route": route_code,
@@ -200,6 +231,10 @@ def calculate_ticket_price(route_code, departure_date=None, use_live_prices=True
         "is_live": False,
         "source": "simulated"
     }
+    
+    # Cache the simulated price too
+    set_cached_price(cache_key, result)
+    return result
 
 # -------------------- Flight Data Fetching --------------------
 def fetch_flights(bbox=None):
