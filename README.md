@@ -81,6 +81,14 @@ Learn to design parametric drone/RC aircraft parts for 3D printing using Python.
 
 ### **Advanced Specialized Projects**
 
+#### 💼 [Oracle AI Developer Preparation Project](./oracle-job-prep/) ⭐ **NEW**
+Comprehensive preparation guide for **Oracle AI Developer** roles focusing on Oracle Database 23ai/26ai AI features.
+- **Features**: Vector Search, RAG, Generative AI, OCI AI Services, AI-Enhanced SQL
+- **Coverage**: Oracle AI Developer, Database AI Developer, GenAI Application Developer
+- **Content**: AI-specific SQL queries, vector operations, RAG patterns, semantic search
+- **Learning Path**: 10-week AI developer study plan with Oracle 23ai/26ai focus
+- **Tech Stack**: Python, Oracle Database 23ai, OCI AI, LangChain, Embeddings
+
 #### 🤖 [AI Development Project](./ai-development-project/) ⭐ **NEW**
 Comprehensive AI development learning project with practical examples.
 - **Features**: LLMs, Prompt Engineering, RAG, Vector Databases, AI Agents
@@ -139,6 +147,7 @@ This repository provides:
 
 | Project | Language | Complexity | Focus Area | Key Technologies |
 |---------|----------|------------|------------|------------------|
+| **Oracle AI Developer Prep** | **Python** | **🟢→🔴 Progressive** | **AI Interview Preparation** | **Oracle 23ai, Vector Search, RAG, OCI AI, Embeddings** |
 | **AI Development** | **Python** | **🟢→🔴 Progressive** | **AI Development** | **LLMs, RAG, Vector DBs, Agents** |
 | **Fintech Tools** | **Python** | **Intermediate-Advanced** | **Financial Technology** | **FastAPI, FIX/FAST/ITCH, JWT Auth** |
 | **Drone 3D Design** | **Python** | **🟢→🔴 Progressive** | **CAD & 3D Printing** | **CadQuery, NumPy, Parametric Design** |
@@ -191,6 +200,7 @@ python -m pytest tests/ -v
 
 ### 🎯 Quick Start Recommendations
 
+**Preparing for Oracle AI Developer Interview?** → Start with **Oracle AI Developer Preparation Project**
 **New to Programming?** → Start with **Sorting Algorithms Project**
 **New to AI?** → Start with **AI Development Project** (🟢 Beginner level)
 **Experienced Developer?** → Jump to **AI Development Project** (🟡 Intermediate level)
