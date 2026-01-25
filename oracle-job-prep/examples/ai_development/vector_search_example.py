@@ -28,8 +28,20 @@ class VectorSearchExample:
         
         Args:
             connection_string: Oracle database connection string
+                              (e.g., "oracle://username:password@host:port/service")
+        
+        Note:
+            In production, always use environment variables for credentials:
+            import os
+            connection_string = os.getenv('ORACLE_CONNECTION_STRING')
         """
-        self.connection_string = connection_string or "oracle://user:pass@localhost:1521/FREEPDB1"
+        # Require explicit connection string or use environment variable
+        if connection_string is None:
+            import os
+            connection_string = os.getenv('ORACLE_CONNECTION_STRING', 
+                                         'oracle://username:password@localhost:1521/FREEPDB1')
+        
+        self.connection_string = connection_string
         self.embedding_dimension = 384  # Example: all-MiniLM-L6-v2 dimension
         
     def create_vector_table(self) -> str:
@@ -39,8 +51,16 @@ class VectorSearchExample:
         Returns:
             SQL CREATE TABLE statement
         """
+        # Note: Oracle doesn't support IF NOT EXISTS. In production, use PL/SQL:
+        # BEGIN
+        #     EXECUTE IMMEDIATE 'CREATE TABLE knowledge_base ...';
+        # EXCEPTION
+        #     WHEN OTHERS THEN
+        #         IF SQLCODE != -955 THEN RAISE; END IF; -- -955 = table already exists
+        # END;
+        
         sql = f"""
-        CREATE TABLE IF NOT EXISTS knowledge_base (
+        CREATE TABLE knowledge_base (
             kb_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             title VARCHAR2(500),
             content CLOB,

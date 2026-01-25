@@ -19,7 +19,7 @@ AI_SQL_QUERIES = {
             content CLOB,
             category VARCHAR2(50),
             publish_date DATE,
-            embedding VECTOR(1536, FLOAT32),  -- For OpenAI ada-002 embeddings
+            embedding VECTOR(1536, FLOAT32),  -- For OpenAI text-embedding-3-small embeddings
             created_at TIMESTAMP DEFAULT SYSTIMESTAMP
         );
         
