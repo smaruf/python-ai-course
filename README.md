@@ -81,6 +81,14 @@ Learn to design parametric drone/RC aircraft parts for 3D printing using Python.
 
 ### **Advanced Specialized Projects**
 
+#### 💼 [Oracle Job Preparation Project](./oracle-job-prep/) ⭐ **NEW**
+Comprehensive preparation guide for Oracle technical interviews and careers.
+- **Features**: Database (SQL, PL/SQL), Algorithms, System Design, Cloud Computing
+- **Coverage**: Software Engineer, DBA, Cloud Engineer role preparation
+- **Content**: 100+ coding problems, SQL queries, system design patterns
+- **Learning Path**: 10-week structured study plan with mock interviews
+- **Tech Stack**: Python, Oracle DB, SQL, System Design patterns
+
 #### 🤖 [AI Development Project](./ai-development-project/) ⭐ **NEW**
 Comprehensive AI development learning project with practical examples.
 - **Features**: LLMs, Prompt Engineering, RAG, Vector Databases, AI Agents
@@ -139,6 +147,7 @@ This repository provides:
 
 | Project | Language | Complexity | Focus Area | Key Technologies |
 |---------|----------|------------|------------|------------------|
+| **Oracle Job Prep** | **Python** | **🟢→🔴 Progressive** | **Interview Preparation** | **SQL, PL/SQL, Algorithms, System Design** |
 | **AI Development** | **Python** | **🟢→🔴 Progressive** | **AI Development** | **LLMs, RAG, Vector DBs, Agents** |
 | **Fintech Tools** | **Python** | **Intermediate-Advanced** | **Financial Technology** | **FastAPI, FIX/FAST/ITCH, JWT Auth** |
 | **Drone 3D Design** | **Python** | **🟢→🔴 Progressive** | **CAD & 3D Printing** | **CadQuery, NumPy, Parametric Design** |
@@ -191,6 +200,7 @@ python -m pytest tests/ -v
 
 ### 🎯 Quick Start Recommendations
 
+**Preparing for Oracle Interview?** → Start with **Oracle Job Preparation Project**
 **New to Programming?** → Start with **Sorting Algorithms Project**
 **New to AI?** → Start with **AI Development Project** (🟢 Beginner level)
 **Experienced Developer?** → Jump to **AI Development Project** (🟡 Intermediate level)
