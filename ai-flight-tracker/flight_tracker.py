@@ -220,7 +220,8 @@ def search_routes():
         if max_price is not None and route["base_price"] > max_price:
             continue
         
-        price_info = calculate_ticket_price(route_code)
+        # Calculate price with default departure date of 30 days from now
+        price_info = calculate_ticket_price(route_code, datetime.now() + timedelta(days=30))
         if price_info is None:
             continue
         
