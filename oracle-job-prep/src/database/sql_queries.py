@@ -174,11 +174,24 @@ SQL_QUERIES = {
         HAVING COUNT(*) > 1;
         
         -- Delete duplicates keeping the one with lowest employee_id
+        -- Method 1: Using ROWID (Oracle specific, most efficient)
+        DELETE FROM employees e1
+        WHERE ROWID > (
+            SELECT MIN(e2.ROWID)
+            FROM employees e2
+            WHERE e1.email = e2.email
+        );
+        
+        -- Method 2: Using window function (modern approach)
         DELETE FROM employees
-        WHERE employee_id NOT IN (
-            SELECT MIN(employee_id)
-            FROM employees
-            GROUP BY email
+        WHERE employee_id IN (
+            SELECT employee_id
+            FROM (
+                SELECT employee_id, 
+                       ROW_NUMBER() OVER (PARTITION BY email ORDER BY employee_id) as rn
+                FROM employees
+            )
+            WHERE rn > 1
         );
     """,
     
