@@ -221,6 +221,9 @@ def search_routes():
             continue
         
         price_info = calculate_ticket_price(route_code)
+        if price_info is None:
+            continue
+        
         results.append({
             "route_code": route_code,
             "origin": route["origin"],
