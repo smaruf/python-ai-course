@@ -14,7 +14,7 @@ from ..utils.config import settings
 app = FastAPI(
     title="WhatsApp Medical Report Vault",
     description="Secure medical document storage via WhatsApp",
-    version="0.1.0",
+    version="0.1.1",
     docs_url="/docs" if settings.debug else None,
     redoc_url="/redoc" if settings.debug else None,
 )
@@ -39,7 +39,7 @@ async def health_check():
     """Health check endpoint."""
     return {
         "status": "healthy",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "environment": settings.environment
     }
 
@@ -93,7 +93,7 @@ async def root():
     """Root endpoint."""
     return {
         "service": "WhatsApp Medical Report Vault",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "status": "running"
     }
 
