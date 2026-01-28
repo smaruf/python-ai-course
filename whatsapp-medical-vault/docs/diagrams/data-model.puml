@@ -1,0 +1,221 @@
+@startuml Data Model - WhatsApp Medical Report Vault
+
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define primary_key(x) <b><u>x</u></b>
+!define foreign_key(x) <i>x</i>
+!define unique(x) <color:green>x</color>
+
+hide methods
+hide stereotypes
+
+' Main Tables
+Table(users, "users") {
+  primary_key(id): UUID
+  unique(phone_number): VARCHAR(20)
+  created_at: TIMESTAMP
+  last_active: TIMESTAMP
+  status: VARCHAR(20)
+  --
+  Index: phone_number (UNIQUE)
+}
+
+Table(reports, "reports") {
+  primary_key(id): UUID
+  foreign_key(user_id): UUID
+  report_date: DATE
+  hospital_name: VARCHAR(255)
+  report_type: VARCHAR(100)
+  file_name: VARCHAR(255)
+  file_type: VARCHAR(10)
+  file_size: BIGINT
+  storage_key: VARCHAR(500)
+  storage_url: TEXT
+  created_at: TIMESTAMP
+  updated_at: TIMESTAMP
+  deleted_at: TIMESTAMP (nullable)
+  --
+  Index: user_id
+  Index: report_date
+  Index: report_type
+  Index: created_at
+  Index: deleted_at (for soft delete)
+}
+
+Table(sessions, "sessions") {
+  primary_key(id): UUID
+  foreign_key(user_id): UUID
+  unique(phone_number): VARCHAR(20)
+  state: VARCHAR(50)
+  current_step: VARCHAR(50)
+  context_data: JSONB
+  pending_media_id: VARCHAR(255) (nullable)
+  temp_storage_path: VARCHAR(500) (nullable)
+  started_at: TIMESTAMP
+  last_activity: TIMESTAMP
+  expires_at: TIMESTAMP
+  --
+  Index: phone_number
+  Index: user_id
+  Index: state
+  Index: expires_at
+}
+
+Table(metadata_collection, "metadata_collection") {
+  primary_key(id): UUID
+  foreign_key(session_id): UUID
+  foreign_key(report_id): UUID (nullable)
+  report_date: DATE (nullable)
+  hospital_name: VARCHAR(255) (nullable)
+  report_type: VARCHAR(100) (nullable)
+  is_complete: BOOLEAN
+  created_at: TIMESTAMP
+  updated_at: TIMESTAMP
+  --
+  Index: session_id
+  Index: report_id
+}
+
+Table(audit_logs, "audit_logs") {
+  primary_key(id): UUID
+  foreign_key(user_id): UUID
+  foreign_key(report_id): UUID (nullable)
+  action: VARCHAR(50)
+  resource_type: VARCHAR(50)
+  details: JSONB
+  ip_address: VARCHAR(45) (nullable)
+  user_agent: TEXT (nullable)
+  created_at: TIMESTAMP
+  --
+  Index: user_id
+  Index: report_id
+  Index: action
+  Index: created_at
+}
+
+Table(webhooks_log, "webhooks_log") {
+  primary_key(id): UUID
+  webhook_id: VARCHAR(255)
+  phone_number: VARCHAR(20)
+  message_type: VARCHAR(50)
+  payload: JSONB
+  status: VARCHAR(20)
+  error_message: TEXT (nullable)
+  processed_at: TIMESTAMP (nullable)
+  created_at: TIMESTAMP
+  --
+  Index: webhook_id
+  Index: phone_number
+  Index: status
+  Index: created_at
+}
+
+Table(media_files, "media_files") {
+  primary_key(id): UUID
+  foreign_key(report_id): UUID (nullable)
+  whatsapp_media_id: VARCHAR(255)
+  file_name: VARCHAR(255)
+  file_type: VARCHAR(10)
+  file_size: BIGINT
+  mime_type: VARCHAR(100)
+  storage_key: VARCHAR(500)
+  validation_status: VARCHAR(20)
+  validation_errors: JSONB (nullable)
+  virus_scan_status: VARCHAR(20) (nullable)
+  downloaded_at: TIMESTAMP
+  created_at: TIMESTAMP
+  --
+  Index: whatsapp_media_id
+  Index: report_id
+  Index: validation_status
+}
+
+Table(commands_log, "commands_log") {
+  primary_key(id): UUID
+  foreign_key(user_id): UUID
+  command: VARCHAR(50)
+  parameters: JSONB (nullable)
+  status: VARCHAR(20)
+  response: TEXT (nullable)
+  execution_time_ms: INTEGER
+  created_at: TIMESTAMP
+  --
+  Index: user_id
+  Index: command
+  Index: created_at
+}
+
+Table(rate_limits, "rate_limits") {
+  primary_key(id): UUID
+  phone_number: VARCHAR(20)
+  endpoint: VARCHAR(100)
+  request_count: INTEGER
+  window_start: TIMESTAMP
+  window_end: TIMESTAMP
+  created_at: TIMESTAMP
+  --
+  Index: phone_number, endpoint
+  Index: window_end
+}
+
+' Relationships
+users "1" -- "0..*" reports : has >
+users "1" -- "0..*" sessions : has >
+users "1" -- "0..*" audit_logs : has >
+users "1" -- "0..*" commands_log : executes >
+
+sessions "1" -- "0..1" metadata_collection : has >
+
+reports "1" -- "0..*" audit_logs : tracked by >
+reports "1" -- "0..1" media_files : stored as >
+
+sessions "1" -- "0..*" webhooks_log : processes >
+
+metadata_collection "0..1" -- "0..1" reports : creates >
+
+note right of users
+  **User Management**
+  - One record per WhatsApp number
+  - Tracks user activity
+  - Status: active, inactive, blocked
+end note
+
+note right of reports
+  **Report Metadata**
+  - Linked to cloud storage via storage_key
+  - Soft delete support (deleted_at)
+  - Full audit trail
+  - Multiple indexes for fast retrieval
+end note
+
+note right of sessions
+  **Conversation State**
+  - Tracks multi-step conversations
+  - Context stored as JSONB
+  - Auto-expires after timeout
+  - Cached in Redis for performance
+end note
+
+note left of audit_logs
+  **Security & Compliance**
+  - Complete action history
+  - Privacy-compliant logging
+  - No sensitive data in logs
+  - JSONB for flexible details
+end note
+
+note bottom of media_files
+  **Media Tracking**
+  - Links WhatsApp media to reports
+  - Validation & virus scan status
+  - Temporary storage tracking
+end note
+
+note bottom of webhooks_log
+  **Webhook Monitoring**
+  - Tracks all incoming webhooks
+  - Debugging & troubleshooting
+  - Replay capability
+  - JSONB payload storage
+end note
+
+@enduml

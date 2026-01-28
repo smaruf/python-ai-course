@@ -1,0 +1,167 @@
+@startuml WhatsApp Medical Report Vault - System Architecture
+
+!define RECTANGLE class
+
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title WhatsApp Medical Report Vault - System Architecture (Webhook/Pub-Sub & Push-Pull Pattern)
+
+' External Systems
+cloud "WhatsApp Business API" as WhatsApp {
+  component "Meta Platform" as Meta
+  component "Twilio/360dialog" as Provider
+}
+
+' User
+actor "User\n(WhatsApp)" as User
+
+' Ingestion Layer (Webhook/Pub-Sub)
+package "Ingestion Layer\n(Webhook Endpoint)" {
+  component "Webhook\nReceiver" as Webhook <<FastAPI>>
+  component "Message\nValidator" as Validator
+  queue "Message\nQueue" as MsgQueue <<Redis/RabbitMQ>>
+}
+
+' Processing Layer (Push-Pull Workers)
+package "Processing Layer\n(Async Workers)" {
+  component "Worker Pool\n(Pull Pattern)" as Workers <<Celery/RQ>>
+  component "Session\nManager" as SessionMgr
+  component "Metadata\nCollector" as MetaCollector
+  component "Media\nDownloader" as MediaDownloader
+  component "File\nValidator" as FileValidator
+}
+
+' Business Logic Layer
+package "Business Logic Layer" {
+  component "Conversation\nFlow Engine" as FlowEngine
+  component "Command\nProcessor" as CmdProcessor
+  component "Retrieval\nService" as Retrieval
+  component "Security\nValidator" as Security
+}
+
+' Storage Layer
+package "Storage Layer" {
+  database "PostgreSQL\nDatabase" as DB {
+    component "Metadata Store" as MetaDB
+    component "Session Store" as SessionDB
+    component "Audit Log" as AuditDB
+  }
+  
+  cloud "S3/Spaces\nObject Storage" as S3 {
+    component "Encrypted\nFile Storage" as FileStore
+  }
+  
+  database "Redis\nCache" as Cache {
+    component "Session Cache" as SessionCache
+    component "Rate Limiter" as RateLimiter
+  }
+}
+
+' Outbound Layer (Push)
+package "Outbound Layer\n(Push to WhatsApp)" {
+  component "Message\nComposer" as Composer
+  component "Media\nUploader" as MediaUploader
+  queue "Outbound\nQueue" as OutQueue <<Redis/RabbitMQ>>
+  component "Delivery\nWorker" as DeliveryWorker
+}
+
+' Analytics & Monitoring (Optional)
+package "Analytics & Reporting\n(Optional)" {
+  component "Data\nAnalyzer" as Analyzer
+  component "Report\nGenerator" as ReportGen
+  component "Dashboard" as Dashboard
+}
+
+' Monitoring
+package "Observability" {
+  component "Logging\nService" as Logger
+  component "Metrics\nCollector" as Metrics
+  component "Health\nCheck" as Health
+}
+
+' User Interactions
+User -down-> WhatsApp : "Send message/media"
+WhatsApp -down-> Webhook : "POST webhook\n(Push)"
+
+' Webhook to Queue (Pub-Sub)
+Webhook -right-> Validator : "Validate request"
+Validator -down-> MsgQueue : "Publish message\n(Pub-Sub)"
+
+' Workers Pull from Queue
+MsgQueue -down-> Workers : "Pull messages\n(Pull Pattern)"
+Workers -right-> SessionMgr : "Get/Update session"
+Workers -right-> MediaDownloader : "Fetch media"
+Workers -right-> FileValidator : "Validate file"
+
+' Session & Flow
+SessionMgr -down-> SessionDB : "CRUD operations"
+SessionMgr -down-> SessionCache : "Cache sessions"
+FlowEngine -up-> SessionMgr : "Get conversation state"
+MetaCollector -up-> FlowEngine : "Process user input"
+
+' Command Processing
+Workers -down-> CmdProcessor : "Process commands"
+CmdProcessor -down-> Retrieval : "LIST/GET/LATEST"
+Retrieval -down-> MetaDB : "Query metadata"
+Retrieval -down-> FileStore : "Generate signed URLs"
+
+' Storage Operations
+MediaDownloader -down-> FileStore : "Upload files"
+MetaCollector -down-> MetaDB : "Save metadata"
+Security -down-> AuditDB : "Log access"
+
+' Outbound Flow
+FlowEngine -down-> Composer : "Create response"
+CmdProcessor -down-> Composer : "Format results"
+Composer -down-> OutQueue : "Queue message"
+OutQueue -down-> DeliveryWorker : "Pull & send"
+DeliveryWorker -up-> WhatsApp : "POST message API\n(Push)"
+WhatsApp -up-> User : "Deliver message"
+MediaUploader -up-> WhatsApp : "Upload media"
+
+' Analytics (Optional)
+MetaDB -down-> Analyzer : "Extract insights"
+Analyzer -right-> ReportGen : "Generate reports"
+ReportGen -right-> Dashboard : "Visualize data"
+
+' Monitoring
+Workers -down-> Logger : "Log events"
+Workers -down-> Metrics : "Send metrics"
+Webhook -down-> Health : "Health status"
+DeliveryWorker -down-> Metrics : "Track delivery"
+
+' Rate Limiting
+Validator -down-> RateLimiter : "Check limits"
+
+note right of MsgQueue
+  **Pub-Sub Pattern**
+  - Webhook publishes to queue
+  - Decouples ingestion from processing
+  - Ensures reliability & scalability
+end note
+
+note right of Workers
+  **Pull Pattern**
+  - Workers pull from queue
+  - Auto-scaling based on queue depth
+  - Fault-tolerant processing
+end note
+
+note bottom of S3
+  **Security**
+  - Server-side encryption
+  - Private bucket
+  - Signed URLs (expiring)
+  - IAM access control
+end note
+
+note bottom of DB
+  **Data Privacy**
+  - Phone-based isolation
+  - Encrypted at rest
+  - No PII in logs
+  - Audit trail
+end note
+
+@enduml
