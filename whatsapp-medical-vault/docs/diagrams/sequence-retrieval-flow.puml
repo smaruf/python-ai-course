@@ -1,0 +1,279 @@
+@startuml Retrieval Flow Sequence Diagram
+
+title WhatsApp Medical Report Retrieval Flow
+
+actor User
+participant "WhatsApp\nBusiness API" as WhatsApp
+participant "Webhook\nHandler" as Webhook
+participant "Message\nValidator" as Validator
+queue "Message\nQueue" as Queue
+participant "Worker\nPool" as Worker
+participant "Session\nManager" as Session
+participant "Command\nProcessor" as CmdProc
+participant "Retrieval\nService" as Retrieval
+participant "Auth\nService" as Auth
+database "PostgreSQL" as DB
+cloud "S3/Spaces" as S3
+participant "Message\nComposer" as Composer
+participant "Media\nUploader" as MediaUpload
+queue "Outbound\nQueue" as OutQueue
+participant "Delivery\nWorker" as Delivery
+
+== LIST Command ==
+
+User -> WhatsApp : "LIST"
+activate WhatsApp
+
+WhatsApp -> Webhook : POST /webhook\n(text: "LIST")
+activate Webhook
+Webhook -> Validator : Validate signature
+activate Validator
+Validator --> Webhook : Valid ✓
+deactivate Validator
+
+Webhook -> Queue : Publish message
+activate Queue
+Queue --> Webhook : Published
+deactivate Queue
+
+Webhook --> WhatsApp : 200 OK
+deactivate Webhook
+WhatsApp --> User : Message sent ✓
+deactivate WhatsApp
+
+== Async Processing ==
+
+Worker -> Queue : Pull message
+activate Worker
+Queue --> Worker : LIST command
+deactivate Queue
+
+Worker -> Session : Get session
+activate Session
+Session --> Worker : User context
+deactivate Session
+
+Worker -> CmdProc : Process "LIST"
+activate CmdProc
+
+CmdProc -> Auth : Verify access\n(phone_number)
+activate Auth
+Auth -> DB : Check user
+activate DB
+DB --> Auth : Authorized ✓
+deactivate DB
+Auth --> CmdProc : Access granted
+deactivate Auth
+
+CmdProc -> Retrieval : List reports\n(phone_number)
+activate Retrieval
+
+Retrieval -> DB : SELECT * FROM reports\nWHERE phone = ?\nORDER BY date DESC\nLIMIT 10
+activate DB
+DB --> Retrieval : [Report1, Report2, ...]
+deactivate DB
+
+Retrieval --> CmdProc : Report list
+deactivate Retrieval
+
+CmdProc -> Composer : Format list message
+activate Composer
+
+Composer -> Composer : Build message:\n📋 Your Reports:\n1. Blood Test - 25/12/2025\n2. MRI Scan - 20/11/2025\n...
+
+Composer -> OutQueue : Queue formatted message
+activate OutQueue
+OutQueue --> Composer : Queued
+deactivate OutQueue
+deactivate Composer
+deactivate CmdProc
+
+OutQueue -> Delivery : Pull message
+activate Delivery
+Delivery -> WhatsApp : POST /messages
+activate WhatsApp
+WhatsApp --> User : "📋 Your Reports:\n1. Blood Test\n   📅 25/12/2025\n   🏥 City Hospital\n..."
+deactivate WhatsApp
+deactivate Delivery
+deactivate Worker
+
+== GET Command with File Delivery ==
+
+User -> WhatsApp : "GET 1"
+activate WhatsApp
+WhatsApp -> Webhook : POST /webhook
+activate Webhook
+Webhook -> Validator : Validate
+activate Validator
+Validator --> Webhook : Valid ✓
+deactivate Validator
+Webhook -> Queue : Publish
+activate Queue
+Queue --> Webhook : Published
+deactivate Queue
+Webhook --> WhatsApp : 200 OK
+deactivate Webhook
+WhatsApp --> User : Message sent ✓
+deactivate WhatsApp
+
+Worker -> Queue : Pull message
+activate Worker
+Queue --> Worker : GET 1 command
+deactivate Queue
+
+Worker -> CmdProc : Process "GET 1"
+activate CmdProc
+
+CmdProc -> Auth : Verify access\n(phone, report_id: 1)
+activate Auth
+Auth -> DB : SELECT * FROM reports\nWHERE id = 1\nAND phone = ?
+activate DB
+
+alt Unauthorized access
+    DB --> Auth : Report not found or\nbelongs to different user
+    deactivate DB
+    Auth --> CmdProc : Access denied ✗
+    deactivate Auth
+    
+    CmdProc -> Composer : Create error message
+    activate Composer
+    Composer -> OutQueue : Queue error
+    activate OutQueue
+    OutQueue --> Composer : Queued
+    deactivate OutQueue
+    deactivate Composer
+    deactivate CmdProc
+    
+    OutQueue -> Delivery : Pull message
+    activate Delivery
+    Delivery -> WhatsApp : POST /messages
+    activate WhatsApp
+    WhatsApp --> User : "❌ Report not found or\naccess denied."
+    deactivate WhatsApp
+    deactivate Delivery
+    deactivate Worker
+else Authorized access
+    DB --> Auth : Report metadata
+    deactivate DB
+    Auth --> CmdProc : Access granted ✓
+    deactivate Auth
+    
+    CmdProc -> Retrieval : Get report (id: 1)
+    activate Retrieval
+    
+    Retrieval -> S3 : Generate signed URL\n(expires in 1 hour)
+    activate S3
+    S3 --> Retrieval : Signed URL
+    deactivate S3
+    
+    Retrieval -> S3 : Download file
+    activate S3
+    S3 --> Retrieval : File data
+    deactivate S3
+    
+    Retrieval --> CmdProc : File ready
+    deactivate Retrieval
+    
+    CmdProc -> MediaUpload : Upload to WhatsApp
+    activate MediaUpload
+    MediaUpload -> WhatsApp : POST /media
+    activate WhatsApp
+    WhatsApp --> MediaUpload : Media ID
+    deactivate WhatsApp
+    MediaUpload --> CmdProc : WhatsApp media_id
+    deactivate MediaUpload
+    
+    CmdProc -> Composer : Create media message
+    activate Composer
+    Composer -> OutQueue : Queue media message
+    activate OutQueue
+    OutQueue --> Composer : Queued
+    deactivate OutQueue
+    deactivate Composer
+    deactivate CmdProc
+    
+    OutQueue -> Delivery : Pull message
+    activate Delivery
+    Delivery -> WhatsApp : POST /messages\n(with media_id)
+    activate WhatsApp
+    WhatsApp --> User : "📄 Blood Test Report\n📅 25/12/2025\n🏥 City Hospital"\n+ [PDF Document]
+    deactivate WhatsApp
+    
+    Delivery -> DB : Log access\n(audit trail)
+    activate DB
+    DB --> Delivery : Logged
+    deactivate DB
+    deactivate Delivery
+    deactivate Worker
+end
+
+== LATEST Command ==
+
+User -> WhatsApp : "LATEST"
+activate WhatsApp
+WhatsApp -> Webhook : POST /webhook
+activate Webhook
+Webhook -> Validator : Validate
+activate Validator
+Validator --> Webhook : Valid ✓
+deactivate Validator
+Webhook -> Queue : Publish
+activate Queue
+Queue --> Webhook : Published
+deactivate Queue
+Webhook --> WhatsApp : 200 OK
+deactivate Webhook
+WhatsApp --> User : Message sent ✓
+deactivate WhatsApp
+
+Worker -> Queue : Pull message
+activate Worker
+Queue --> Worker : LATEST command
+deactivate Queue
+
+Worker -> CmdProc : Process "LATEST"
+activate CmdProc
+
+CmdProc -> Retrieval : Get latest report\n(phone_number)
+activate Retrieval
+Retrieval -> DB : SELECT * FROM reports\nWHERE phone = ?\nORDER BY created_at DESC\nLIMIT 1
+activate DB
+DB --> Retrieval : Latest report
+deactivate DB
+
+Retrieval -> S3 : Get file
+activate S3
+S3 --> Retrieval : File data
+deactivate S3
+
+Retrieval --> CmdProc : Report & file
+deactivate Retrieval
+
+CmdProc -> MediaUpload : Upload to WhatsApp
+activate MediaUpload
+MediaUpload -> WhatsApp : POST /media
+activate WhatsApp
+WhatsApp --> MediaUpload : Media ID
+deactivate WhatsApp
+MediaUpload --> CmdProc : media_id
+deactivate MediaUpload
+
+CmdProc -> Composer : Create response
+activate Composer
+Composer -> OutQueue : Queue message
+activate OutQueue
+OutQueue --> Composer : Queued
+deactivate OutQueue
+deactivate Composer
+deactivate CmdProc
+
+OutQueue -> Delivery : Pull message
+activate Delivery
+Delivery -> WhatsApp : POST /messages
+activate WhatsApp
+WhatsApp --> User : "📄 Your latest report:\n[Document attached]"
+deactivate WhatsApp
+deactivate Delivery
+deactivate Worker
+
+@enduml

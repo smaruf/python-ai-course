@@ -1,0 +1,175 @@
+@startuml Deployment Architecture
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+
+title Deployment Architecture - WhatsApp Medical Report Vault (Cloud Native)
+
+Deployment_Node(internet, "Internet", "Public Network") {
+    System_Ext(users, "WhatsApp Users", "End users on mobile devices")
+    System_Ext(whatsapp_cloud, "WhatsApp Business API", "Meta Cloud Platform / Twilio / 360dialog")
+}
+
+Deployment_Node(aws_cloud, "AWS Cloud / DigitalOcean", "Cloud Infrastructure") {
+    
+    Deployment_Node(vpc, "VPC - Private Network", "Isolated Network") {
+        
+        Deployment_Node(lb_zone, "Load Balancer Zone", "Public Subnet") {
+            Deployment_Node(alb, "Application Load Balancer", "ALB / Nginx") {
+                Container(load_balancer, "Load Balancer", "AWS ALB / Nginx", "HTTPS termination, SSL/TLS")
+            }
+        }
+        
+        Deployment_Node(app_zone, "Application Zone", "Private Subnet") {
+            Deployment_Node(api_cluster, "API Cluster", "ECS Fargate / Kubernetes / Docker") {
+                Container(webhook_api_1, "Webhook API - 1", "FastAPI Container", "Handles webhooks")
+                Container(webhook_api_2, "Webhook API - 2", "FastAPI Container", "Handles webhooks")
+                Container(webhook_api_n, "Webhook API - N", "FastAPI Container", "Auto-scaling")
+            }
+            
+            Deployment_Node(worker_cluster, "Worker Cluster", "ECS Fargate / Kubernetes / Docker") {
+                Container(worker_1, "Worker - 1", "Celery/RQ Container", "Async processing")
+                Container(worker_2, "Worker - 2", "Celery/RQ Container", "Async processing")
+                Container(worker_n, "Worker - N", "Celery/RQ Container", "Auto-scaling")
+            }
+        }
+        
+        Deployment_Node(cache_zone, "Cache & Queue Zone", "Private Subnet") {
+            Deployment_Node(redis_cluster, "Redis Cluster", "ElastiCache / Managed Redis") {
+                ContainerDb(redis_primary, "Redis Primary", "Redis 7.x", "Cache & Queue")
+                ContainerDb(redis_replica_1, "Redis Replica 1", "Redis 7.x", "Read replica")
+                ContainerDb(redis_replica_2, "Redis Replica 2", "Redis 7.x", "Read replica")
+            }
+        }
+        
+        Deployment_Node(db_zone, "Database Zone", "Private Subnet") {
+            Deployment_Node(postgres_cluster, "PostgreSQL Cluster", "RDS / Managed PostgreSQL") {
+                ContainerDb(postgres_primary, "PostgreSQL Primary", "PostgreSQL 15", "Main database")
+                ContainerDb(postgres_standby, "PostgreSQL Standby", "PostgreSQL 15", "Failover replica")
+            }
+        }
+    }
+    
+    Deployment_Node(storage_zone, "Object Storage Zone", "AWS S3 / DigitalOcean Spaces") {
+        Deployment_Node(s3_bucket, "Encrypted S3 Bucket", "S3 / Spaces") {
+            ContainerDb(s3_storage, "Medical Reports Storage", "S3", "Encrypted file storage")
+        }
+    }
+    
+    Deployment_Node(monitoring_zone, "Monitoring & Observability", "Monitoring Tools") {
+        Container(prometheus, "Prometheus", "Metrics DB", "Time-series metrics")
+        Container(grafana, "Grafana", "Dashboard", "Visualization")
+        Container(cloudwatch, "CloudWatch / Logs", "Logging", "Centralized logging")
+        Container(sentry, "Sentry", "Error Tracking", "Error monitoring")
+    }
+}
+
+Deployment_Node(cicd, "CI/CD Pipeline", "GitHub Actions / GitLab CI") {
+    Container(github_actions, "GitHub Actions", "CI/CD", "Automated deployment")
+}
+
+' External Connections
+Rel(users, whatsapp_cloud, "Send/Receive messages", "HTTPS")
+Rel(whatsapp_cloud, load_balancer, "POST /webhook", "HTTPS")
+
+' Load Balancer to API
+Rel(load_balancer, webhook_api_1, "Distribute requests", "HTTP")
+Rel(load_balancer, webhook_api_2, "Distribute requests", "HTTP")
+Rel(load_balancer, webhook_api_n, "Distribute requests", "HTTP")
+
+' API to Redis Queue
+Rel(webhook_api_1, redis_primary, "Publish messages", "Redis Protocol")
+Rel(webhook_api_2, redis_primary, "Publish messages", "Redis Protocol")
+Rel(webhook_api_n, redis_primary, "Publish messages", "Redis Protocol")
+
+' Workers to Redis Queue
+Rel(worker_1, redis_primary, "Pull messages", "Redis Protocol")
+Rel(worker_2, redis_primary, "Pull messages", "Redis Protocol")
+Rel(worker_n, redis_primary, "Pull messages", "Redis Protocol")
+
+' Workers to Database
+Rel(worker_1, postgres_primary, "Read/Write data", "PostgreSQL")
+Rel(worker_2, postgres_primary, "Read/Write data", "PostgreSQL")
+Rel(worker_n, postgres_primary, "Read/Write data", "PostgreSQL")
+
+' Workers to S3
+Rel(worker_1, s3_storage, "Upload/Download files", "HTTPS/S3 API")
+Rel(worker_2, s3_storage, "Upload/Download files", "HTTPS/S3 API")
+Rel(worker_n, s3_storage, "Upload/Download files", "HTTPS/S3 API")
+
+' Workers to WhatsApp (outbound)
+Rel(worker_1, whatsapp_cloud, "Send messages", "HTTPS")
+Rel(worker_2, whatsapp_cloud, "Send messages", "HTTPS")
+Rel(worker_n, whatsapp_cloud, "Send messages", "HTTPS")
+
+' Redis Replication
+Rel(redis_primary, redis_replica_1, "Replicate data", "Redis Protocol")
+Rel(redis_primary, redis_replica_2, "Replicate data", "Redis Protocol")
+
+' PostgreSQL Replication
+Rel(postgres_primary, postgres_standby, "Streaming replication", "PostgreSQL")
+
+' Monitoring
+Rel(webhook_api_1, prometheus, "Metrics", "HTTP")
+Rel(worker_1, prometheus, "Metrics", "HTTP")
+Rel(prometheus, grafana, "Query", "PromQL")
+Rel(webhook_api_1, cloudwatch, "Logs", "CloudWatch Logs API")
+Rel(worker_1, cloudwatch, "Logs", "CloudWatch Logs API")
+Rel(webhook_api_1, sentry, "Errors", "HTTPS")
+Rel(worker_1, sentry, "Errors", "HTTPS")
+
+' CI/CD
+Rel(github_actions, api_cluster, "Deploy", "Docker/K8s API")
+Rel(github_actions, worker_cluster, "Deploy", "Docker/K8s API")
+
+note right of vpc
+  **Network Security**
+  - Private subnets for app/db/cache
+  - Security groups restrict access
+  - NAT Gateway for outbound
+  - VPC endpoints for AWS services
+end note
+
+note right of s3_storage
+  **Storage Security**
+  - Server-side encryption (AES-256)
+  - Versioning enabled
+  - Lifecycle policies
+  - Private bucket (no public access)
+  - IAM-based access control
+end note
+
+note bottom of redis_cluster
+  **High Availability**
+  - Primary-replica setup
+  - Auto-failover
+  - Cluster mode (optional)
+  - Persistence enabled
+end note
+
+note bottom of postgres_cluster
+  **Database HA**
+  - Primary-standby replication
+  - Automated backups
+  - Point-in-time recovery
+  - Read replicas for scaling
+end note
+
+note top of api_cluster
+  **Auto-Scaling**
+  - CPU/Memory-based scaling
+  - Min: 2 instances
+  - Max: 10+ instances
+  - Health checks
+end note
+
+note top of worker_cluster
+  **Worker Scaling**
+  - Queue depth-based scaling
+  - Min: 2 workers
+  - Max: 20+ workers
+  - Graceful shutdown
+end note
+
+SHOW_LEGEND()
+
+@enduml

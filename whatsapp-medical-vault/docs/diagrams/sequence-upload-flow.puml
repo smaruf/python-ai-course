@@ -1,0 +1,264 @@
+@startuml Upload Flow Sequence Diagram
+
+title WhatsApp Medical Report Upload Flow (Webhook & Pub-Sub Pattern)
+
+actor User
+participant "WhatsApp\nBusiness API" as WhatsApp
+participant "Webhook\nHandler" as Webhook
+participant "Message\nValidator" as Validator
+queue "Message\nQueue" as Queue
+participant "Worker\nPool" as Worker
+participant "Session\nManager" as Session
+participant "Media\nService" as Media
+participant "Flow\nEngine" as Flow
+participant "Metadata\nCollector" as MetaCollector
+database "PostgreSQL" as DB
+database "Redis\nCache" as Redis
+cloud "S3/Spaces" as S3
+participant "Message\nComposer" as Composer
+queue "Outbound\nQueue" as OutQueue
+participant "Delivery\nWorker" as Delivery
+
+== Document Upload ==
+
+User -> WhatsApp : Upload image/PDF\n(via WhatsApp chat)
+activate WhatsApp
+
+WhatsApp -> Webhook : POST /webhook\n(media_id, phone)
+activate Webhook
+note right: **Webhook receives push notification**\nfrom WhatsApp API
+
+Webhook -> Validator : Validate signature\n& payload
+activate Validator
+Validator --> Webhook : Valid ✓
+deactivate Validator
+
+Webhook -> Queue : Publish message\n(Pub-Sub pattern)
+activate Queue
+note right: **Message published to queue**\nWebhook returns immediately
+
+Webhook --> WhatsApp : 200 OK\n(within 10s)
+deactivate Webhook
+WhatsApp --> User : Message sent ✓
+deactivate WhatsApp
+
+== Asynchronous Processing ==
+
+Worker -> Queue : Pull message\n(Pull pattern)
+activate Worker
+Queue --> Worker : Message data
+deactivate Queue
+note left: **Worker pulls from queue**\nAuto-scaling based on depth
+
+Worker -> Session : Get session\n(phone_number)
+activate Session
+Session -> Redis : Check cache
+activate Redis
+Redis --> Session : Session state
+deactivate Redis
+
+alt Session not in cache
+    Session -> DB : Load session
+    activate DB
+    DB --> Session : Session data
+    deactivate DB
+end
+
+Session --> Worker : Current state
+deactivate Session
+
+Worker -> Media : Download media\n(media_id)
+activate Media
+Media -> WhatsApp : GET /media/{id}
+activate WhatsApp
+WhatsApp --> Media : Media file
+deactivate WhatsApp
+
+Media -> Media : Validate format\n(PDF/JPG/PNG)
+Media -> Media : Check file size
+Media -> Media : Virus scan\n(optional)
+
+alt Invalid file
+    Media --> Worker : Validation failed ✗
+    Worker -> Composer : Create error message
+    activate Composer
+    Composer -> OutQueue : Queue error message
+    activate OutQueue
+    OutQueue --> Composer : Queued
+    deactivate OutQueue
+    deactivate Composer
+    
+    OutQueue -> Delivery : Pull message
+    activate Delivery
+    Delivery -> WhatsApp : POST /messages
+    activate WhatsApp
+    WhatsApp --> User : "Invalid file format.\nPlease send PDF/JPG/PNG"
+    deactivate WhatsApp
+    deactivate Delivery
+else Valid file
+    Media -> S3 : Upload encrypted file\n(temp location)
+    activate S3
+    S3 --> Media : Upload URL
+    deactivate S3
+    Media --> Worker : File ready ✓
+end
+deactivate Media
+
+== Metadata Collection Flow ==
+
+Worker -> Flow : Process state\n(awaiting_metadata)
+activate Flow
+
+alt First upload (no metadata)
+    Flow -> MetaCollector : Start collection flow
+    activate MetaCollector
+    
+    MetaCollector -> Composer : Ask for report date
+    activate Composer
+    Composer -> OutQueue : Queue message
+    activate OutQueue
+    OutQueue --> Composer : Queued
+    deactivate OutQueue
+    deactivate Composer
+    
+    OutQueue -> Delivery : Pull message
+    activate Delivery
+    Delivery -> WhatsApp : POST /messages
+    activate WhatsApp
+    WhatsApp --> User : "📅 When was this\nreport created?\n(DD/MM/YYYY)"
+    deactivate WhatsApp
+    deactivate Delivery
+    
+    MetaCollector -> Session : Update state\n(awaiting_date)
+    activate Session
+    Session -> Redis : Save state
+    activate Redis
+    Redis --> Session : Saved
+    deactivate Redis
+    Session -> DB : Persist state
+    activate DB
+    DB --> Session : Saved
+    deactivate DB
+    Session --> MetaCollector : State updated
+    deactivate Session
+    deactivate MetaCollector
+end
+
+deactivate Flow
+deactivate Worker
+
+== User Provides Date ==
+
+User -> WhatsApp : "25/12/2025"
+activate WhatsApp
+WhatsApp -> Webhook : POST /webhook\n(text message)
+activate Webhook
+Webhook -> Validator : Validate
+activate Validator
+Validator --> Webhook : Valid ✓
+deactivate Validator
+Webhook -> Queue : Publish message
+activate Queue
+Queue --> Webhook : Published
+deactivate Queue
+Webhook --> WhatsApp : 200 OK
+deactivate Webhook
+WhatsApp --> User : Message sent ✓
+deactivate WhatsApp
+
+Worker -> Queue : Pull message
+activate Worker
+Queue --> Worker : Date message
+deactivate Queue
+
+Worker -> Session : Get session
+activate Session
+Session -> Redis : Get cached state
+activate Redis
+Redis --> Session : awaiting_date
+deactivate Redis
+Session --> Worker : State: awaiting_date
+deactivate Session
+
+Worker -> Flow : Process date input
+activate Flow
+Flow -> Flow : Validate date format
+Flow -> MetaCollector : Save date
+activate MetaCollector
+MetaCollector -> DB : Update metadata
+activate DB
+DB --> MetaCollector : Saved
+deactivate DB
+MetaCollector --> Flow : Saved ✓
+deactivate MetaCollector
+
+Flow -> Composer : Ask for hospital
+activate Composer
+Composer -> OutQueue : Queue message
+activate OutQueue
+OutQueue --> Composer : Queued
+deactivate OutQueue
+deactivate Composer
+
+OutQueue -> Delivery : Pull message
+activate Delivery
+Delivery -> WhatsApp : POST /messages
+activate WhatsApp
+WhatsApp --> User : "🏥 Which hospital\nissued this report?"
+deactivate WhatsApp
+deactivate Delivery
+
+Flow -> Session : Update state\n(awaiting_hospital)
+activate Session
+Session -> Redis : Save state
+activate Redis
+Redis --> Session : Saved
+deactivate Redis
+Session --> Flow : Updated
+deactivate Session
+deactivate Flow
+deactivate Worker
+
+note over User, Delivery
+  **Conversation continues similarly for:**
+  - Hospital name collection
+  - Report type collection
+  - Final confirmation
+end note
+
+== Final Storage ==
+
+Worker -> Flow : All metadata collected
+activate Worker
+activate Flow
+
+Flow -> S3 : Move to final location\n(/users/{phone}/reports/{year}/{uuid}.ext)
+activate S3
+S3 --> Flow : Moved ✓
+deactivate S3
+
+Flow -> DB : Save final metadata\n(with storage key)
+activate DB
+DB --> Flow : Saved ✓
+deactivate DB
+
+Flow -> Composer : Create success message
+activate Composer
+Composer -> OutQueue : Queue confirmation
+activate OutQueue
+OutQueue --> Composer : Queued
+deactivate OutQueue
+deactivate Composer
+
+OutQueue -> Delivery : Pull message
+activate Delivery
+Delivery -> WhatsApp : POST /messages
+activate WhatsApp
+WhatsApp --> User : "✅ Report saved successfully!\n\nType HELP for commands."
+deactivate WhatsApp
+deactivate Delivery
+
+deactivate Flow
+deactivate Worker
+
+@enduml

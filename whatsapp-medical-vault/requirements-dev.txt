@@ -1,0 +1,37 @@
+# Development Dependencies
+
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+pytest-xdist==3.5.0  # Parallel testing
+coverage==7.4.0
+
+# Code Quality
+black==24.1.1  # Code formatting
+isort==5.13.2  # Import sorting
+flake8==7.0.0  # Linting
+pylint==3.0.3  # Linting
+mypy==1.8.0  # Type checking
+bandit==1.7.6  # Security linting
+
+# Documentation
+mkdocs==1.5.3
+mkdocs-material==9.5.6
+mkdocstrings[python]==0.24.0
+
+# Database Tools
+pgcli==4.0.1  # PostgreSQL CLI
+redis-cli==0.0.1  # Redis CLI (via redli)
+
+# Debugging
+ipython==8.20.0
+ipdb==0.13.13
+pdbpp==0.10.3
+
+# Load Testing
+locust==2.20.0
+
+# Pre-commit Hooks
+pre-commit==3.6.0

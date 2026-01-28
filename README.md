@@ -79,6 +79,15 @@ Learn to design parametric drone/RC aircraft parts for 3D printing using Python.
 - **Learning Path**: 12-week structured course from beginner to advanced
 - **Tech Stack**: CadQuery, NumPy, SciPy, 3D printing optimization
 
+#### 📱 [WhatsApp Medical Report Vault](./whatsapp-medical-vault/) ⭐ **NEW**
+Secure HIPAA-conscious WhatsApp-based medical document vault with complete architecture.
+- **Features**: WhatsApp integration, secure storage, conversational UI, report retrieval
+- **Architecture**: Webhook/Pub-Sub pattern, Push-Pull workers, event-driven design
+- **Diagrams**: 6 comprehensive PlantUML architecture diagrams (system, component, sequence, data model, deployment)
+- **Security**: Phone-based access control, encryption at rest/transit, audit trails
+- **Tech Stack**: FastAPI, Celery, PostgreSQL, Redis, S3/Spaces, WhatsApp Business API
+- **Documentation**: Complete 10 EPICs breakdown, deployment guides, architecture docs
+
 ### **Advanced Specialized Projects**
 
 #### 💼 [Oracle AI Developer Preparation Project](./oracle-job-prep/) ⭐ **NEW**
@@ -149,6 +158,7 @@ This repository provides:
 |---------|----------|------------|------------|------------------|
 | **Oracle AI Developer Prep** | **Python** | **🟢→🔴 Progressive** | **AI Interview Preparation** | **Oracle 23ai, Vector Search, RAG, OCI AI, Embeddings** |
 | **AI Development** | **Python** | **🟢→🔴 Progressive** | **AI Development** | **LLMs, RAG, Vector DBs, Agents** |
+| **WhatsApp Medical Vault** | **Python** | **Intermediate-Advanced** | **Healthcare Tech** | **WhatsApp API, FastAPI, Celery, S3, Architecture** |
 | **Fintech Tools** | **Python** | **Intermediate-Advanced** | **Financial Technology** | **FastAPI, FIX/FAST/ITCH, JWT Auth** |
 | **Drone 3D Design** | **Python** | **🟢→🔴 Progressive** | **CAD & 3D Printing** | **CadQuery, NumPy, Parametric Design** |
 | Sorting Algorithms | Python | Beginner | Algorithms | Matplotlib, NumPy |
@@ -193,10 +203,11 @@ python -m pytest tests/ -v
 3. **Design Patterns** → Understand OOP and software design principles
 4. **Algorithms & Data Structures** → Advanced CS concepts and graph theory
 5. **Web Applications** → Full-stack development with modern frameworks
-6. **Fintech Tools** → Financial technology with banking and messaging protocols
-7. **Drone 3D Design** → Parametric CAD design for 3D printing and hardware
-8. **NASDAQ CSE** → Complex system integration with real-time trading
-9. **Bayesian Stats** → Advanced data science and statistical AI
+6. **WhatsApp Medical Vault** → Healthcare tech with event-driven architecture
+7. **Fintech Tools** → Financial technology with banking and messaging protocols
+8. **Drone 3D Design** → Parametric CAD design for 3D printing and hardware
+9. **NASDAQ CSE** → Complex system integration with real-time trading
+10. **Bayesian Stats** → Advanced data science and statistical AI
 
 ### 🎯 Quick Start Recommendations
 
@@ -204,6 +215,7 @@ python -m pytest tests/ -v
 **New to Programming?** → Start with **Sorting Algorithms Project**
 **New to AI?** → Start with **AI Development Project** (🟢 Beginner level)
 **Experienced Developer?** → Jump to **AI Development Project** (🟡 Intermediate level)
+**Interest in Healthcare Tech?** → Explore **WhatsApp Medical Vault Project**
 **Interest in Finance/Trading?** → Explore **Fintech Tools Project** or **NASDAQ CSE Project**
 **Want Full-Stack Skills?** → Try **Web Applications Project**
 **Interest in Hardware/Drones/3D Printing?** → Check out **Drone 3D Printing Design Project**

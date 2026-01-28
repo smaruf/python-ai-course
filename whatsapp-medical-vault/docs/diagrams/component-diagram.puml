@@ -1,0 +1,103 @@
+@startuml WhatsApp Medical Report Vault - Component Diagram
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Component Diagram - WhatsApp Medical Report Vault
+
+Container_Boundary(api, "API Layer") {
+    Component(webhook, "Webhook Handler", "FastAPI", "Receives WhatsApp webhooks")
+    Component(validator, "Request Validator", "Python", "Validates signatures & format")
+    Component(queue_pub, "Message Publisher", "Python/Redis", "Publishes to message queue")
+}
+
+Container_Boundary(workers, "Worker Layer") {
+    Component(worker_pool, "Worker Pool", "Celery/RQ", "Async task processors")
+    Component(session_mgr, "Session Manager", "Python", "Manages conversation state")
+    Component(media_svc, "Media Service", "Python", "Downloads & validates media")
+    Component(metadata_svc, "Metadata Service", "Python", "Collects report metadata")
+    Component(flow_engine, "Flow Engine", "Python", "Manages conversation flows")
+}
+
+Container_Boundary(business, "Business Logic") {
+    Component(cmd_processor, "Command Processor", "Python", "Processes LIST/GET/HELP commands")
+    Component(retrieval_svc, "Retrieval Service", "Python", "Searches & retrieves reports")
+    Component(auth_svc, "Authorization Service", "Python", "Phone-based access control")
+    Component(audit_svc, "Audit Service", "Python", "Logs access & actions")
+}
+
+Container_Boundary(storage, "Storage Layer") {
+    ComponentDb(postgres, "PostgreSQL", "Database", "Metadata & sessions")
+    ComponentDb(redis, "Redis", "Cache/Queue", "Sessions, queues, rate limiting")
+    ComponentDb(s3, "S3/Spaces", "Object Storage", "Encrypted file storage")
+}
+
+Container_Boundary(outbound, "Outbound Layer") {
+    Component(composer, "Message Composer", "Python", "Formats WhatsApp messages")
+    Component(media_uploader, "Media Uploader", "Python", "Uploads media to WhatsApp")
+    Component(delivery_worker, "Delivery Worker", "Python", "Sends messages to WhatsApp")
+    Component(queue_sub, "Message Subscriber", "Python/Redis", "Pulls from outbound queue")
+}
+
+Container_Boundary(analytics, "Analytics Layer (Optional)") {
+    Component(analyzer, "Data Analyzer", "Python/Pandas", "Analyzes usage patterns")
+    Component(report_gen, "Report Generator", "Python", "Generates insights")
+    Component(dashboard, "Dashboard", "Streamlit/Plotly", "Visualizes analytics")
+}
+
+Container_Boundary(monitoring, "Observability") {
+    Component(logger, "Logger", "Python Logging", "Structured logging")
+    Component(metrics, "Metrics Collector", "Prometheus", "Collects metrics")
+    Component(health, "Health Checker", "Python", "Monitors service health")
+}
+
+System_Ext(whatsapp_api, "WhatsApp Business API", "Meta/Twilio/360dialog")
+
+' API Layer Relations
+Rel(whatsapp_api, webhook, "POST webhook", "HTTPS")
+Rel(webhook, validator, "Validate request")
+Rel(validator, queue_pub, "Publish valid message")
+Rel(queue_pub, redis, "Enqueue message")
+
+' Worker Layer Relations
+Rel(redis, worker_pool, "Pull messages")
+Rel(worker_pool, session_mgr, "Get/Update session")
+Rel(worker_pool, media_svc, "Download media")
+Rel(worker_pool, flow_engine, "Process conversation")
+Rel(session_mgr, postgres, "CRUD sessions")
+Rel(session_mgr, redis, "Cache sessions")
+Rel(media_svc, s3, "Upload files")
+Rel(flow_engine, metadata_svc, "Collect metadata")
+Rel(metadata_svc, postgres, "Save metadata")
+
+' Business Logic Relations
+Rel(flow_engine, cmd_processor, "Process commands")
+Rel(cmd_processor, retrieval_svc, "Retrieve reports")
+Rel(retrieval_svc, postgres, "Query metadata")
+Rel(retrieval_svc, s3, "Get file URLs")
+Rel(auth_svc, postgres, "Verify access")
+Rel(audit_svc, postgres, "Log actions")
+
+' Outbound Relations
+Rel(flow_engine, composer, "Create response")
+Rel(cmd_processor, composer, "Format results")
+Rel(composer, redis, "Queue outbound")
+Rel(redis, queue_sub, "Pull outbound")
+Rel(queue_sub, delivery_worker, "Deliver message")
+Rel(delivery_worker, media_uploader, "Upload media")
+Rel(media_uploader, whatsapp_api, "POST media", "HTTPS")
+Rel(delivery_worker, whatsapp_api, "POST message", "HTTPS")
+
+' Analytics Relations
+Rel(postgres, analyzer, "Extract data")
+Rel(analyzer, report_gen, "Generate reports")
+Rel(report_gen, dashboard, "Display insights")
+
+' Monitoring Relations
+Rel(worker_pool, logger, "Log events")
+Rel(worker_pool, metrics, "Send metrics")
+Rel(webhook, health, "Report health")
+Rel(delivery_worker, metrics, "Track delivery")
+
+SHOW_LEGEND()
+
+@enduml
