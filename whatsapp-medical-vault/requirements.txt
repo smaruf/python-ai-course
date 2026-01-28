@@ -1,5 +1,5 @@
 # Core Web Framework
-fastapi==0.109.0
+fastapi==0.109.1
 uvicorn[standard]==0.27.0
 pydantic==2.5.3
 pydantic-settings==2.1.0
@@ -26,13 +26,13 @@ requests==2.31.0  # Sync HTTP client
 # Security
 python-jose[cryptography]==3.3.0  # JWT
 passlib[bcrypt]==1.7.4  # Password hashing
-python-multipart==0.0.6  # Form data parsing
-cryptography==42.0.0  # Encryption
+python-multipart==0.0.22  # Form data parsing
+cryptography==42.0.4  # Encryption
 
 # Validation & Data Processing
 python-magic==0.4.27  # File type detection
 filetype==1.2.0  # Additional file type detection
-Pillow==10.2.0  # Image processing
+Pillow==10.3.0  # Image processing
 PyPDF2==3.0.1  # PDF processing
 
 # Virus Scanning (Optional)
