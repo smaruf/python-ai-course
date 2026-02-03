@@ -58,7 +58,7 @@ try:
     analyze_skew = _skew_module.analyze_skew
     
     # Import visualization module
-    _viz_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '04_visualization.py')
+    _viz_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '06_visualization.py')
     _viz_module = import_module_from_file('visualization', _viz_path)
     plot_skew = _viz_module.plot_skew
     visualize_clump_locations = _viz_module.visualize_clump_locations

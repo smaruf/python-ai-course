@@ -66,13 +66,55 @@ def test_skew_array():
     print("✓ All tests passed!")
     return True
 
+def test_motif_finding():
+    """Test the motif finding module."""
+    print("\n" + "="*70)
+    print("TEST 3: Motif Finding")
+    print("="*70)
+    
+    module = load_module('03_motif_finding.py')
+    
+    dna_sequences = ["ATTTGGC", "TGCCTTA", "CGGTATC", "GAAAATT"]
+    motifs = module.find_motifs(dna_sequences, k=3, d=1)
+    
+    print(f"✓ Module loaded successfully")
+    print(f"✓ Found {len(motifs)} motifs")
+    
+    # Verify results
+    assert len(motifs) > 0, "Should find at least one motif"
+    
+    print("✓ All tests passed!")
+    return True
+
+def test_hamming_distance():
+    """Test the hamming distance module."""
+    print("\n" + "="*70)
+    print("TEST 4: Hamming Distance")
+    print("="*70)
+    
+    module = load_module('04_hamming_distance.py')
+    
+    dist = module.hamming_distance("GATTACA", "GCATGCU")
+    neighbors = module.neighbors("ACG", 1)
+    
+    print(f"✓ Module loaded successfully")
+    print(f"✓ Hamming distance calculated: {dist}")
+    print(f"✓ Generated {len(neighbors)} neighbors")
+    
+    # Verify results
+    assert dist == 4, f"Expected distance 4, got {dist}"
+    assert len(neighbors) == 10, f"Expected 10 neighbors, got {len(neighbors)}"
+    
+    print("✓ All tests passed!")
+    return True
+
 def test_optimization_comparison():
     """Test the optimization comparison module."""
     print("\n" + "="*70)
-    print("TEST 3: Optimization Comparison")
+    print("TEST 5: Optimization Comparison")
     print("="*70)
     
-    module = load_module('03_optimization_comparison.py')
+    module = load_module('05_optimization_comparison.py')
     
     genome = module.generate_random_genome(1000, seed=42)
     results = module.compare_algorithms(genome, k=9, L=500, t=3, verbose=False)
@@ -93,10 +135,10 @@ def test_optimization_comparison():
 def test_visualization():
     """Test the visualization module."""
     print("\n" + "="*70)
-    print("TEST 4: Visualization")
+    print("TEST 6: Visualization")
     print("="*70)
     
-    module = load_module('04_visualization.py')
+    module = load_module('06_visualization.py')
     
     print(f"✓ Module loaded successfully")
     print(f"✓ plot_skew function available")
@@ -107,13 +149,38 @@ def test_visualization():
     print("✓ All tests passed!")
     return True
 
+def test_sequence_alignment():
+    """Test the sequence alignment module."""
+    print("\n" + "="*70)
+    print("TEST 7: Sequence Alignment")
+    print("="*70)
+    
+    module = load_module('07_sequence_alignment.py')
+    
+    # Test global alignment
+    score, aligned1, aligned2 = module.global_alignment("GATTACA", "GCATGCU")
+    
+    # Test LCS
+    length, lcs = module.longest_common_subsequence("ABCDEFG", "BCDGK")
+    
+    print(f"✓ Module loaded successfully")
+    print(f"✓ Global alignment score: {score}")
+    print(f"✓ LCS length: {length}, sequence: {lcs}")
+    
+    # Verify results
+    assert len(aligned1) == len(aligned2), "Alignments should be same length"
+    assert lcs == "BCDG", f"Expected LCS 'BCDG', got '{lcs}'"
+    
+    print("✓ All tests passed!")
+    return True
+
 def test_workflow():
     """Test the complete workflow module."""
     print("\n" + "="*70)
-    print("TEST 5: Complete Workflow")
+    print("TEST 8: Complete Workflow")
     print("="*70)
     
-    module = load_module('05_complete_workflow.py')
+    module = load_module('08_complete_workflow.py')
     
     # Simulate a small genome
     genome = module.simulate_genome(2000, gc_content=0.5, ori_position=1000, seed=42)
@@ -144,8 +211,11 @@ def main():
     tests = [
         test_clump_finding,
         test_skew_array,
+        test_motif_finding,
+        test_hamming_distance,
         test_optimization_comparison,
         test_visualization,
+        test_sequence_alignment,
         test_workflow,
     ]
     
