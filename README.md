@@ -1,34 +1,33 @@
-## Projects
+## Core Learning Projects
 
-#### Design Patterns Project
-...
+### Design Patterns Project
 
-#### 🧬 [Philomath AI - Genome Algorithms](./philomath-ai/) ⭐ **NEW**
-Bioinformatics and computational biology algorithms from "Programming for Lovers in Python".
-- **Features**: Clump finding (DnaA boxes), skew arrays, origin of replication detection
-- **Algorithms**: Pattern matching, frequency analysis, genome analysis, optimization techniques
-- **Visualizations**: Skew diagrams, clump distribution heatmaps, genomic data plots
-- **Learning Path**: Progressive from naive to optimized implementations with performance analysis
-- **Tech Stack**: Python, NumPy, Matplotlib, Bioinformatics algorithms
-- **Course**: Based on Phillip Compeau's "Programming for Lovers" genome algorithms
+Description about design patterns...
 
-#### Fintech Tools Project
-...
+### Philomath AI - Genome Algorithms ⭐
+- **Project name**: Philomath AI - Genome Algorithms  
+- **Description**: Bioinformatics algorithms from "Programming for Lovers in Python"  
+- **Features**: Clump finding (DnaA boxes), Skew arrays (replication origin), Algorithm optimization, Genomic data visualization  
+- **Learning topics**: Pattern matching, Sliding window algorithms, Sets and dictionaries, Data visualization with matplotlib  
+- **Tech Stack**: Python, Matplotlib, NumPy, Bioinformatics  
 
-## Project Comparison
+### Fintech Tools Project
 
-| Project                                   | Language    | Learning Progress           | Domain            | Stack                                   |
-|-------------------------------------------|-------------|----------------------------|-------------------|-----------------------------------------|
-| Philomath AI - Genome Algorithms          | Python      | 🟢→🟡 Progressive          | Bioinformatics     | NumPy, Matplotlib, Pattern Analysis, Genome Algorithms |
+Description about Fintech tools...
+
+
+## Project Comparison Table
+| Project                              | Language | Complexity           | Focus Area        | Key Technologies                     |
+|--------------------------------------|----------|----------------------|-------------------|--------------------------------------|
+| Philomath AI - Genome Algorithms     | Python   | Beginner-Intermediate | Bioinformatics     | Pattern matching, Matplotlib, Genome analysis |
+
 
 ## Learning Path
 
-1. Step 1
-2. Step 2
-3. Step 3
-4. **Philomath AI - Genome Algorithms** → Computational biology and bioinformatics fundamentals
-5. Remaining Steps...
+1. **Python Basics** → Learn the fundamentals of Python programming  
+2. **Data Analysis & Visualization** → Work with data and visualize it using libraries like Pandas and Matplotlib  
+3. **Algorithms & Data Structures** → Understand essential algorithms & data structures  
+4. **Philomath AI - Genome Algorithms** → Apply algorithms to real biological problems  
+5. **Advanced Topics** → Explore advanced concepts in Python and data analysis  
 
-## Quick Start Recommendations
 
-**Interest in Biology/Bioinformatics?** → Explore **Philomath AI - Genome Algorithms Project**
