@@ -8,7 +8,8 @@ import sys
 import os
 import importlib.util
 
-# Set matplotlib to non-interactive mode
+# Set matplotlib to non-interactive mode for headless environments
+# This prevents errors in environments without display capabilities (e.g., CI/CD, Docker)
 import matplotlib
 matplotlib.use('Agg')
 
