@@ -1,0 +1,16 @@
+# Philomath AI - Genome Algorithms Dependencies
+# ============================================
+# 
+# Core scientific computing libraries for bioinformatics analysis
+
+# Numerical computing and array operations
+numpy>=1.21.0
+
+# Data visualization and plotting
+matplotlib>=3.4.0
+
+# Scientific computing and optimization
+scipy>=1.7.0
+
+# Bioinformatics tools and sequence analysis
+biopython>=1.79

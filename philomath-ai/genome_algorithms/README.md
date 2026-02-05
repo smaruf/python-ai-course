@@ -96,7 +96,70 @@ min_positions = find_min_skew_positions(genome)
 
 **Key Insight**: The skew value is `#G - #C` from start to position i. DNA replication asymmetry causes skew to reach minimum near ori.
 
-### 03_optimization_comparison.py
+### 03_motif_finding.py
+**Motif Finding - Discovering Regulatory Sequences**
+
+- `find_motifs(dna_list, k, d)` - Find (k,d)-motifs in DNA sequences
+- `median_string(dna_list, k)` - Find median string (consensus motif)
+- `profile_most_probable(text, k, profile)` - Profile-based k-mer search
+- `greedy_motif_search(dna_list, k, t)` - Greedy motif discovery
+- `create_profile_matrix(motifs)` - Build profile from aligned motifs
+
+**Concepts**: Transcription factor binding sites, profile matrices, greedy algorithms
+
+**Example**:
+```python
+import importlib.util
+import os
+
+def load_module(filename):
+    path = os.path.join('philomath-ai/genome_algorithms', filename)
+    spec = importlib.util.spec_from_file_location(filename[:-3], path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+motif_module = load_module('03_motif_finding.py')
+find_motifs = motif_module.find_motifs
+
+dna_sequences = ["ATTTGGC", "TGCCTTA", "CGGTATC", "GAAAATT"]
+motifs = find_motifs(dna_sequences, k=3, d=1)
+# Returns: {'ATA', 'ATT', 'GTT', 'TTT'} - motifs with at most 1 mismatch
+```
+
+### 04_hamming_distance.py
+**String Distance and Approximate Matching**
+
+- `hamming_distance(str1, str2)` - Calculate Hamming distance
+- `approximate_pattern_match(pattern, text, d)` - Find approximate occurrences
+- `neighbors(pattern, d)` - Generate all d-neighbors
+- `frequent_words_with_mismatches(text, k, d)` - Most frequent approximate k-mers
+- `reverse_complement(dna)` - Compute reverse complement
+
+**Concepts**: Point mutations, approximate string matching, evolutionary distance
+
+**Example**:
+```python
+import importlib.util
+import os
+
+def load_module(filename):
+    path = os.path.join('philomath-ai/genome_algorithms', filename)
+    spec = importlib.util.spec_from_file_location(filename[:-3], path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+hamming_module = load_module('04_hamming_distance.py')
+approximate_pattern_match = hamming_module.approximate_pattern_match
+
+text = "CGCCCGAATCCAGAACGCATTCCCATATTTCGGGACCACTGGCCTCCACGGTACGGACGTCAATCAAAT"
+pattern = "ATTCTGGA"
+matches = approximate_pattern_match(pattern, text, d=3)
+# Returns: [6, 7, 26, 27] - positions with at most 3 mismatches
+```
+
+### 05_optimization_comparison.py
 **Algorithm Optimization - Performance Analysis**
 
 - `generate_random_genome(length)` - Create test data
@@ -118,7 +181,7 @@ def load_module(filename):
     spec.loader.exec_module(module)
     return module
 
-opt_module = load_module('03_optimization_comparison.py')
+opt_module = load_module('05_optimization_comparison.py')
 compare_algorithms = opt_module.compare_algorithms
 generate_random_genome = opt_module.generate_random_genome
 
@@ -134,7 +197,7 @@ results = compare_algorithms(genome, k=9, L=500, t=3)
 - Naive: O((n-L)·L·k) → 450 million operations for n=100k, L=500, k=9
 - Optimized: O(n·k) → 900k operations (500x faster!)
 
-### 04_visualization.py
+### 06_visualization.py
 **Genomic Data Visualization - Making Sense of Results**
 
 - `plot_skew(genome, title)` - Line plot of skew array with minimum highlighted
@@ -155,7 +218,7 @@ def load_module(filename):
     spec.loader.exec_module(module)
     return module
 
-viz_module = load_module('04_visualization.py')
+viz_module = load_module('06_visualization.py')
 plot_skew = viz_module.plot_skew
 
 genome = "GAGCCACCGCGATA..."
@@ -165,7 +228,37 @@ plot_skew(genome, "E. coli Fragment - GC Skew")
 
 **Requires**: matplotlib, numpy (install via `pip install matplotlib numpy`)
 
-### 05_complete_workflow.py
+### 07_sequence_alignment.py
+**Sequence Alignment - Comparing DNA Sequences**
+
+- `global_alignment(seq1, seq2)` - Needleman-Wunsch algorithm
+- `local_alignment(seq1, seq2)` - Smith-Waterman algorithm
+- `longest_common_subsequence(seq1, seq2)` - LCS implementation
+- `edit_distance(seq1, seq2)` - Levenshtein distance
+- `alignment_statistics(aligned1, aligned2)` - Calculate alignment metrics
+
+**Concepts**: Dynamic programming, sequence homology, evolutionary relationships
+
+**Example**:
+```python
+import importlib.util
+import os
+
+def load_module(filename):
+    path = os.path.join('philomath-ai/genome_algorithms', filename)
+    spec = importlib.util.spec_from_file_location(filename[:-3], path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+align_module = load_module('07_sequence_alignment.py')
+global_alignment = align_module.global_alignment
+
+score, aligned1, aligned2 = global_alignment("GATTACA", "GCATGCU")
+# Returns alignment score and aligned sequences with gaps
+```
+
+### 08_complete_workflow.py
 **End-to-End Pipeline - Finding Ori in Real Genomes**
 
 - `simulate_genome(length, gc_content, ori_position)` - Generate test genomes
@@ -187,7 +280,7 @@ def load_module(filename):
     spec.loader.exec_module(module)
     return module
 
-workflow_module = load_module('05_complete_workflow.py')
+workflow_module = load_module('08_complete_workflow.py')
 find_origin_of_replication = workflow_module.find_origin_of_replication
 simulate_genome = workflow_module.simulate_genome
 
@@ -303,9 +396,12 @@ Each module can be run standalone:
 # Run individual modules
 python 01_clump_finding.py
 python 02_skew_array.py
-python 03_optimization_comparison.py
-python 04_visualization.py  # Requires matplotlib
-python 05_complete_workflow.py
+python 03_motif_finding.py
+python 04_hamming_distance.py
+python 05_optimization_comparison.py
+python 06_visualization.py  # Requires matplotlib
+python 07_sequence_alignment.py
+python 08_complete_workflow.py
 ```
 
 ## 📊 Real-World Example: *E. coli*
@@ -325,7 +421,7 @@ For the *E. coli* K-12 genome (~4.6 million base pairs):
 **To analyze real *E. coli* genome**:
 1. Download from NCBI: GenBank accession U00096.3
 2. Save as FASTA file
-3. Run: `python 05_complete_workflow.py` (modify to load your file)
+3. Run: `python 08_complete_workflow.py` (modify to load your file)
 
 ## 📖 Course Connection
 
@@ -333,9 +429,12 @@ These implementations correspond to topics from "Programming for Lovers in Pytho
 
 - **Lecture 1-2**: Pattern finding, frequency analysis (01_clump_finding.py)
 - **Lecture 3**: GC-skew and ori finding (02_skew_array.py)
-- **Lecture 4**: Algorithm optimization (03_optimization_comparison.py)
-- **Lecture 5**: Data visualization (04_visualization.py)
-- **Capstone**: Integrated workflow (05_complete_workflow.py)
+- **Lecture 4**: Motif finding algorithms (03_motif_finding.py)
+- **Lecture 5**: Approximate pattern matching (04_hamming_distance.py)
+- **Lecture 6**: Algorithm optimization (05_optimization_comparison.py)
+- **Lecture 7**: Data visualization (06_visualization.py)
+- **Lecture 8**: Sequence alignment (07_sequence_alignment.py)
+- **Capstone**: Integrated workflow (08_complete_workflow.py)
 
 ## 🔧 Technical Details
 
@@ -418,15 +517,17 @@ See the main repository LICENSE file.
 ## 💡 Tips for Learning
 
 1. **Start with 01_clump_finding.py** - Understand the basic problem
-2. **Compare naive vs optimized** - See why optimization matters
-3. **Run 02_skew_array.py** - Learn about GC-skew biology
-4. **Experiment with 03_optimization_comparison.py** - Measure performance
-5. **Visualize with 04_visualization.py** - Make results clear
-6. **Try 05_complete_workflow.py** - See it all work together
-7. **Modify parameters** - Understand their effects
-8. **Generate test data** - Create your own genomes
-9. **Read the comments** - They explain biological context
-10. **Ask questions** - Bioinformatics is complex but learnable!
+2. **Run 02_skew_array.py** - Learn about GC-skew biology
+3. **Explore 03_motif_finding.py** - Discover regulatory sequences
+4. **Practice with 04_hamming_distance.py** - Master approximate matching
+5. **Compare with 05_optimization_comparison.py** - Measure performance
+6. **Visualize with 06_visualization.py** - Make results clear
+7. **Align sequences with 07_sequence_alignment.py** - Compare DNA sequences
+8. **Try 08_complete_workflow.py** - See it all work together
+9. **Modify parameters** - Understand their effects
+10. **Generate test data** - Create your own genomes
+11. **Read the comments** - They explain biological context
+12. **Ask questions** - Bioinformatics is complex but learnable!
 
 ---
 
