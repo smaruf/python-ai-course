@@ -184,6 +184,96 @@ def test_craps_simulation():
     return True
 
 
+def test_advanced_statistics():
+    """Test the advanced statistics module."""
+    print("\n" + "="*70)
+    print("TEST 4: Advanced Statistics")
+    print("="*70)
+    
+    module = load_module('04_advanced_statistics.py')
+    
+    # Test confidence interval
+    ci = module.calculate_confidence_interval(500, 1000, 0.95)
+    assert 0.45 < ci['lower_bound'] < ci['proportion'] < ci['upper_bound'] < 0.55
+    print(f"✓ Module loaded successfully")
+    print(f"✓ Confidence interval: [{ci['lower_bound']:.4f}, {ci['upper_bound']:.4f}]")
+    
+    # Test variance calculation
+    data = [1, 2, 3, 4, 5]
+    stats = module.calculate_variance_and_std(data)
+    assert stats['mean'] == 3.0
+    assert stats['variance'] == 2.0
+    print(f"✓ Variance and std dev calculations correct")
+    
+    # Test chi-square
+    random.seed(42)
+    obs = {1: 100, 2: 100, 3: 100, 4: 100, 5: 100, 6: 100}
+    exp = {1: 100, 2: 100, 3: 100, 4: 100, 5: 100, 6: 100}
+    chi_result = module.chi_square_test(obs, exp)
+    assert chi_result['chi_square'] == 0.0
+    print(f"✓ Chi-square test working")
+    
+    # Test fairness test
+    random.seed(42)
+    fairness = module.test_dice_fairness(1000)
+    assert fairness['n_rolls'] == 1000
+    print(f"✓ Die fairness test working")
+    
+    print("✓ All tests passed!")
+    return True
+
+
+def test_game_theory():
+    """Test the game theory module."""
+    print("\n" + "="*70)
+    print("TEST 5: Game Theory")
+    print("="*70)
+    
+    module = load_module('05_game_theory.py')
+    
+    # Test expected value
+    ev = module.calculate_expected_value([(0.5, 1), (0.5, -1)])
+    assert abs(ev - 0.0) < 0.001
+    print(f"✓ Module loaded successfully")
+    print(f"✓ Expected value calculation: {ev:.4f}")
+    
+    # Test Kelly Criterion
+    kelly = module.kelly_criterion(0.55, 1, 1)
+    assert 0.09 < kelly < 0.11  # Should be 0.10
+    print(f"✓ Kelly criterion: {kelly:.2%}")
+    
+    # Test Kelly Criterion with unfavorable odds
+    kelly_bad = module.kelly_criterion(0.45, 1, 1)
+    assert kelly_bad == 0.0
+    print(f"✓ Kelly correctly returns 0 for unfavorable bets")
+    
+    # Test flat betting
+    random.seed(42)
+    flat = module.simulate_flat_betting(1000, 50, 100, 0.55)
+    assert flat['games_played'] <= 100
+    print(f"✓ Flat betting simulation: ${flat['final_bankroll']:.2f}")
+    
+    # Test Kelly betting
+    random.seed(42)
+    kelly_sim = module.simulate_kelly_betting(1000, 0.55, 1, 1, 100)
+    assert kelly_sim['games_played'] <= 100
+    print(f"✓ Kelly betting simulation: ${kelly_sim['final_bankroll']:.2f}")
+    
+    # Test Martingale
+    random.seed(42)
+    martingale = module.simulate_martingale(1000, 10, 50, 0.55)
+    assert martingale['games_played'] <= 50
+    print(f"✓ Martingale simulation: ${martingale['final_bankroll']:.2f}")
+    
+    # Test risk of ruin
+    ror = module.calculate_risk_of_ruin(1000, 50, 0.50)
+    assert 0 <= ror <= 1
+    print(f"✓ Risk of ruin: {ror*100:.1f}%")
+    
+    print("✓ All tests passed!")
+    return True
+
+
 def main():
     """Run all tests."""
     print("="*70)
@@ -210,6 +300,18 @@ def main():
     except Exception as e:
         print(f"✗ Craps Simulation test failed: {e}")
         results.append(("Craps Simulation", False))
+    
+    try:
+        results.append(("Advanced Statistics", test_advanced_statistics()))
+    except Exception as e:
+        print(f"✗ Advanced Statistics test failed: {e}")
+        results.append(("Advanced Statistics", False))
+    
+    try:
+        results.append(("Game Theory", test_game_theory()))
+    except Exception as e:
+        print(f"✗ Game Theory test failed: {e}")
+        results.append(("Game Theory", False))
     
     # Print summary
     print("\n" + "="*70)

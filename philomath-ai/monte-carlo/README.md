@@ -45,6 +45,8 @@ monte-carlo/
 ├── 01_random_numbers.py          # Random number generation and seeding
 ├── 02_dice_simulation.py         # Dice rolling and law of large numbers
 ├── 03_craps_simulation.py        # Craps game simulation and house edge
+├── 04_advanced_statistics.py     # Confidence intervals and chi-square tests
+├── 05_game_theory.py             # Optimal betting and Kelly Criterion
 └── test_all.py                   # Test suite for all modules
 ```
 
@@ -65,6 +67,12 @@ python 02_dice_simulation.py
 
 # Simulate craps games and calculate house edge
 python 03_craps_simulation.py
+
+# Advanced statistical analysis with confidence intervals
+python 04_advanced_statistics.py
+
+# Game theory and optimal betting strategies
+python 05_game_theory.py
 ```
 
 ### Using in Your Code
@@ -85,24 +93,41 @@ def load_monte_carlo_module(filename):
 random_module = load_monte_carlo_module('01_random_numbers.py')
 dice_module = load_monte_carlo_module('02_dice_simulation.py')
 craps_module = load_monte_carlo_module('03_craps_simulation.py')
+stats_module = load_monte_carlo_module('04_advanced_statistics.py')
+game_theory_module = load_monte_carlo_module('05_game_theory.py')
 
 # Roll a die
 result = dice_module.roll_die()
 
 # Play a game of craps
 outcome = craps_module.play_craps_once()
+
+# Calculate confidence interval
+ci = stats_module.calculate_confidence_interval(493, 1000, 0.95)
+
+# Calculate optimal bet size
+kelly_fraction = game_theory_module.kelly_criterion(0.55, 1, 1)
 ```
 
 ## 📖 Course Reference
 
 This module implements concepts from **"Programming for Lovers in Python: Monte Carlo Simulation and Craps"** by Phillip Compeau, covering:
 
+### Basic Modules
 - **Random Numbers**: Generating random integers and understanding seeding
 - **Dice Simulation**: Rolling dice and observing statistical properties
 - **Law of Large Numbers**: How averages converge with more trials
 - **Craps Rules**: Understanding the classic casino dice game
 - **House Edge**: Computing the casino's advantage through simulation
 - **Simulation Design**: Generalizing simulations for different scenarios
+
+### Advanced Extensions
+- **Statistical Analysis**: Confidence intervals, variance, chi-square tests
+- **Central Limit Theorem**: Understanding sampling distributions
+- **Game Theory**: Expected value and optimal decision making
+- **Kelly Criterion**: Mathematical optimal betting strategy
+- **Betting Systems**: Comparing Martingale, flat betting, and Kelly
+- **Risk of Ruin**: Probability of losing entire bankroll
 
 ## 🎲 Craps Rules
 
@@ -144,6 +169,11 @@ Monte Carlo methods are used in:
 - [Monte Carlo Theory, Methods and Examples (Owen)](https://artowen.su.domains/mc/)
 - [Handbook of Monte Carlo Methods (Kroese et al.)](https://people.smp.uq.edu.au/DirkKroese/montecarlohandbook/)
 
+### Game Theory & Betting
+- [The Kelly Criterion (Wikipedia)](https://en.wikipedia.org/wiki/Kelly_criterion)
+- [Expected Value in Gambling](https://plato.stanford.edu/entries/rationality-normative-utility/)
+- [Mathematics of Gambling](https://www.mathsisfun.com/data/probability-gambling.html)
+
 ### Python & Simulation
 - [Python random module documentation](https://docs.python.org/3/library/random.html)
 - [NumPy random generation](https://numpy.org/doc/stable/reference/random/index.html)
@@ -152,14 +182,20 @@ Monte Carlo methods are used in:
 ### Online Courses
 - Coursera: Monte Carlo Methods in Finance (Columbia)
 - EdX: Computational Probability and Inference (MIT)
+- Khan Academy: Statistics and Probability
 
 ## 💡 Learning Path
 
 **Recommended progression**:
 
+### Foundation (Start Here)
 1. **Start with randomness**: 01_random_numbers.py - Understand RNG and seeding
 2. **Simulate dice**: 02_dice_simulation.py - Roll dice and see the law of large numbers
 3. **Play craps**: 03_craps_simulation.py - Simulate the full game and compute house edge
+
+### Advanced Topics
+4. **Statistical analysis**: 04_advanced_statistics.py - Confidence intervals and hypothesis testing
+5. **Game theory**: 05_game_theory.py - Optimal betting strategies and Kelly Criterion
 
 Each module builds on previous concepts, so following this order is recommended for maximum learning benefit.
 
