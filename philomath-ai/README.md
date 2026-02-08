@@ -1,16 +1,23 @@
-# Philomath AI - Bioinformatics Learning Project
+# Philomath AI - Programming for Lovers Learning Project
 
-Welcome to **Philomath AI**, a comprehensive educational project implementing bioinformatics algorithms from the "Programming for Lovers in Python: Genome Algorithms" course by Phillip Compeau.
+Welcome to **Philomath AI**, a comprehensive educational project implementing algorithms and simulations from the "Programming for Lovers in Python" course by Phillip Compeau.
 
 ## 📚 Project Overview
 
-This project provides a complete learning module for understanding genome algorithms through hands-on Python implementations. Each module includes:
+This project provides comprehensive learning modules for understanding computer science through hands-on Python implementations:
 
-- **Comprehensive documentation** with biological context
-- **Progressive implementations** from naive to optimized
-- **Real-world examples** using bacterial genome data
-- **Visual demonstrations** of algorithms in action
-- **Performance comparisons** showing optimization impact
+### Modules Available
+
+1. **Genome Algorithms** - Bioinformatics algorithms for DNA analysis
+2. **Monte Carlo Simulation** - Random number generation, probability, and simulation methods
+
+Each module includes:
+
+- **Comprehensive documentation** with real-world context
+- **Progressive implementations** from basic to advanced
+- **Real-world examples** and applications
+- **Visual demonstrations** of concepts in action
+- **Performance analysis** and statistical validation
 
 ## 🎯 Learning Objectives
 
@@ -44,16 +51,22 @@ By working through this project, you will master:
 philomath-ai/
 ├── README.md                           # This file - project overview
 ├── requirements.txt                    # Python dependencies
-└── genome_algorithms/                  # Main module directory
+├── genome_algorithms/                  # Bioinformatics module
+│   ├── README.md                       # Detailed module documentation
+│   ├── 01_clump_finding.py            # Finding DnaA boxes (clumps)
+│   ├── 02_skew_array.py               # GC-skew analysis for ori finding
+│   ├── 03_motif_finding.py            # Motif discovery algorithms
+│   ├── 04_hamming_distance.py         # String distance and approximate matching
+│   ├── 05_optimization_comparison.py   # Performance benchmarking
+│   ├── 06_visualization.py             # Genomic data visualization
+│   ├── 07_sequence_alignment.py        # Sequence alignment algorithms
+│   ├── 08_complete_workflow.py         # End-to-end analysis pipeline
+│   └── test_all.py                     # Test suite
+└── monte-carlo/                        # Monte Carlo simulation module
     ├── README.md                       # Detailed module documentation
-    ├── 01_clump_finding.py            # Finding DnaA boxes (clumps)
-    ├── 02_skew_array.py               # GC-skew analysis for ori finding
-    ├── 03_motif_finding.py            # Motif discovery algorithms
-    ├── 04_hamming_distance.py         # String distance and approximate matching
-    ├── 05_optimization_comparison.py   # Performance benchmarking
-    ├── 06_visualization.py             # Genomic data visualization
-    ├── 07_sequence_alignment.py        # Sequence alignment algorithms
-    ├── 08_complete_workflow.py         # End-to-end analysis pipeline
+    ├── 01_random_numbers.py           # Random number generation and seeding
+    ├── 02_dice_simulation.py          # Dice rolling and law of large numbers
+    ├── 03_craps_simulation.py         # Craps game and house edge
     └── test_all.py                     # Test suite
 ```
 
@@ -75,6 +88,8 @@ pip install -r requirements.txt
 ### Running Examples
 
 Each module can be run standalone to see demonstrations:
+
+#### Genome Algorithms
 
 ```bash
 cd genome_algorithms
@@ -104,23 +119,38 @@ python 07_sequence_alignment.py
 python 08_complete_workflow.py
 ```
 
+#### Monte Carlo Simulation
+
+```bash
+cd monte-carlo
+
+# Generate random numbers and explore seeding
+python 01_random_numbers.py
+
+# Simulate dice rolls and observe the law of large numbers
+python 02_dice_simulation.py
+
+# Simulate craps games and calculate house edge
+python 03_craps_simulation.py
+```
+
 ### Using in Your Code
 
 ```python
 import importlib.util
 import os
 
-def load_genome_module(filename):
+def load_module(module_dir, filename):
     """Helper to load modules with numeric prefixes."""
-    path = os.path.join('philomath-ai/genome_algorithms', filename)
+    path = os.path.join('philomath-ai', module_dir, filename)
     spec = importlib.util.spec_from_file_location(filename[:-3], path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
-# Load and use
-clump_module = load_genome_module('01_clump_finding.py')
-skew_module = load_genome_module('02_skew_array.py')
+# Load genome algorithms
+clump_module = load_module('genome_algorithms', '01_clump_finding.py')
+skew_module = load_module('genome_algorithms', '02_skew_array.py')
 
 # Find clumps
 genome = "CGGACTCGACAGATGTGAAGAACGACAATGTGAAGACTCGACACGACAGAGTGAAGAGAAGAGGAAACATTGTAA"
@@ -128,11 +158,24 @@ clumps = clump_module.find_clumps_optimized(genome, k=5, L=50, t=4)
 
 # Find ori candidates
 ori_positions = skew_module.find_min_skew_positions(genome)
+
+# Load Monte Carlo modules
+dice_module = load_module('monte-carlo', '02_dice_simulation.py')
+craps_module = load_module('monte-carlo', '03_craps_simulation.py')
+
+# Roll dice
+result = dice_module.roll_die()
+
+# Play craps
+game = craps_module.play_craps_once()
 ```
 
 ## 📖 Course Reference
 
-This project implements algorithms from **"Programming for Lovers in Python: Genome Algorithms"** by Phillip Compeau, covering:
+This project implements concepts from **"Programming for Lovers in Python"** by Phillip Compeau:
+
+### Genome Algorithms Module
+Based on the "Genome Algorithms" course, covering:
 
 - **Module 1**: Pattern finding and frequency analysis
 - **Module 2**: Clump finding in E. coli genome
@@ -142,8 +185,19 @@ This project implements algorithms from **"Programming for Lovers in Python: Gen
 - **Module 6**: Sequence alignment and comparison
 - **Capstone**: Integrated genomic analysis workflows
 
-## 🧬 Real-World Applications
+### Monte Carlo Simulation Module
+Based on "Monte Carlo Simulation and Craps", covering:
 
+- **Random Numbers**: Generating random integers and understanding seeding
+- **Dice Simulation**: Rolling dice and observing statistical properties
+- **Law of Large Numbers**: How averages converge with more trials
+- **Craps Rules**: Understanding the classic casino dice game
+- **House Edge**: Computing the casino's advantage through simulation
+- **Simulation Design**: Generalizing simulations for different scenarios
+
+## 🌍 Real-World Applications
+
+### Genome Algorithms
 These algorithms are used in:
 
 - **Genome sequencing projects**: Finding ori in newly sequenced bacteria
@@ -152,12 +206,27 @@ These algorithms are used in:
 - **Evolutionary biology**: Studying genome evolution
 - **Biotechnology**: Engineering bacteria for industrial applications
 
+### Monte Carlo Methods
+These simulations are used in:
+
+- **Finance**: Option pricing, risk analysis, portfolio optimization
+- **Physics**: Particle simulations, quantum mechanics
+- **Engineering**: Reliability analysis, stress testing
+- **Medicine**: Drug discovery, epidemiology modeling
+- **Computer Graphics**: Ray tracing, global illumination
+- **Operations Research**: Queue simulation, supply chain optimization
+
 ## 📚 Additional Resources
 
 ### Bioinformatics Learning
 - [Rosalind](http://rosalind.info/) - Bioinformatics programming challenges
 - [NCBI GenBank](https://www.ncbi.nlm.nih.gov/genbank/) - Real genome database
 - [Bioinformatics Algorithms Book](http://bioinformaticsalgorithms.com/) - Comprehensive textbook
+
+### Probability & Statistics
+- [Khan Academy - Probability](https://www.khanacademy.org/math/statistics-probability)
+- [Seeing Theory - Visual Statistics](https://seeing-theory.brown.edu/)
+- [Introduction to Probability (Blitzstein & Hwang)](https://projects.iq.harvard.edu/stat110)
 
 ### Python & Algorithms
 - [Python Official Documentation](https://docs.python.org/)
@@ -166,18 +235,20 @@ These algorithms are used in:
 
 ### Online Courses
 - Coursera: Bioinformatics Specialization (UCSD)
+- Coursera: Monte Carlo Methods in Finance (Columbia)
 - EdX: Introduction to Computational Thinking and Data Science (MIT)
 
 ## 🤝 Contributing
 
 This is an educational project. Contributions welcome:
 
-- Add new algorithms (protein analysis, RNA folding, etc.)
+- Add new modules (data science, machine learning, algorithms, etc.)
+- Add new algorithms to existing modules
 - Improve visualizations
 - Add more test cases
 - Enhance documentation
 - Create Jupyter notebooks
-- Add real genome analysis examples
+- Add real-world analysis examples
 
 ## 📄 License
 
@@ -185,26 +256,35 @@ See the main repository [LICENSE](../LICENSE) file.
 
 ## 🙏 Acknowledgments
 
-- **Phillip Compeau** - Course creator and bioinformatics educator
+- **Phillip Compeau** - Course creator and educator at Carnegie Mellon University
 - **Pavel Pevzner** - Co-author of bioinformatics algorithms
+- **Programming for Lovers** - Open online course for learning programming through science
 - **The bioinformatics community** - For algorithm development and validation
-- **E. coli researchers** - For experimental data and validation
+- **The statistics community** - For developing Monte Carlo methods
 
 ## 💡 Learning Path
 
-**Recommended progression**:
+### For Beginners - Start with Monte Carlo
+**Recommended if new to programming or probability**:
 
-1. **Start with basics**: 01_clump_finding.py
-2. **Understand skew**: 02_skew_array.py  
-3. **Learn motif finding**: 03_motif_finding.py
-4. **Master string matching**: 04_hamming_distance.py
-5. **Compare performance**: 05_optimization_comparison.py
-6. **Visualize results**: 06_visualization.py
-7. **Align sequences**: 07_sequence_alignment.py
-8. **Complete pipeline**: 08_complete_workflow.py
+1. **Random numbers**: monte-carlo/01_random_numbers.py
+2. **Dice simulation**: monte-carlo/02_dice_simulation.py
+3. **Craps game**: monte-carlo/03_craps_simulation.py
 
-Each module builds on previous concepts, so following this order is recommended for maximum learning benefit.
+### For Intermediate - Genome Algorithms
+**Recommended if comfortable with Python basics**:
+
+1. **Start with basics**: genome_algorithms/01_clump_finding.py
+2. **Understand skew**: genome_algorithms/02_skew_array.py  
+3. **Learn motif finding**: genome_algorithms/03_motif_finding.py
+4. **Master string matching**: genome_algorithms/04_hamming_distance.py
+5. **Compare performance**: genome_algorithms/05_optimization_comparison.py
+6. **Visualize results**: genome_algorithms/06_visualization.py
+7. **Align sequences**: genome_algorithms/07_sequence_alignment.py
+8. **Complete pipeline**: genome_algorithms/08_complete_workflow.py
+
+Each module builds on previous concepts, so following these orders is recommended for maximum learning benefit.
 
 ---
 
-**Ready to explore the fascinating world where biology meets computation? Let's dive in! 🧬💻**
+**Ready to explore the fascinating world of computer science through real applications? Let's dive in! 🧬🎲💻**
