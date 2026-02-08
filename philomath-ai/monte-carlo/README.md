@@ -186,7 +186,7 @@ See the main repository [LICENSE](../../LICENSE) file.
 
 ## 🎓 Course Materials
 
-This module accompanies **Chapter 2** of Programming for Lovers on "Forecasting a Presidential Election from Polling Data":
+This module is based on **Programming for Lovers in Python: Monte Carlo Simulation and Craps** by Phillip Compeau. The material accompanies Chapter 2 of Programming for Lovers, which demonstrates Monte Carlo methods through practical applications including election forecasting from polling data:
 
 - [Random Numbers Code-Along](https://programmingforlovers.com/random-numbers)
 - [Simulating Craps Code-Along](https://programmingforlovers.com/simulating-craps)

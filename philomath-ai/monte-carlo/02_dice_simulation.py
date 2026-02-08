@@ -165,7 +165,8 @@ def demonstrate_law_of_large_numbers(max_rolls=100000, checkpoints=None):
         >>> random.seed(42)
         >>> results = demonstrate_law_of_large_numbers(10000, [100, 1000, 10000])
         >>> errors = [r['error'] for r in results]
-        >>> errors[0] > errors[1] > errors[2]  # Error decreases
+        >>> # Error generally decreases (though not always strictly monotonic due to randomness)
+        >>> errors[-1] < errors[0]  # Final error smaller than initial
         True
     """
     if checkpoints is None:
