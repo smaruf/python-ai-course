@@ -22,7 +22,21 @@ Wisconsin,48.9,47.5,10
 
 ## Files Included
 
-- **sample_polls.csv**: Sample swing state polling data for demonstration
+### US Election Samples
+- **sample_polls.csv**: Sample US swing state polling data for demonstration (7 states)
+
+### Bangladesh Election 2026 Samples
+Based on Bangladesh's landmark 2026 general election where BNP won a landslide victory:
+
+- **bd_2026_polls.csv**: Pre-election polling data for 15 key constituencies including Dhaka, Chattogram, and major divisions
+- **bd_2026_swing_constituencies.csv**: Close-race constituencies (10 constituencies with margins < 5%)
+- **bd_2026_comprehensive.csv**: Comprehensive polling data across 75 constituencies representing BNP vs Jamaat-e-Islami competition
+
+**Note on Bangladesh data**: 
+- Column headers use "Constituency" instead of "State" (both work with the parser)
+- Data represents BNP (Bangladesh Nationalist Party) vs Jamaat-e-Islami polling percentages
+- Seats column represents parliamentary seats (1 per constituency in single-member districts)
+- Based on the 2026 election where BNP won 209-213 seats out of 299 total
 
 ## Using Your Own Data
 

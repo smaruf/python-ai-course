@@ -68,20 +68,47 @@ def parse_polling_file(filename):
         with open(filename, 'r') as file:
             reader = csv.DictReader(file)
             
-            # Validate header
-            required_fields = {'State', 'CandidateA', 'CandidateB', 'ElectoralVotes'}
-            if not required_fields.issubset(set(reader.fieldnames or [])):
-                raise ValueError(f"CSV must contain columns: {required_fields}")
+            # Validate header - support both US (State/ElectoralVotes) and BD (Constituency/Seats) formats
+            fieldnames = set(reader.fieldnames or [])
+            
+            # Check for state/constituency column
+            if 'State' in fieldnames:
+                state_col = 'State'
+            elif 'Constituency' in fieldnames:
+                state_col = 'Constituency'
+            else:
+                raise ValueError(f"CSV must contain either 'State' or 'Constituency' column")
+            
+            # Check for electoral votes/seats column
+            if 'ElectoralVotes' in fieldnames:
+                ev_col = 'ElectoralVotes'
+            elif 'Seats' in fieldnames:
+                ev_col = 'Seats'
+            else:
+                raise ValueError(f"CSV must contain either 'ElectoralVotes' or 'Seats' column")
+            
+            # Check for candidate columns
+            required_candidate_fields = {'CandidateA', 'CandidateB'}
+            if 'BNP' in fieldnames and 'Jamaat' in fieldnames:
+                # Bangladesh format
+                candidate_a_col = 'BNP'
+                candidate_b_col = 'Jamaat'
+            elif required_candidate_fields.issubset(fieldnames):
+                # Standard format
+                candidate_a_col = 'CandidateA'
+                candidate_b_col = 'CandidateB'
+            else:
+                raise ValueError(f"CSV must contain candidate columns (CandidateA/CandidateB or BNP/Jamaat)")
             
             for row in reader:
-                state = row['State'].strip()
+                state = row[state_col].strip()
                 
                 try:
-                    candidate_a = float(row['CandidateA'])
-                    candidate_b = float(row['CandidateB'])
-                    electoral_votes = int(row['ElectoralVotes'])
+                    candidate_a = float(row[candidate_a_col])
+                    candidate_b = float(row[candidate_b_col])
+                    electoral_votes = int(row[ev_col])
                 except (ValueError, KeyError) as e:
-                    raise ValueError(f"Invalid data format for state {state}: {e}")
+                    raise ValueError(f"Invalid data format for {state_col.lower()} {state}: {e}")
                 
                 # Validate data ranges
                 if candidate_a < 0 or candidate_a > 100:

@@ -55,9 +55,13 @@ election-simulation/
 ├── 02_single_election.py          # Simulate a single election
 ├── 03_multiple_elections.py       # Run multiple elections with randomness
 ├── 04_electoral_college.py        # Complete Electoral College simulation
+├── demo_bd_2026.py                # Bangladesh 2026 election demonstration
 ├── test_all.py                    # Test suite for all modules
 └── data/                          # Sample polling data
-    ├── sample_polls.csv           # Example polling data
+    ├── sample_polls.csv           # US swing state example
+    ├── bd_2026_polls.csv          # Bangladesh 2026 key constituencies
+    ├── bd_2026_swing_constituencies.csv  # BD close races
+    ├── bd_2026_comprehensive.csv  # BD comprehensive (75 constituencies)
     └── README.md                  # Data format documentation
 ```
 
@@ -81,6 +85,23 @@ python 03_multiple_elections.py
 
 # Complete Electoral College simulation
 python 04_electoral_college.py
+
+# Bangladesh 2026 election simulation (real-world example)
+python demo_bd_2026.py
+```
+
+### Running with Bangladesh Data
+
+Simulate Bangladesh's landmark 2026 election:
+
+```bash
+cd election-simulation
+
+# Run comprehensive Bangladesh election simulation
+python demo_bd_2026.py
+
+# Or use individual modules with BD data
+python 04_electoral_college.py  # Then modify to load BD data files
 ```
 
 ### Using in Your Code
@@ -208,6 +229,30 @@ Election forecasting and Monte Carlo simulation are used in:
 - **The Economist**: Presidential prediction models
 - **Decision Desk HQ**: Real-time election projections
 - **Campaign strategy**: Resource allocation and targeting
+- **Bangladesh 2026 Example**: BNP's landslide victory in parliamentary elections
+
+### Bangladesh 2026 Election Case Study
+
+This module includes real data from Bangladesh's landmark 2026 general election:
+
+**Historical Context:**
+- First election after 2024 political upheaval that ousted PM Sheikh Hasina
+- BNP (Bangladesh Nationalist Party) won 209-213 seats out of 299
+- Jamaat-e-Islami secured 68-77 seats as main opposition
+- 127 million registered voters, high turnout
+- Held alongside constitutional reform referendum
+
+**Why This Example Matters:**
+- Demonstrates parliamentary vs. electoral college systems
+- Shows single-member constituency dynamics
+- Real-world validation of forecasting methods
+- Illustrates impact of systematic shifts in voter behavior
+
+**Key Differences from US System:**
+- 300 constituencies with equal representation (1 seat each)
+- Need 151 seats for majority (vs. 270 electoral votes in US)
+- All constituencies use winner-take-all
+- Prime Minister from majority party (vs. direct president election)
 
 ### Beyond Elections
 - **Financial modeling**: Stock price predictions, risk analysis

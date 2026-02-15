@@ -60,6 +60,23 @@ class TestParsingData(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             parsing.parse_polling_file('nonexistent_file.csv')
     
+    def test_parse_bd_format(self):
+        """Test parsing Bangladesh format (Constituency, BNP, Jamaat, Seats)."""
+        data = "Constituency,BNP,Jamaat,Seats\nDhaka-14,49.8,45.2,1\n"
+        
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.csv') as f:
+            f.write(data)
+            temp_file = f.name
+        
+        try:
+            polls = parsing.parse_polling_file(temp_file)
+            self.assertIn('Dhaka-14', polls)
+            self.assertEqual(polls['Dhaka-14']['candidate_a'], 49.8)
+            self.assertEqual(polls['Dhaka-14']['candidate_b'], 45.2)
+            self.assertEqual(polls['Dhaka-14']['electoral_votes'], 1)
+        finally:
+            os.unlink(temp_file)
+    
     def test_validate_state_data(self):
         """Test state data validation."""
         valid_data = {
