@@ -10,6 +10,7 @@ This project provides comprehensive learning modules for understanding computer 
 
 1. **Genome Algorithms** - Bioinformatics algorithms for DNA analysis
 2. **Monte Carlo Simulation** - Random number generation, probability, and simulation methods
+3. **Election Simulation** - Forecasting presidential elections from polling data
 
 Each module includes:
 
@@ -62,12 +63,22 @@ philomath-ai/
 │   ├── 07_sequence_alignment.py        # Sequence alignment algorithms
 │   ├── 08_complete_workflow.py         # End-to-end analysis pipeline
 │   └── test_all.py                     # Test suite
-└── monte-carlo/                        # Monte Carlo simulation module
+├── monte-carlo/                        # Monte Carlo simulation module
+│   ├── README.md                       # Detailed module documentation
+│   ├── 01_random_numbers.py           # Random number generation and seeding
+│   ├── 02_dice_simulation.py          # Dice rolling and law of large numbers
+│   ├── 03_craps_simulation.py         # Craps game and house edge
+│   └── test_all.py                     # Test suite
+└── election-simulation/                # Election forecasting module
     ├── README.md                       # Detailed module documentation
-    ├── 01_random_numbers.py           # Random number generation and seeding
-    ├── 02_dice_simulation.py          # Dice rolling and law of large numbers
-    ├── 03_craps_simulation.py         # Craps game and house edge
-    └── test_all.py                     # Test suite
+    ├── 01_parsing_data.py             # Parse polling data from files
+    ├── 02_single_election.py          # Simulate a single election
+    ├── 03_multiple_elections.py       # Monte Carlo election simulations
+    ├── 04_electoral_college.py        # Complete Electoral College simulation
+    ├── test_all.py                     # Test suite
+    └── data/                           # Sample polling data
+        ├── sample_polls.csv            # Example swing state data
+        └── README.md                   # Data format documentation
 ```
 
 ## 🚀 Quick Start
@@ -134,6 +145,24 @@ python 02_dice_simulation.py
 python 03_craps_simulation.py
 ```
 
+#### Election Simulation
+
+```bash
+cd election-simulation
+
+# Parse polling data from a file
+python 01_parsing_data.py
+
+# Simulate a single election based on polls
+python 02_single_election.py
+
+# Run multiple simulations to see probability distribution
+python 03_multiple_elections.py
+
+# Complete Electoral College simulation
+python 04_electoral_college.py
+```
+
 ### Using in Your Code
 
 ```python
@@ -168,6 +197,16 @@ result = dice_module.roll_die()
 
 # Play craps
 game = craps_module.play_craps_once()
+
+# Load Election Simulation modules
+ec_module = load_module('election-simulation', '04_electoral_college.py')
+
+# Run election simulation
+state_polls = {
+    'Pennsylvania': {'candidate_a': 48.5, 'candidate_b': 47.2, 'electoral_votes': 19},
+    'Michigan': {'candidate_a': 49.1, 'candidate_b': 46.8, 'electoral_votes': 15}
+}
+results = ec_module.simulate_electoral_college(state_polls, num_simulations=10000)
 ```
 
 ## 📖 Course Reference
@@ -195,6 +234,17 @@ Based on "Monte Carlo Simulation and Craps", covering:
 - **House Edge**: Computing the casino's advantage through simulation
 - **Simulation Design**: Generalizing simulations for different scenarios
 
+### Election Simulation Module
+Based on "Simulating an Election" (streamed Feb 10, 2026), covering:
+
+- **Chapter 2**: Forecasting a Presidential Election from Polling Data
+- **Parsing Data**: Reading polling data from files
+- **Single Election**: Simulating winner-take-all Electoral College
+- **Monte Carlo**: Running thousands of elections with uncertainty
+- **Polling Noise**: Adding random variation to model margins of error
+- **Model Limitations**: Understanding why polling simulators struggle
+- **Prediction Markets**: Alternative approaches like Kalshi
+
 ## 🌍 Real-World Applications
 
 ### Genome Algorithms
@@ -215,6 +265,16 @@ These simulations are used in:
 - **Medicine**: Drug discovery, epidemiology modeling
 - **Computer Graphics**: Ray tracing, global illumination
 - **Operations Research**: Queue simulation, supply chain optimization
+
+### Election Forecasting
+These techniques are used in:
+
+- **Political campaigns**: Resource allocation, strategy planning
+- **Media organizations**: Election night projections (FiveThirtyEight, The Economist)
+- **Prediction markets**: Kalshi, PredictIt for aggregating information
+- **Polling organizations**: Understanding uncertainty in survey data
+- **Academic research**: Studying electoral systems and voter behavior
+- **Policy analysis**: Evaluating effects of voting system changes
 
 ## 📚 Additional Resources
 
@@ -271,7 +331,15 @@ See the main repository [LICENSE](../LICENSE) file.
 2. **Dice simulation**: monte-carlo/02_dice_simulation.py
 3. **Craps game**: monte-carlo/03_craps_simulation.py
 
-### For Intermediate - Genome Algorithms
+### For Intermediate - Election Simulation
+**Recommended if comfortable with basic Python and interested in real-world applications**:
+
+1. **Parse data**: election-simulation/01_parsing_data.py
+2. **Single election**: election-simulation/02_single_election.py
+3. **Multiple elections**: election-simulation/03_multiple_elections.py
+4. **Full simulation**: election-simulation/04_electoral_college.py
+
+### For Advanced - Genome Algorithms
 **Recommended if comfortable with Python basics**:
 
 1. **Start with basics**: genome_algorithms/01_clump_finding.py
@@ -287,4 +355,4 @@ Each module builds on previous concepts, so following these orders is recommende
 
 ---
 
-**Ready to explore the fascinating world of computer science through real applications? Let's dive in! 🧬🎲💻**
+**Ready to explore the fascinating world of computer science through real applications? Let's dive in! 🧬🎲🗳️💻**
