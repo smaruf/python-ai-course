@@ -277,15 +277,20 @@ Banking System with ACID Guarantees:
    - This prevents circular wait conditions
 
    Code pattern:
-   ```
-   if from_account_id < to_account_id:
-       with from_account.lock:
-           with to_account.lock:
-               # perform transfer
-   else:
-       with to_account.lock:
-           with from_account.lock:
-               # perform transfer
+   ```python
+   # Determine lock order to prevent deadlock
+   first_acc, second_acc = sorted([from_account, to_account], 
+                                   key=lambda a: a.account_id)
+   
+   with first_acc.lock:
+       with second_acc.lock:
+           # Perform transfer atomically
+           if from_account.balance >= amount:
+               from_account.balance -= amount
+               to_account.balance += amount
+               return True
+           else:
+               raise InsufficientFundsError()
    ```
 
 3. Consistency Checks:
@@ -755,19 +760,19 @@ Lazy Pipeline Implementation:
 2. Implementation:
    ```python
    class LazyPipeline:
-       def __init__(source):
+       def __init__(self, source):
            self.source = source
            self.operations = []
        
-       def map(func):
+       def map(self, func):
            self.operations.append(('map', func))
            return self  # Chainable
        
-       def filter(predicate):
+       def filter(self, predicate):
            self.operations.append(('filter', predicate))
            return self
        
-       def __iter__():
+       def __iter__(self):
            # Execute operations lazily
            for item in self.source:
                current = item
