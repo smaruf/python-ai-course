@@ -170,8 +170,9 @@ class TestKeyValueStore(unittest.TestCase):
     
     def test_persistence(self):
         """Test WAL persistence and recovery."""
-        # Create temp file
-        wal_file = tempfile.mktemp()
+        # Create temp file safely
+        fd, wal_file = tempfile.mkstemp()
+        os.close(fd)  # Close the file descriptor
         
         try:
             # Create store and add data
