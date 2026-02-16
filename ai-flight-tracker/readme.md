@@ -1,5 +1,8 @@
 # Flight Tracker AI - Enhanced Edition
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [AI Development Project](../ai-development-project/)
+
 This is a Flask application that provides a flight tracking service with an AI-powered assistant. It uses real-time flight data from the OpenSky Network and allows users to query the data using natural language, along with comprehensive flight route search capabilities.
 
 ## Features

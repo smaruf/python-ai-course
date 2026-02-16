@@ -1,5 +1,7 @@
 # System Building Interviews Module
 
+> **Part of [Oracle AI Developer Preparation](../../README.md)** | [Python AI Course](../../../README.md)
+
 ## 🎯 Overview
 
 This module addresses the **modern trend in technical interviews** where companies are shifting from pure algorithm puzzles (LeetCode-style) to **hands-on system implementation interviews**.
