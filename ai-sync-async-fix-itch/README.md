@@ -1,5 +1,8 @@
 # AI Sync-Async Fix Itch 🔄
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [AI Development Project](../ai-development-project/)
+
 A comprehensive guide to understanding synchronous and asynchronous programming patterns, common pitfalls, and best practices for AI integration.
 
 ## 📚 Table of Contents

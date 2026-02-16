@@ -1,5 +1,8 @@
 # Genome Algorithms - Programming for Lovers in Python
 
+> **Part of [Philomath AI](../README.md)** | [Python AI Course](../../README.md)  
+> See also: [Monte Carlo Simulation](../monte-carlo/) | [Election Simulation](../election-simulation/)
+
 This directory contains comprehensive Python implementations of genome algorithms from the "Programming for Lovers in Python: Genome Algorithms" course by Phillip Compeau. These implementations are educational, focusing on clarity and understanding while also demonstrating optimization techniques.
 
 ## 📚 Overview

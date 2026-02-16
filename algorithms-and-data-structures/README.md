@@ -1,5 +1,8 @@
 # Algorithms and Data Structures Project
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [Sorting Algorithms](../sorting-algorithms-project/) | [Design Patterns](../design-patterns-project/)
+
 A comprehensive collection of fundamental algorithms and data structure implementations.
 
 ## Overview

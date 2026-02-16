@@ -1,5 +1,8 @@
 # Commodity Exchange in Bangladesh – Full Overview
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [NASDAQ CSE Go Implementation](../nasdaq-cse-go/) | [Fintech Tools](../fintech-tools/)
+
 This document summarizes the upcoming **CSE Commodity Exchange in Bangladesh**, including **gold futures, agricultural expansion**, **broker perspective**, **technology stack**, **settlement & risk management**, and **future outlook**.
 
 ---

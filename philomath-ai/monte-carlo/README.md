@@ -1,5 +1,8 @@
 # Monte Carlo Simulation - Random Numbers and Craps
 
+> **Part of [Philomath AI](../README.md)** | [Python AI Course](../../README.md)  
+> See also: [Genome Algorithms](../genome_algorithms/) | [Election Simulation](../election-simulation/)
+
 Welcome to the **Monte Carlo Simulation** module, implementing concepts from "Programming for Lovers in Python: Monte Carlo Simulation and Craps" by Phillip Compeau.
 
 ## 📚 Module Overview

@@ -1,5 +1,7 @@
 # Web Applications Project
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.
+
 A collection of web application examples demonstrating different Python web frameworks and features.
 
 ## Overview

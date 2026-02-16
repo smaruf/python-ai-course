@@ -1,5 +1,8 @@
 # NASDAQ Bayesian Math AI Stats
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [NASDAQ CSE](../nasdaq-cse/) | [Fintech Tools](../fintech-tools/)
+
 This directory contains two major applications for educational and analytical purposes:
 
 ## 1. Bayesian Stock and Commodity Market Analysis

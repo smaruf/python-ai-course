@@ -1,5 +1,7 @@
 # Drone 3D Printing Design Project ✈️🖨️
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.
+
 A comprehensive, practical, end-to-end learning project for **designing remote-aircraft (drone/RC aircraft) parts for 3D printing using Python**. This course is structured to help you design parametric parts (frames, mounts, brackets, housings) and print flight-worthy components step by step.
 
 ## 🧭 Big Picture Goal

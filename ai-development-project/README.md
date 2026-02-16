@@ -1,5 +1,7 @@
 # AI Development Project
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.
+
 A comprehensive, full-phased project for learning AI development concepts and implementations.
 
 ## 🎯 Project Overview

@@ -1,5 +1,8 @@
 # Election Simulation - Forecasting Presidential Elections from Polling Data
 
+> **Part of [Philomath AI](../README.md)** | [Python AI Course](../../README.md)  
+> See also: [Monte Carlo Simulation](../monte-carlo/) | [Genome Algorithms](../genome_algorithms/)
+
 Welcome to the **Election Simulation** module, implementing concepts from "Programming for Lovers in Python: Simulating an Election" by Phillip Compeau.
 
 ## 📚 Module Overview
