@@ -1,5 +1,7 @@
 # Philomath AI - Programming for Lovers Learning Project
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.
+
 Welcome to **Philomath AI**, a comprehensive educational project implementing algorithms and simulations from the "Programming for Lovers in Python" course by Phillip Compeau.
 
 ## 📚 Project Overview

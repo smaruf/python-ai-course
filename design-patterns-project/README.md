@@ -1,5 +1,8 @@
 # Design Patterns Project
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [Algorithms & Data Structures](../algorithms-and-data-structures/) | [Sorting Algorithms](../sorting-algorithms-project/)
+
 A collection of classic design pattern implementations in Python.
 
 ## Overview

@@ -1,5 +1,7 @@
 # Fintech Tools Project 🏦
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.
+
 A comprehensive fintech toolkit for banking operations, payment processing, financial messaging protocols (FIX/FAST/ITCH), and account management with back-office capabilities. Built with FastAPI, featuring robust security and authentication.
 
 ## 🎯 Overview

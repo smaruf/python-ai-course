@@ -1,5 +1,8 @@
 # Sorting Algorithms Project
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [Algorithms & Data Structures](../algorithms-and-data-structures/) | [Design Patterns](../design-patterns-project/)
+
 A comprehensive collection of sorting algorithm implementations with visualizations and animations.
 
 ## Overview

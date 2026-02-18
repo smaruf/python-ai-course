@@ -1,5 +1,7 @@
 # Physics Deep Learning Examples
 
+> **Part of [AI Development Project](../../README.md)** | [Python AI Course](../../../README.md)
+
 Advanced AI applications for aerodynamics, hydrodynamics, and thermodynamics using deep learning and physics-informed neural networks (PINNs).
 
 ## 🎯 Overview

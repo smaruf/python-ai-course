@@ -1,5 +1,8 @@
 # NASDAQ CSE Gold Derivatives Trading Simulator (Go Version)
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [NASDAQ CSE Python](../nasdaq-cse/) | [Fintech Tools](../fintech-tools/)
+
 A comprehensive, high-performance gold derivatives trading simulator built in Go, featuring AI-powered assistance, real-time risk management, and educational trading tools.
 
 ## 🎯 Overview

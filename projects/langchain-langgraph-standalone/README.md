@@ -1,5 +1,8 @@
 # LangChain + LangGraph — Standalone Pipeline
 
+> **Part of [Python AI Course](../../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [AI Development Project](../../ai-development-project/) | [Oracle AI Prep](../../oracle-job-prep/)
+
 A standalone project demonstrating a full-phase AI pipeline that integrates LangChain and LangGraph patterns, with configurable AI-field variants (LLM providers, embeddings, vector stores, chain patterns).
 
 Features
