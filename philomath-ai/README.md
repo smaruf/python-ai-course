@@ -13,6 +13,7 @@ This project provides comprehensive learning modules for understanding computer 
 1. **Genome Algorithms** - Bioinformatics algorithms for DNA analysis
 2. **Monte Carlo Simulation** - Random number generation, probability, and simulation methods
 3. **Election Simulation** - Forecasting presidential elections from polling data
+4. **2-D Lists** - Multi-dimensional arrays and cellular automata (Conway's Game of Life)
 
 Each module includes:
 
@@ -71,16 +72,25 @@ philomath-ai/
 │   ├── 02_dice_simulation.py          # Dice rolling and law of large numbers
 │   ├── 03_craps_simulation.py         # Craps game and house edge
 │   └── test_all.py                     # Test suite
-└── election-simulation/                # Election forecasting module
+├── election-simulation/                # Election forecasting module
+│   ├── README.md                       # Detailed module documentation
+│   ├── 01_parsing_data.py             # Parse polling data from files
+│   ├── 02_single_election.py          # Simulate a single election
+│   ├── 03_multiple_elections.py       # Monte Carlo election simulations
+│   ├── 04_electoral_college.py        # Complete Electoral College simulation
+│   ├── test_all.py                     # Test suite
+│   └── data/                           # Sample polling data
+│       ├── sample_polls.csv            # Example swing state data
+│       └── README.md                   # Data format documentation
+└── 2d-lists/                           # 2-D lists and cellular automata
     ├── README.md                       # Detailed module documentation
-    ├── 01_parsing_data.py             # Parse polling data from files
-    ├── 02_single_election.py          # Simulate a single election
-    ├── 03_multiple_elections.py       # Monte Carlo election simulations
-    ├── 04_electoral_college.py        # Complete Electoral College simulation
-    ├── test_all.py                     # Test suite
-    └── data/                           # Sample polling data
-        ├── sample_polls.csv            # Example swing state data
-        └── README.md                   # Data format documentation
+    ├── 01_2d_tuples_and_lists.py      # 2-D data structures and initialization
+    ├── 02_list_comprehensions.py      # List comprehensions for 2-D arrays
+    ├── 03_rows_and_columns.py         # Working with rows and columns
+    ├── 04_pass_by_reference.py        # Understanding mutable objects
+    ├── 05_nested_loops.py             # Iterating through 2-D arrays
+    ├── 06_game_of_life.py             # Conway's Game of Life with R pentomino
+    └── test_all.py                     # Test suite
 ```
 
 ## 🚀 Quick Start
@@ -165,6 +175,30 @@ python 03_multiple_elections.py
 python 04_electoral_college.py
 ```
 
+#### 2-D Lists and Cellular Automata
+
+```bash
+cd 2d-lists
+
+# Learn about 2-D tuples and lists
+python 01_2d_tuples_and_lists.py
+
+# Master list comprehensions for 2-D arrays
+python 02_list_comprehensions.py
+
+# Work with rows and columns
+python 03_rows_and_columns.py
+
+# Understand pass by reference behavior
+python 04_pass_by_reference.py
+
+# Practice nested loops and printing
+python 05_nested_loops.py
+
+# Simulate the Game of Life with R pentomino
+python 06_game_of_life.py
+```
+
 ### Using in Your Code
 
 ```python
@@ -247,6 +281,19 @@ Based on "Simulating an Election" (streamed Feb 10, 2026), covering:
 - **Model Limitations**: Understanding why polling simulators struggle
 - **Prediction Markets**: Alternative approaches like Kalshi
 
+### 2-D Lists Module
+Based on "2-D Lists" (streamed Feb 17, 2026), covering:
+
+- **Chapter 3**: Discovering a Self-Replicating Cellular Automaton
+- **2-D Tuples and Lists**: Understanding multi-dimensional data structures
+- **Proper Initialization**: Avoiding common list creation pitfalls
+- **List Comprehensions**: Building 2-D arrays correctly and efficiently
+- **Rows and Columns**: Navigating and manipulating 2-D structures
+- **Pass by Reference**: Understanding mutable object behavior
+- **Nested Loops**: Iterating through multi-dimensional data
+- **Game of Life**: Conway's cellular automaton with R pentomino
+- **Self-Replication**: Emergent complexity from simple rules
+
 ## 🌍 Real-World Applications
 
 ### Genome Algorithms
@@ -277,6 +324,19 @@ These techniques are used in:
 - **Polling organizations**: Understanding uncertainty in survey data
 - **Academic research**: Studying electoral systems and voter behavior
 - **Policy analysis**: Evaluating effects of voting system changes
+
+### 2-D Lists and Cellular Automata
+These concepts are used in:
+
+- **Image Processing**: Every pixel in an image is stored in a 2-D array
+- **Machine Learning**: Neural networks use multi-dimensional arrays (tensors)
+- **Game Development**: Board games, tile-based games, terrain generation
+- **Scientific Computing**: Climate models, physics simulations, numerical analysis
+- **Biology**: Modeling population dynamics, tumor growth, ecosystem behavior
+- **Physics**: Simulating particle systems and fluid dynamics
+- **Computer Science**: Procedural content generation, data compression
+- **Art and Design**: Creating generative art and music
+- **Urban Planning**: Modeling city growth and traffic flow
 
 ## 📚 Additional Resources
 
@@ -341,6 +401,16 @@ See the main repository [LICENSE](../LICENSE) file.
 3. **Multiple elections**: election-simulation/03_multiple_elections.py
 4. **Full simulation**: election-simulation/04_electoral_college.py
 
+### For Intermediate - 2-D Lists and Cellular Automata
+**Recommended if comfortable with basic Python and want to learn data structures**:
+
+1. **2-D structures**: 2d-lists/01_2d_tuples_and_lists.py
+2. **List comprehensions**: 2d-lists/02_list_comprehensions.py
+3. **Rows and columns**: 2d-lists/03_rows_and_columns.py
+4. **Pass by reference**: 2d-lists/04_pass_by_reference.py
+5. **Nested loops**: 2d-lists/05_nested_loops.py
+6. **Game of Life**: 2d-lists/06_game_of_life.py
+
 ### For Advanced - Genome Algorithms
 **Recommended if comfortable with Python basics**:
 
@@ -357,4 +427,4 @@ Each module builds on previous concepts, so following these orders is recommende
 
 ---
 
-**Ready to explore the fascinating world of computer science through real applications? Let's dive in! 🧬🎲🗳️💻**
+**Ready to explore the fascinating world of computer science through real applications? Let's dive in! 🧬🎲🗳️🎮💻**
