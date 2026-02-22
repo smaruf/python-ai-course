@@ -1,0 +1,53 @@
+@startuml sequence_streaming_ingest
+!theme plain
+skinparam sequenceArrowColor #3A9A3A
+skinparam sequenceLifeLineBorderColor #3A9A3A
+skinparam sequenceParticipantBackgroundColor #EEFFEE
+skinparam sequenceParticipantBorderColor #3A9A3A
+skinparam noteBorderColor #C8852A
+skinparam noteBackgroundColor #FFF8EE
+skinparam defaultFontSize 12
+
+title Yelp-Style AI Assistant — Streaming Ingestion Pipeline\n(Review CDC — SLA < 10 min)
+
+participant "Operational DB\n(PostgreSQL)" as ODB
+participant "CDC Connector\n(Debezium)" as CDC
+participant "Kafka\n(reviews topic)" as KB
+participant "Stream Processor" as SP
+participant "Elasticsearch\n(reviews_text)" as ES
+participant "Vector DB\n(FAISS / Pinecone)" as VDB
+participant "Redis Cache" as Cache
+participant "Observability" as OBS
+
+== Review Created ==
+ODB -> CDC : WAL change event\n(INSERT reviews)
+CDC -> KB : IngestionEvent{review.created,\nbusiness_id, payload}
+note right of KB : partition_key = business_id\n(ensures ordering per business)
+
+KB -> SP : consume event (< 1 s delivery)
+SP -> SP : validate payload\n(schema check, PII redaction)
+SP -> SP : compute review embedding\n(sentence-transformers all-MiniLM-L6-v2\n384-dim vector)
+
+par Index review text
+  SP -> ES : upsert review doc\n(review_id, business_id, text, rating, embedding)
+and Store embedding
+  SP -> VDB : upsert vector\n(vector_id=review_id, embedding, metadata)
+end
+
+SP -> Cache : DEL qr:{business_id}:*\n(invalidate stale cached answers)
+SP -> OBS : freshness_sla_check(elapsed_seconds)\nlog(event_type, business_id, sla_met)
+
+note over SP, OBS : SLA target < 10 min end-to-end\n(review.created, review.updated, rating.updated)
+
+== Hours Change (SLA < 5 min) ==
+ODB -> CDC : WAL change event\n(UPDATE business_hours)
+CDC -> KB : IngestionEvent{hours.changed, business_id}
+KB -> SP : consume event
+SP -> ES : update nested hours[]\nin businesses_structured index
+SP -> Cache : DEL hours:{business_id}
+SP -> Cache : DEL qr:{business_id}:*
+SP -> OBS : log(hours.changed, sla_met)
+
+note over SP, OBS : SLA target < 5 min end-to-end\n(hours.changed, photo.uploaded)
+
+@enduml

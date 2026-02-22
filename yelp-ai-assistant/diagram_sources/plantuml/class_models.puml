@@ -1,0 +1,277 @@
+@startuml class_models
+!theme plain
+skinparam classBackgroundColor #EEF4FF
+skinparam classBorderColor #3A6EA5
+skinparam classArrowColor #555555
+skinparam defaultFontSize 12
+skinparam linetype ortho
+
+title Yelp-Style AI Assistant — Class Diagram
+
+' ─── Enumerations ──────────────────────────────────────────────
+enum QueryIntent {
+  OPERATIONAL
+  AMENITY
+  QUALITY
+  PHOTO
+  UNKNOWN
+}
+
+enum DataVelocity {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum EventType {
+  REVIEW_CREATED
+  REVIEW_UPDATED
+  RATING_UPDATED
+  HOURS_CHANGED
+  PHOTO_UPLOADED
+  MENU_UPDATED
+}
+
+enum CircuitState {
+  CLOSED
+  OPEN
+  HALF_OPEN
+}
+
+' ─── Data Models ───────────────────────────────────────────────
+class BusinessHours {
+  +day: str
+  +open_time: str
+  +close_time: str
+  +is_closed: bool
+}
+
+class BusinessData {
+  +business_id: str
+  +name: str
+  +address: str
+  +phone: str
+  +price_range: str
+  +hours: List[BusinessHours]
+  +amenities: Dict[str, bool]
+  +categories: List[str]
+  +rating: float
+  +review_count: int
+  +last_updated: datetime
+  +is_open_at(dt): Optional[bool]
+}
+
+class Review {
+  +review_id: str
+  +business_id: str
+  +user_id: str
+  +rating: float
+  +text: str
+  +created_at: datetime
+  +embedding: Optional[List[float]]
+}
+
+class Photo {
+  +photo_id: str
+  +business_id: str
+  +url: str
+  +caption: str
+  +image_embedding: Optional[List[float]]
+  +caption_embedding: Optional[List[float]]
+  +uploaded_at: datetime
+}
+
+' ─── Search Results ────────────────────────────────────────────
+class StructuredSearchResult {
+  +business: BusinessData
+  +matched_fields: List[str]
+  +score: float
+}
+
+class ReviewSearchResult {
+  +review: Review
+  +similarity_score: float
+}
+
+class PhotoSearchResult {
+  +photo: Photo
+  +caption_score: float
+  +image_similarity: float
+  +combined_score: float  <<property>>
+}
+
+' ─── API Contracts ─────────────────────────────────────────────
+class UserContext {
+  +location: Optional[str]
+  +time: Optional[datetime]
+}
+
+class QueryRequest {
+  +query: str
+  +business_id: str
+  +user_context: Optional[UserContext]
+}
+
+class EvidenceSummary {
+  +structured: bool
+  +reviews_used: int
+  +photos_used: int
+}
+
+class QueryResponse {
+  +answer: str
+  +confidence: float
+  +intent: QueryIntent
+  +evidence: EvidenceSummary
+  +latency_ms: Optional[float]
+}
+
+' ─── Services ──────────────────────────────────────────────────
+class IntentClassifier {
+  +classify(query): Tuple[QueryIntent, float, float]
+  -_score(query): Dict[QueryIntent, int]
+  -_pick_winner(scores): QueryIntent
+}
+
+class QueryRouter {
+  +decide(intent): RoutingDecision
+  +route(query, business_id, intent, ...): RoutedResults
+}
+
+class RoutingDecision {
+  +intent: QueryIntent
+  +use_structured: bool
+  +use_review_vector: bool
+  +use_photo_hybrid: bool
+  +reason: str
+}
+
+class RoutedResults {
+  +decision: RoutingDecision
+  +structured_results: List[StructuredSearchResult]
+  +review_results: List[ReviewSearchResult]
+  +photo_results: List[PhotoSearchResult]
+}
+
+class StructuredSearchService {
+  +add_business(business)
+  +search(query, business_id, top_k): List[StructuredSearchResult]
+}
+
+class ReviewVectorSearchService {
+  +add_review(review)
+  +search(query, business_id, top_k): List[ReviewSearchResult]
+  -_query_embedding(query): List[float]
+}
+
+class PhotoHybridRetrievalService {
+  +add_photo(photo)
+  +search(query, business_id, top_k): List[PhotoSearchResult]
+  -_caption_score(query, caption): float
+  -_image_sim(query, photo): float
+}
+
+class EvidenceBundle {
+  +business: Optional[BusinessData]
+  +structured_score: float
+  +review_results: List[ReviewSearchResult]
+  +photo_results: List[PhotoSearchResult]
+  +final_score: float
+  +conflict_notes: List[str]
+}
+
+class AnswerOrchestrator {
+  +W_STRUCTURED: float = 0.4
+  +W_REVIEW: float = 0.3
+  +W_PHOTO: float = 0.3
+  +orchestrate(routed): EvidenceBundle
+  +build_llm_context(bundle, query): str
+  -_detect_conflicts(business, reviews): List[str]
+}
+
+class RAGService {
+  +generate_answer(query, intent, bundle): QueryResponse
+  -_mock_answer(query, intent, bundle): str
+  -_call_openai(context): str
+}
+
+' ─── Cache & Resilience ────────────────────────────────────────
+class QueryCache {
+  +connect()
+  +close()
+  +get_query_result(business_id, query): Optional[Dict]
+  +set_query_result(business_id, query, response)
+  +get_business_hours(business_id): Optional[Dict]
+  +set_business_hours(business_id, hours)
+  +get_embedding(query): Optional[List]
+  +set_embedding(query, embedding)
+  +invalidate_business(business_id)
+  +l1_size(): int
+}
+
+class CircuitBreaker {
+  +name: str
+  +state: CircuitState
+  +call(func, *args, fallback, **kwargs): T
+  +reset()
+  -_on_success()
+  -_on_failure(exc)
+}
+
+class ConcurrencyLimiter {
+  +name: str
+  +available: int
+}
+
+' ─── Ingestion ─────────────────────────────────────────────────
+class IngestionEvent {
+  +event_type: EventType
+  +business_id: str
+  +payload: Dict
+  +occurred_at: datetime
+  +processed_at: Optional[datetime]
+}
+
+class StreamingIngestionPipeline {
+  +register_handler(event_type, handler)
+  +publish(event)
+  +process_one(): Optional[IngestionEvent]
+  +drain(): List[IngestionEvent]
+  +check_freshness_sla(event): bool
+}
+
+class BatchIngestionPipeline {
+  +register_job(job)
+  +run(records): Dict
+  +run_history: List[Dict]
+}
+
+' ─── Relationships ─────────────────────────────────────────────
+BusinessData "1" *-- "0..*" BusinessHours
+QueryResponse *-- EvidenceSummary
+QueryResponse *-- QueryIntent
+QueryRequest *-- UserContext
+
+RoutingDecision *-- QueryIntent
+RoutedResults *-- RoutingDecision
+RoutedResults "1" *-- "0..*" StructuredSearchResult
+RoutedResults "1" *-- "0..*" ReviewSearchResult
+RoutedResults "1" *-- "0..*" PhotoSearchResult
+
+StructuredSearchResult *-- BusinessData
+ReviewSearchResult *-- Review
+PhotoSearchResult *-- Photo
+
+EvidenceBundle "1" *-- "0..*" ReviewSearchResult
+EvidenceBundle "1" *-- "0..*" PhotoSearchResult
+EvidenceBundle ..> BusinessData
+
+QueryRouter ..> RoutingDecision : creates
+QueryRouter ..> RoutedResults : creates
+AnswerOrchestrator ..> EvidenceBundle : creates
+AnswerOrchestrator ..> RoutedResults : reads
+
+IntentClassifier ..> QueryIntent : returns
+CircuitBreaker *-- CircuitState
+
+@enduml

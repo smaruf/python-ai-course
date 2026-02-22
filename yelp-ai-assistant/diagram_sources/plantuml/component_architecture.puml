@@ -1,0 +1,95 @@
+@startuml component_architecture
+!theme plain
+skinparam componentStyle rectangle
+skinparam linetype ortho
+skinparam defaultFontSize 13
+skinparam ArrowColor #555555
+skinparam ComponentBackgroundColor #EEF4FF
+skinparam ComponentBorderColor #3A6EA5
+skinparam DatabaseBackgroundColor #FFF8EE
+skinparam DatabaseBorderColor #C8852A
+skinparam QueueBackgroundColor #EEFFEE
+skinparam QueueBorderColor #3A9A3A
+skinparam CloudBackgroundColor #F5F0FF
+skinparam CloudBorderColor #7050A0
+
+title Yelp-Style AI Assistant — Component Architecture
+
+actor "User / Client" as User
+
+package "API Layer" {
+  [API Gateway\n(Nginx / Kong)] as GW
+  [Query Service\n(FastAPI, uvicorn)] as QS
+  database "Redis Cache\n(L1 LRU + L2 TTL)" as Cache
+}
+
+package "Processing Layer" {
+  [Intent Classifier\n(keyword pattern, <20 ms)] as IC
+  [Query Router\n(routing decision)] as QR
+}
+
+package "Search Layer" {
+  [Structured Search\n(PostgreSQL / ES)] as SS
+  [Review Vector Search\n(FAISS / Pinecone)] as RVS
+  [Photo Hybrid Retrieval\n(caption + CLIP embed)] as PHS
+}
+
+package "Orchestration & RAG" {
+  [Answer Orchestrator\n(conflict resolution\nscoring)] as AO
+  [RAG Service\n(LLM / OpenAI)] as RAG
+}
+
+package "Data Stores" {
+  database "PostgreSQL\n(authoritative)" as PG
+  database "Elasticsearch\n(hot index)" as ES
+  database "Vector DB\n(FAISS / Pinecone)" as VDB
+  database "Object Storage\n(S3-compatible)" as S3
+}
+
+package "Ingestion Pipeline" {
+  queue "Kafka\n(CDC events)" as Kafka
+  [Stream Processor\n(reviews, hours, photos)] as SP
+  [Batch ETL\n(menus, weekly)] as ETL
+}
+
+package "Resilience" {
+  [Circuit Breaker] as CB
+  [Concurrency Limiter\n(semaphore)] as SEM
+}
+
+package "Observability" {
+  [Prometheus\n+ Grafana] as OBS
+}
+
+User --> GW : HTTPS
+GW --> QS : forward + X-Correlation-ID
+QS --> Cache : L1/L2 lookup
+QS --> IC : classify intent
+IC --> QR : intent
+QR --> CB : route to services
+CB --> SS : structured search (40 ms)
+CB --> RVS : review vector search (80 ms)
+CB --> PHS : photo hybrid search (80 ms)
+SEM --> RAG : cap concurrent LLM calls
+SS --> PG
+SS --> ES
+RVS --> VDB
+PHS --> ES
+PHS --> VDB
+PHS --> S3
+SS --> AO
+RVS --> AO
+PHS --> AO
+AO --> RAG : evidence bundle
+RAG --> QS : QueryResponse
+QS --> Cache : store result (TTL 5 min)
+QS --> OBS : latency, intent, cache_hit
+
+Kafka --> SP : CDC events
+SP --> ES : upsert docs
+SP --> VDB : upsert embeddings
+SP --> Cache : invalidate stale keys
+ETL --> S3 : batch objects
+ETL --> ES : cold index
+
+@enduml

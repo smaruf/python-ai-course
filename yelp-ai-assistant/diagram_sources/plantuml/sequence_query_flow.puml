@@ -1,0 +1,83 @@
+@startuml sequence_query_flow
+!theme plain
+skinparam sequenceArrowColor #3A6EA5
+skinparam sequenceLifeLineBorderColor #3A6EA5
+skinparam sequenceParticipantBackgroundColor #EEF4FF
+skinparam sequenceParticipantBorderColor #3A6EA5
+skinparam noteBorderColor #C8852A
+skinparam noteBackgroundColor #FFF8EE
+skinparam defaultFontSize 12
+skinparam maxMessageSize 120
+
+title Yelp-Style AI Assistant — Full Query Flow (cache miss, P95 < 1.2 s)
+
+actor       "User"                  as User
+participant "API Gateway"           as GW
+participant "Query Service\n(FastAPI)" as QS
+participant "Redis Cache\n(L1+L2)"  as Cache
+participant "Intent Classifier"     as IC
+participant "Query Router"          as QR
+participant "Circuit Breaker"       as CB
+participant "Structured Search\n(PG/ES)" as SS
+participant "Review Vector\nSearch (FAISS)" as RVS
+participant "Photo Hybrid\nRetrieval" as PHS
+participant "Answer\nOrchestrator"  as AO
+participant "RAG Service\n(LLM)"    as RAG
+participant "Observability"         as OBS
+
+== Request Entry ==
+User -> GW : POST /assistant/query\n{query, business_id}
+GW -> QS : forward + inject X-Correlation-ID
+
+== Cache Check ==
+QS -> Cache : GET qr:{business_id}:{sha256(query)[:16]}
+Cache --> QS : MISS
+note right of Cache : HIT path returns\nin < 10 ms
+
+== Intent Classification (< 20 ms) ==
+QS -> IC : classify(query)
+IC --> QS : (QueryIntent, confidence, latency_ms)
+
+== Routing Decision ==
+QS -> QR : decide(intent)
+QR --> QS : RoutingDecision\n{use_structured, use_review_vector, use_photo_hybrid}
+
+== Parallel Search (asyncio.gather) ==
+note over CB : Each call wrapped with\ncircuit breaker + timeout
+
+par Structured Search (≤ 40 ms)
+  QS -> CB : call(structured_service.search)
+  CB -> SS : search(query, business_id)
+  SS --> CB : StructuredSearchResult[]
+  CB --> QS : results (or [] on timeout/open)
+and Review Vector Search (≤ 80 ms, semaphore-gated)
+  QS -> CB : call(review_vector_service.search)
+  CB -> RVS : search(query, business_id)
+  RVS --> CB : ReviewSearchResult[]
+  CB --> QS : results (or [] on timeout/open)
+and Photo Hybrid Search (≤ 80 ms, semaphore-gated)
+  QS -> CB : call(photo_hybrid_service.search)
+  CB -> PHS : search(query, business_id)
+  PHS --> CB : PhotoSearchResult[]
+  CB --> QS : results (or [] on timeout/open)
+end
+
+== Orchestration (≤ 30 ms) ==
+QS -> AO : orchestrate(RoutedResults)
+note right of AO : Enforce structured authority\nDetect conflicts\nScore evidence\n(0.4*struct + 0.3*review + 0.3*photo)
+AO --> QS : EvidenceBundle{business, reviews, photos,\nfinal_score, conflict_notes}
+
+== RAG / LLM (300–800 ms, semaphore-gated) ==
+QS -> CB : call(rag_service.generate_answer, timeout=1s)
+CB -> RAG : generate_answer(query, intent, bundle)
+note right of RAG : Build LLM context from canonical facts\n+ reviews + photos\nLLM forbidden from fabricating data
+RAG --> CB : QueryResponse{answer, confidence, intent, evidence}
+CB --> QS : QueryResponse
+
+== Cache Store + Response ==
+QS -> Cache : SET qr:{business_id}:{hash} TTL=300s
+QS -> OBS : log(intent, latency_ms, cache_hit=false, evidence_sources)
+QS --> GW : 200 QueryResponse
+GW --> User : 200 QueryResponse\nX-Correlation-ID: <uuid>
+
+@enduml

@@ -41,6 +41,7 @@ from src.search.services import (
 )
 from src.orchestration.orchestrator import AnswerOrchestrator
 from src.rag.rag_service import RAGService
+from src.cache.cache_layer import QueryCache
 from src.ingestion.pipelines import (
     BatchIngestionPipeline,
     IngestionEvent,
@@ -696,6 +697,8 @@ class TestProjectStructure:
             "src/orchestration/orchestrator.py",
             "src/rag/rag_service.py",
             "src/ingestion/pipelines.py",
+            "src/cache/cache_layer.py",
+            "src/resilience/circuit_breaker.py",
         ]
         for path in expected:
             assert os.path.exists(os.path.join(project_root, path)), f"Missing: {path}"
@@ -704,8 +707,452 @@ class TestProjectStructure:
         project_root = os.path.join(os.path.dirname(__file__), "..")
         with open(os.path.join(project_root, "requirements.txt")) as f:
             content = f.read()
-        for dep in ["fastapi", "pytest", "pydantic"]:
-            assert dep in content
+        for dep in ["fastapi", "pytest", "pydantic", "plantuml", "diagrams"]:
+            assert dep in content, f"Missing dependency: {dep}"
+
+    def test_diagram_files_exist(self):
+        project_root = os.path.join(os.path.dirname(__file__), "..")
+        expected = [
+            "diagram_sources/plantuml/component_architecture.puml",
+            "diagram_sources/plantuml/class_models.puml",
+            "diagram_sources/plantuml/sequence_query_flow.puml",
+            "diagram_sources/plantuml/sequence_streaming_ingest.puml",
+            "diagram_sources/pydiagram/architecture.py",
+            "diagram_sources/pydiagram/data_flow.py",
+            "diagram_sources/plantuml_renderer.py",
+        ]
+        for path in expected:
+            assert os.path.exists(os.path.join(project_root, path)), f"Missing: {path}"
+
+    def test_demo_module_exists(self):
+        project_root = os.path.join(os.path.dirname(__file__), "..")
+        assert os.path.exists(os.path.join(project_root, "demo/presentation.py"))
+
+    def test_puml_files_valid_syntax(self):
+        """Each .puml file must start with @startuml and end with @enduml."""
+        project_root = os.path.join(os.path.dirname(__file__), "..")
+        puml_dir = os.path.join(project_root, "diagram_sources", "plantuml")
+        import glob as _glob
+        for path in _glob.glob(os.path.join(puml_dir, "*.puml")):
+            with open(path) as f:
+                content = f.read().strip()
+            assert content.startswith("@startuml"), f"{path} missing @startuml"
+            assert content.endswith("@enduml"),    f"{path} missing @enduml"
+
+
+# ---------------------------------------------------------------------------
+# Cache layer tests
+# ---------------------------------------------------------------------------
+
+class TestQueryCache:
+
+    @pytest.mark.asyncio
+    async def test_miss_returns_none(self):
+        cache = QueryCache()
+        result = await cache.get_query_result("biz-1", "any query")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_set_then_get_returns_value(self):
+        cache = QueryCache()
+        payload = {"answer": "Open until 22:00", "confidence": 0.9,
+                   "intent": "operational",
+                   "evidence": {"structured": True, "reviews_used": 0, "photos_used": 0}}
+        await cache.set_query_result("biz-1", "is it open?", payload)
+        result = await cache.get_query_result("biz-1", "is it open?")
+        assert result is not None
+        assert result["answer"] == "Open until 22:00"
+
+    @pytest.mark.asyncio
+    async def test_different_queries_different_keys(self):
+        cache = QueryCache()
+        await cache.set_query_result("biz-1", "query A", {"answer": "A"})
+        await cache.set_query_result("biz-1", "query B", {"answer": "B"})
+        a = await cache.get_query_result("biz-1", "query A")
+        b = await cache.get_query_result("biz-1", "query B")
+        assert a["answer"] == "A"
+        assert b["answer"] == "B"
+
+    @pytest.mark.asyncio
+    async def test_invalidate_clears_entries(self):
+        cache = QueryCache()
+        await cache.set_query_result("biz-1", "hours query", {"answer": "9-10"})
+        await cache.invalidate_business("biz-1")
+        result = await cache.get_query_result("biz-1", "hours query")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_hours_cache(self):
+        cache = QueryCache()
+        hours = {"monday": {"open": "09:00", "close": "22:00"}}
+        await cache.set_business_hours("biz-2", hours)
+        result = await cache.get_business_hours("biz-2")
+        assert result == hours
+
+    @pytest.mark.asyncio
+    async def test_embedding_cache(self):
+        cache = QueryCache()
+        emb = [0.1, 0.2, 0.3, 0.4]
+        await cache.set_embedding("heated patio query", emb)
+        result = await cache.get_embedding("heated patio query")
+        assert result == emb
+
+    @pytest.mark.asyncio
+    async def test_l1_size_increments(self):
+        cache = QueryCache()
+        assert cache.l1_size() == 0
+        await cache.set_query_result("biz-1", "q1", {"answer": "a1"})
+        assert cache.l1_size() == 1
+        await cache.set_query_result("biz-1", "q2", {"answer": "a2"})
+        assert cache.l1_size() == 2
+
+    @pytest.mark.asyncio
+    async def test_key_lock_same_key_returns_same_lock(self):
+        cache = QueryCache()
+        lock1 = await cache.get_key_lock("key-A")
+        lock2 = await cache.get_key_lock("key-A")
+        assert lock1 is lock2
+
+    @pytest.mark.asyncio
+    async def test_l1_bounded_by_maxsize(self):
+        from src.cache.cache_layer import _L1Cache
+        l1 = _L1Cache(maxsize=5)
+        for i in range(10):
+            await l1.set(f"key-{i}", f"val-{i}", ttl=60)
+        assert l1.size() == 5
+
+    @pytest.mark.asyncio
+    async def test_l1_ttl_expiry(self):
+        import time as _time
+        from src.cache.cache_layer import _L1Cache
+        l1 = _L1Cache()
+        await l1.set("expiring", "value", ttl=0)   # expires immediately
+        # Give the clock a nudge by sleeping a tiny bit
+        await asyncio.sleep(0.01)
+        result = await l1.get("expiring")
+        assert result is None
+
+
+# ---------------------------------------------------------------------------
+# Circuit Breaker tests
+# ---------------------------------------------------------------------------
+
+class TestCircuitBreaker:
+
+    @pytest.mark.asyncio
+    async def test_closed_state_passes_calls_through(self):
+        from src.resilience.circuit_breaker import CircuitBreaker, CircuitState
+        cb = CircuitBreaker("svc", failure_threshold=3)
+        assert cb.state == CircuitState.CLOSED
+
+        async def _ok():
+            return "result"
+
+        result = await cb.call(_ok, fallback="fallback")
+        assert result == "result"
+        assert cb.state == CircuitState.CLOSED
+
+    @pytest.mark.asyncio
+    async def test_opens_after_threshold_failures(self):
+        from src.resilience.circuit_breaker import CircuitBreaker, CircuitState
+        cb = CircuitBreaker("svc", failure_threshold=2)
+
+        async def _fail():
+            raise RuntimeError("boom")
+
+        for _ in range(2):
+            await cb.call(_fail, fallback=None)
+        assert cb.state == CircuitState.OPEN
+
+    @pytest.mark.asyncio
+    async def test_open_returns_fallback_immediately(self):
+        from src.resilience.circuit_breaker import CircuitBreaker, CircuitState
+        cb = CircuitBreaker("svc", failure_threshold=1)
+
+        async def _fail():
+            raise RuntimeError("boom")
+
+        await cb.call(_fail, fallback="fallback")
+        assert cb.state == CircuitState.OPEN
+
+        call_count = 0
+
+        async def _should_not_be_called():
+            nonlocal call_count
+            call_count += 1
+            return "called"
+
+        result = await cb.call(_should_not_be_called, fallback="fallback")
+        assert result == "fallback"
+        assert call_count == 0   # function was never invoked
+
+    @pytest.mark.asyncio
+    async def test_half_open_after_recovery_timeout(self):
+        from src.resilience.circuit_breaker import CircuitBreaker, CircuitState
+        cb = CircuitBreaker("svc", failure_threshold=1, recovery_timeout=0.02)
+
+        async def _fail():
+            raise RuntimeError("boom")
+
+        await cb.call(_fail, fallback=None)
+        assert cb.state == CircuitState.OPEN
+
+        await asyncio.sleep(0.03)
+
+        async def _ok():
+            return "ok"
+
+        result = await cb.call(_ok, fallback="fallback")
+        # After one success in HALF_OPEN we need success_threshold successes
+        assert result == "ok"
+
+    @pytest.mark.asyncio
+    async def test_closes_after_successful_half_open_probes(self):
+        from src.resilience.circuit_breaker import CircuitBreaker, CircuitState
+        cb = CircuitBreaker("svc", failure_threshold=1,
+                            recovery_timeout=0.01, success_threshold=2)
+
+        async def _fail():
+            raise RuntimeError()
+
+        async def _ok():
+            return "ok"
+
+        await cb.call(_fail, fallback=None)
+        await asyncio.sleep(0.02)
+        await cb.call(_ok, fallback=None)   # first probe — still HALF_OPEN
+        await cb.call(_ok, fallback=None)   # second probe — closes
+        assert cb.state == CircuitState.CLOSED
+
+    def test_reset_clears_state(self):
+        from src.resilience.circuit_breaker import CircuitBreaker, CircuitState
+        cb = CircuitBreaker("svc", failure_threshold=0)
+        cb._state = CircuitState.OPEN
+        cb.reset()
+        assert cb.state == CircuitState.CLOSED
+
+    @pytest.mark.asyncio
+    async def test_with_timeout_returns_fallback_on_expiry(self):
+        from src.resilience.circuit_breaker import with_timeout
+
+        async def _slow():
+            await asyncio.sleep(10)
+            return "done"
+
+        result = await with_timeout(_slow(), timeout_seconds=0.01, fallback="timed_out")
+        assert result == "timed_out"
+
+    @pytest.mark.asyncio
+    async def test_with_timeout_returns_result_before_expiry(self):
+        from src.resilience.circuit_breaker import with_timeout
+
+        async def _fast():
+            return "fast_result"
+
+        result = await with_timeout(_fast(), timeout_seconds=5.0, fallback="fallback")
+        assert result == "fast_result"
+
+    @pytest.mark.asyncio
+    async def test_concurrency_limiter_caps_slots(self):
+        from src.resilience.circuit_breaker import ConcurrencyLimiter
+        limiter = ConcurrencyLimiter("test", max_concurrent=2)
+        assert limiter.available == 2
+        async with limiter:
+            assert limiter.available == 1
+        assert limiter.available == 2
+
+
+# ---------------------------------------------------------------------------
+# PlantUML renderer tests
+# ---------------------------------------------------------------------------
+
+class TestPlantUMLRenderer:
+
+    def test_encode_produces_non_empty_string(self):
+        from diagram_sources.plantuml_renderer import PlantUMLRenderer
+        renderer = PlantUMLRenderer()
+        source = "@startuml\nAlice -> Bob : hello\n@enduml"
+        encoded = renderer.encode(source)
+        assert isinstance(encoded, str)
+        assert len(encoded) > 0
+
+    def test_url_for_source_contains_server(self):
+        from diagram_sources.plantuml_renderer import PlantUMLRenderer, DEFAULT_SERVER_URL
+        renderer = PlantUMLRenderer()
+        source = "@startuml\nAlice -> Bob : hi\n@enduml"
+        url = renderer.url_for_source(source)
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        assert parsed.scheme in ("http", "https")
+        assert parsed.netloc != ""
+
+    def test_url_for_file_reads_puml_file(self, tmp_path):
+        from diagram_sources.plantuml_renderer import PlantUMLRenderer
+        puml_file = tmp_path / "test.puml"
+        puml_file.write_text("@startuml\nA -> B : test\n@enduml")
+        renderer = PlantUMLRenderer()
+        url = renderer.url_for_file(str(puml_file))
+        assert isinstance(url, str)
+        assert len(url) > 0
+
+    def test_url_for_all_project_puml_files(self):
+        from diagram_sources.plantuml_renderer import PlantUMLRenderer
+        from urllib.parse import urlparse
+        import glob as _glob
+        renderer = PlantUMLRenderer()
+        project_root = os.path.join(os.path.dirname(__file__), "..")
+        puml_dir = os.path.join(project_root, "diagram_sources", "plantuml")
+        for path in _glob.glob(os.path.join(puml_dir, "*.puml")):
+            url = renderer.url_for_file(path)
+            parsed = urlparse(url)
+            assert parsed.scheme in ("http", "https"), f"Invalid URL for {path}: {url}"
+            assert parsed.netloc != "", f"Missing host in URL for {path}: {url}"
+
+    def test_render_all_returns_mapping(self, tmp_path):
+        from diagram_sources.plantuml_renderer import PlantUMLRenderer
+        # Create two dummy .puml files
+        for name in ("diag_a", "diag_b"):
+            (tmp_path / f"{name}.puml").write_text(
+                f"@startuml\nA -> B : {name}\n@enduml"
+            )
+        renderer = PlantUMLRenderer()
+        urls = renderer.render_all(str(tmp_path), str(tmp_path / "out"))
+        assert "diag_a" in urls
+        assert "diag_b" in urls
+        assert all(isinstance(u, str) for u in urls.values())
+
+
+# ---------------------------------------------------------------------------
+# PyDiagram (diagrams library) tests
+# ---------------------------------------------------------------------------
+
+class TestPyDiagram:
+
+    def test_architecture_module_importable(self):
+        from diagram_sources.pydiagram import architecture
+        assert callable(architecture.build)
+
+    def test_data_flow_module_importable(self):
+        from diagram_sources.pydiagram import data_flow
+        assert callable(data_flow.build)
+
+    def test_architecture_renders_png(self, tmp_path):
+        from diagram_sources.pydiagram.architecture import build
+        build(filename="arch_test", output_dir=str(tmp_path), show=False)
+        out = tmp_path / "arch_test.png"
+        assert out.exists(), "Architecture PNG was not created"
+        assert out.stat().st_size > 0
+
+    def test_data_flow_renders_png(self, tmp_path):
+        from diagram_sources.pydiagram.data_flow import build
+        build(filename="flow_test", output_dir=str(tmp_path), show=False)
+        out = tmp_path / "flow_test.png"
+        assert out.exists(), "Data-flow PNG was not created"
+        assert out.stat().st_size > 0
+
+
+# ---------------------------------------------------------------------------
+# Presentation / demo module tests
+# ---------------------------------------------------------------------------
+
+class TestPresentation:
+
+    @pytest.mark.asyncio
+    async def test_demo_intent_classification_runs(self, capsys):
+        import demo.presentation as pres
+        pres._PAUSE_ENABLED = False
+        from demo.presentation import demo_intent_classification
+        demo_intent_classification()
+        captured = capsys.readouterr()
+        assert "operational" in captured.out.lower()
+        assert "amenity" in captured.out.lower()
+
+    @pytest.mark.asyncio
+    async def test_demo_query_routing_runs(self, capsys):
+        import demo.presentation as pres
+        pres._PAUSE_ENABLED = False
+        from demo.presentation import demo_query_routing
+        demo_query_routing()
+        captured = capsys.readouterr()
+        assert "OPERATIONAL" in captured.out or "operational" in captured.out
+
+    @pytest.mark.asyncio
+    async def test_demo_structured_authority_runs(self, capsys):
+        import demo.presentation as pres
+        pres._PAUSE_ENABLED = False
+        from demo.presentation import demo_structured_authority
+        await demo_structured_authority()
+        captured = capsys.readouterr()
+        assert "Golden Fork" in captured.out
+
+    @pytest.mark.asyncio
+    async def test_demo_cache_behaviour_runs(self, capsys):
+        import demo.presentation as pres
+        pres._PAUSE_ENABLED = False
+        from demo.presentation import demo_cache_behaviour
+        await demo_cache_behaviour()
+        captured = capsys.readouterr()
+        assert "MISS" in captured.out
+        assert "HIT" in captured.out
+
+    @pytest.mark.asyncio
+    async def test_demo_circuit_breaker_runs(self, capsys):
+        import demo.presentation as pres
+        pres._PAUSE_ENABLED = False
+        from demo.presentation import demo_circuit_breaker
+        await demo_circuit_breaker()
+        captured = capsys.readouterr()
+        assert "open" in captured.out.lower() or "OPEN" in captured.out
+
+    @pytest.mark.asyncio
+    async def test_demo_full_pipeline_runs(self, capsys):
+        import demo.presentation as pres
+        pres._PAUSE_ENABLED = False
+        from demo.presentation import demo_full_pipeline
+        await demo_full_pipeline()
+        captured = capsys.readouterr()
+        assert "Golden Fork" in captured.out
+        assert "answer" in captured.out.lower() or "Answer" in captured.out
+
+    @pytest.mark.asyncio
+    async def test_demo_ingestion_runs(self, capsys):
+        import demo.presentation as pres
+        pres._PAUSE_ENABLED = False
+        from demo.presentation import demo_ingestion
+        await demo_ingestion()
+        captured = capsys.readouterr()
+        assert "STREAM" in captured.out
+        assert "Batch" in captured.out or "batch" in captured.out.lower()
+
+    def test_demo_diagrams_runs(self, capsys):
+        from demo.presentation import demo_diagrams
+        demo_diagrams()
+        captured = capsys.readouterr()
+        assert ".puml" in captured.out
+
+    @pytest.mark.asyncio
+    async def test_run_demo_all_sections(self, capsys):
+        import demo.presentation as pres
+        pres._PAUSE_ENABLED = False
+        await pres.run_demo()
+        captured = capsys.readouterr()
+        assert "Demo Complete" in captured.out
+
+    @pytest.mark.asyncio
+    async def test_run_demo_single_section(self, capsys):
+        import demo.presentation as pres
+        pres._PAUSE_ENABLED = False
+        await pres.run_demo(sections=["intent"])
+        captured = capsys.readouterr()
+        assert "Intent" in captured.out
+
+    def test_sections_dict_complete(self):
+        from demo.presentation import SECTIONS
+        expected_keys = {
+            "intent", "routing", "structured", "conflict",
+            "cache", "breaker", "pipeline", "ingestion", "diagrams",
+        }
+        assert expected_keys == set(SECTIONS.keys())
 
 
 if __name__ == "__main__":
