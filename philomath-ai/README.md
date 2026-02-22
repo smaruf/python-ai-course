@@ -14,6 +14,7 @@ This project provides comprehensive learning modules for understanding computer 
 2. **Monte Carlo Simulation** - Random number generation, probability, and simulation methods
 3. **Election Simulation** - Forecasting presidential elections from polling data
 4. **2-D Lists** - Multi-dimensional arrays and cellular automata (Conway's Game of Life)
+5. **Pygame Graphics** - Intro to 2D graphics: RGB colors, drawing shapes, snowperson, and Game of Life visualization
 
 Each module includes:
 
@@ -82,14 +83,21 @@ philomath-ai/
 │   └── data/                           # Sample polling data
 │       ├── sample_polls.csv            # Example swing state data
 │       └── README.md                   # Data format documentation
-└── 2d-lists/                           # 2-D lists and cellular automata
+├── 2d-lists/                           # 2-D lists and cellular automata
+│   ├── README.md                       # Detailed module documentation
+│   ├── 01_2d_tuples_and_lists.py      # 2-D data structures and initialization
+│   ├── 02_list_comprehensions.py      # List comprehensions for 2-D arrays
+│   ├── 03_rows_and_columns.py         # Working with rows and columns
+│   ├── 04_pass_by_reference.py        # Understanding mutable objects
+│   ├── 05_nested_loops.py             # Iterating through 2-D arrays
+│   ├── 06_game_of_life.py             # Conway's Game of Life with R pentomino
+│   └── test_all.py                     # Test suite
+└── pygame-graphics/                    # Pygame graphics module
     ├── README.md                       # Detailed module documentation
-    ├── 01_2d_tuples_and_lists.py      # 2-D data structures and initialization
-    ├── 02_list_comprehensions.py      # List comprehensions for 2-D arrays
-    ├── 03_rows_and_columns.py         # Working with rows and columns
-    ├── 04_pass_by_reference.py        # Understanding mutable objects
-    ├── 05_nested_loops.py             # Iterating through 2-D arrays
-    ├── 06_game_of_life.py             # Conway's Game of Life with R pentomino
+    ├── 01_pygame_basics.py            # pygame setup, surfaces, coordinate system
+    ├── 02_rgb_colors.py               # RGB color model, color mixing utilities
+    ├── 03_snowperson.py               # Drawing a snowperson from simple shapes
+    ├── 04_game_of_life_visualization.py # Animated Game of Life with circular cells
     └── test_all.py                     # Test suite
 ```
 
@@ -199,6 +207,24 @@ python 05_nested_loops.py
 python 06_game_of_life.py
 ```
 
+#### Pygame Graphics
+
+```bash
+cd pygame-graphics
+
+# Learn about pygame surfaces and coordinates
+python 01_pygame_basics.py
+
+# Explore the RGB color model
+python 02_rgb_colors.py
+
+# Draw a snowperson
+python 03_snowperson.py
+
+# Visualize the Game of Life with animated circular cells
+python 04_game_of_life_visualization.py
+```
+
 ### Using in Your Code
 
 ```python
@@ -294,6 +320,16 @@ Based on "2-D Lists" (streamed Feb 17, 2026), covering:
 - **Game of Life**: Conway's cellular automaton with R pentomino
 - **Self-Replication**: Emergent complexity from simple rules
 
+### Pygame Graphics Module
+Based on "An Intro to Graphics in Python" (Chapter 3, Programming for Lovers), covering:
+
+- **Pygame Setup**: Initializing the display and running an event loop
+- **RGB Color Model**: Mixing red, green, and blue light to create any color
+- **Surfaces and Shapes**: Drawing rectangles and circles with pygame.draw
+- **Coordinate System**: Understanding the top-left origin and downward y-axis
+- **Snowperson Drawing**: Composing a complex drawing from simple shapes
+- **Game of Life Visualization**: Animated grid with circular cells and color
+
 ## 🌍 Real-World Applications
 
 ### Genome Algorithms
@@ -337,6 +373,15 @@ These concepts are used in:
 - **Computer Science**: Procedural content generation, data compression
 - **Art and Design**: Creating generative art and music
 - **Urban Planning**: Modeling city growth and traffic flow
+
+### Pygame Graphics
+These skills are used in:
+
+- **Indie Game Development**: 2D platformers, puzzle games, arcade games
+- **Education**: Interactive teaching tools and simulations
+- **Data Visualization**: Custom animated charts and scientific plots
+- **Generative Art**: Algorithmic artwork and animations
+- **Prototyping**: Rapid prototyping of game and UI concepts
 
 ## 📚 Additional Resources
 
@@ -410,6 +455,14 @@ See the main repository [LICENSE](../LICENSE) file.
 4. **Pass by reference**: 2d-lists/04_pass_by_reference.py
 5. **Nested loops**: 2d-lists/05_nested_loops.py
 6. **Game of Life**: 2d-lists/06_game_of_life.py
+
+### For Intermediate - Pygame Graphics
+**Recommended if comfortable with Python basics and want to learn graphics**:
+
+1. **Pygame setup**: pygame-graphics/01_pygame_basics.py
+2. **RGB colors**: pygame-graphics/02_rgb_colors.py
+3. **Draw snowperson**: pygame-graphics/03_snowperson.py
+4. **Animate Game of Life**: pygame-graphics/04_game_of_life_visualization.py
 
 ### For Advanced - Genome Algorithms
 **Recommended if comfortable with Python basics**:
