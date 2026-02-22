@@ -34,7 +34,7 @@ _OPERATIONAL_SIGNALS: List[str] = [
     r"\bclose\s+at\b",
     r"\bopen\s+until\b",
     r"\bwhat\s+time\b",
-    r"\btodayv?\b",
+    r"\btoday\b",
     r"\bright\s+now\b",
     r"\bcurrently\b",
     r"\btonight\b",
