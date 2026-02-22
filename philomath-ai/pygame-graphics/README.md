@@ -45,6 +45,7 @@ pygame-graphics/
 ├── 02_rgb_colors.py                      # RGB color model, color mixing and utilities
 ├── 03_snowperson.py                      # Drawing a snowperson from simple shapes
 ├── 04_game_of_life_visualization.py      # Animated Game of Life with circular cells
+├── 05_krypton_simulation.py             # Multi-faction Game of Life (Krypton theme)
 └── test_all.py                            # Test suite (no display required)
 ```
 
@@ -74,6 +75,9 @@ python 03_snowperson.py
 
 # Visualize the Game of Life
 python 04_game_of_life_visualization.py
+
+# Run the multi-faction Krypton Chronicles simulation
+python 05_krypton_simulation.py
 ```
 
 ### Running Tests
@@ -191,6 +195,35 @@ def draw_board(surface, board):
 **Controls in the pygame window:**
 - `SPACE` - Pause/Resume animation
 - `R` - Reset to R pentomino
+- `ESC` - Quit
+
+### 5. Krypton Chronicles – Multi-Faction Game of Life (05)
+
+A themed cellular automaton where cells belong to four factions, each colour-coded:
+
+| State | Color | Description |
+|-------|--------|-------------|
+| Kryptonian | 🔵 Blue | Superman and Kryptonian survivors |
+| Earthian Ally | 🟢 Green | Bonded earthians who protect Kryptonians |
+| Earthian Enemy | 🔴 Red | Villains seeking to destroy them |
+| Evil / Corrupted | 🟣 Purple | Kryptonian turned evil or corrupted agent |
+
+**Key rules (themed around the story):**
+- A Kryptonian overwhelmed by 4+ enemies **turns evil**
+- A Kryptonian shielded by allies **survives**
+- An empty cell with 1 Kryptonian + 2 allies **births a new Kryptonian** (favorable race)
+- Evil **spreads** to empty cells with 3+ evil neighbours
+
+```python
+# The "favorable race" birth rule
+if state == EMPTY:
+    if kryp_count >= 1 and ally_count >= 2:
+        new_board[r][c] = KRYPTONIAN   # new hope!
+```
+
+**Controls in the pygame window:**
+- `SPACE` - Pause/Resume
+- `R` - Reset scenario
 - `ESC` - Quit
 
 ## 🎮 Video Code-Alongs

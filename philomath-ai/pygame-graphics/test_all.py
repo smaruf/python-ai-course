@@ -28,6 +28,7 @@ mod_01 = load_module('01_pygame_basics.py')
 mod_02 = load_module('02_rgb_colors.py')
 mod_03 = load_module('03_snowperson.py')
 mod_04 = load_module('04_game_of_life_visualization.py')
+mod_05 = load_module('05_krypton_simulation.py')
 
 
 # ──────────────────────────────────────────────
@@ -554,6 +555,212 @@ def test_pixel_to_cell():
     print("✓ PASSED")
 
 
+# ──────────────────────────────────────────────
+# Tests for 05_krypton_simulation.py
+# ──────────────────────────────────────────────
+
+def test_krypton_empty_board():
+    """Test that create_empty_board returns all-EMPTY cells."""
+    print("Testing Krypton empty board...", end=' ')
+    create_board = mod_05['create_empty_board']
+    EMPTY = mod_05['EMPTY']
+
+    board = create_board(5, 8)
+    assert len(board) == 5, "Board should have 5 rows"
+    assert len(board[0]) == 8, "Board should have 8 columns"
+    for row in board:
+        for cell in row:
+            assert cell == EMPTY, "All cells should start as EMPTY"
+    print("✓ PASSED")
+
+
+def test_krypton_state_constants():
+    """Test that all state constants are distinct non-negative integers."""
+    print("Testing Krypton state constants...", end=' ')
+    states = [mod_05[k] for k in ('EMPTY', 'KRYPTONIAN', 'EARTHIAN_ALLY',
+                                   'EARTHIAN_ENEMY', 'EVIL')]
+    assert len(set(states)) == 5, "All states must be distinct"
+    for s in states:
+        assert isinstance(s, int) and s >= 0, "States must be non-negative integers"
+    print("✓ PASSED")
+
+
+def test_krypton_count_neighbors():
+    """Test that count_state_neighbors returns correct per-state counts."""
+    print("Testing Krypton neighbor counting...", end=' ')
+    count_neighbors = mod_05['count_state_neighbors']
+    KRYPTONIAN    = mod_05['KRYPTONIAN']
+    EARTHIAN_ALLY = mod_05['EARTHIAN_ALLY']
+    EMPTY         = mod_05['EMPTY']
+
+    board = [
+        [KRYPTONIAN,    EARTHIAN_ALLY, EMPTY],
+        [EARTHIAN_ALLY, EMPTY,         EMPTY],
+        [EMPTY,         EMPTY,         EMPTY],
+    ]
+    counts = count_neighbors(board, 1, 1)
+    assert counts[KRYPTONIAN]    == 1, "Should see 1 Kryptonian neighbor"
+    assert counts[EARTHIAN_ALLY] == 2, "Should see 2 Ally neighbors"
+    assert counts[EMPTY]         == 5, "Should see 5 Empty neighbors"
+    print("✓ PASSED")
+
+
+def test_krypton_rule_overwhelmed():
+    """A Kryptonian surrounded by 4+ enemies turns EVIL."""
+    print("Testing Kryptonian turns evil when overwhelmed...", end=' ')
+    apply_rules  = mod_05['apply_krypton_rules']
+    create_board = mod_05['create_empty_board']
+    KRYPTONIAN     = mod_05['KRYPTONIAN']
+    EARTHIAN_ENEMY = mod_05['EARTHIAN_ENEMY']
+    EVIL           = mod_05['EVIL']
+
+    board = create_board(3, 3)
+    board[1][1] = KRYPTONIAN
+    for r, c in [(0, 0), (0, 1), (1, 0), (0, 2)]:
+        board[r][c] = EARTHIAN_ENEMY
+
+    new_board = apply_rules(board)
+    assert new_board[1][1] == EVIL, \
+        "Kryptonian with 4 enemies should turn EVIL"
+    print("✓ PASSED")
+
+
+def test_krypton_rule_ally_protects():
+    """A Kryptonian protected by allies and few enemies survives."""
+    print("Testing ally protection of Kryptonian...", end=' ')
+    apply_rules  = mod_05['apply_krypton_rules']
+    create_board = mod_05['create_empty_board']
+    KRYPTONIAN    = mod_05['KRYPTONIAN']
+    EARTHIAN_ALLY = mod_05['EARTHIAN_ALLY']
+
+    board = create_board(3, 3)
+    board[1][1] = KRYPTONIAN
+    board[0][0] = EARTHIAN_ALLY
+    board[0][1] = EARTHIAN_ALLY
+
+    new_board = apply_rules(board)
+    assert new_board[1][1] == KRYPTONIAN, \
+        "Kryptonian with allies and no enemies should survive"
+    print("✓ PASSED")
+
+
+def test_krypton_rule_favorable_birth():
+    """An empty cell with 1 Kryptonian + 2 allies births a new Kryptonian."""
+    print("Testing favorable-race birth...", end=' ')
+    apply_rules  = mod_05['apply_krypton_rules']
+    create_board = mod_05['create_empty_board']
+    KRYPTONIAN    = mod_05['KRYPTONIAN']
+    EARTHIAN_ALLY = mod_05['EARTHIAN_ALLY']
+
+    board = create_board(3, 3)
+    board[0][0] = KRYPTONIAN
+    board[0][1] = EARTHIAN_ALLY
+    board[1][0] = EARTHIAN_ALLY
+
+    new_board = apply_rules(board)
+    assert new_board[1][1] == KRYPTONIAN, \
+        "Empty cell with 1 Kryptonian + 2 allies should birth a Kryptonian"
+    print("✓ PASSED")
+
+
+def test_krypton_rule_enemy_spawn():
+    """An empty cell with exactly 3 enemy neighbors spawns an enemy."""
+    print("Testing enemy spawn rule...", end=' ')
+    apply_rules    = mod_05['apply_krypton_rules']
+    create_board   = mod_05['create_empty_board']
+    EARTHIAN_ENEMY = mod_05['EARTHIAN_ENEMY']
+
+    board = create_board(3, 3)
+    board[0][0] = EARTHIAN_ENEMY
+    board[0][1] = EARTHIAN_ENEMY
+    board[1][0] = EARTHIAN_ENEMY
+
+    new_board = apply_rules(board)
+    assert new_board[1][1] == EARTHIAN_ENEMY, \
+        "Empty cell with 3 enemy neighbors should spawn an enemy"
+    print("✓ PASSED")
+
+
+def test_krypton_rule_evil_spread():
+    """An empty cell with 3+ evil neighbors becomes EVIL."""
+    print("Testing evil spread rule...", end=' ')
+    apply_rules  = mod_05['apply_krypton_rules']
+    create_board = mod_05['create_empty_board']
+    EVIL = mod_05['EVIL']
+
+    board = create_board(3, 3)
+    board[0][0] = EVIL
+    board[0][1] = EVIL
+    board[1][0] = EVIL
+
+    new_board = apply_rules(board)
+    assert new_board[1][1] == EVIL, \
+        "Empty cell with 3 evil neighbors should become EVIL"
+    print("✓ PASSED")
+
+
+def test_krypton_count_by_state():
+    """Test that count_by_state sums each state correctly."""
+    print("Testing count_by_state...", end=' ')
+    count_by_state = mod_05['count_by_state']
+    KRYPTONIAN    = mod_05['KRYPTONIAN']
+    EARTHIAN_ALLY = mod_05['EARTHIAN_ALLY']
+    EVIL          = mod_05['EVIL']
+    EMPTY         = mod_05['EMPTY']
+
+    board = [
+        [KRYPTONIAN,    EARTHIAN_ALLY, EVIL],
+        [EMPTY,         KRYPTONIAN,    EMPTY],
+        [EARTHIAN_ALLY, EMPTY,         EMPTY],
+    ]
+    counts = count_by_state(board)
+    assert counts[KRYPTONIAN]    == 2
+    assert counts[EARTHIAN_ALLY] == 2
+    assert counts[EVIL]          == 1
+    assert counts[EMPTY]         == 4
+    print("✓ PASSED")
+
+
+def test_krypton_cell_to_pixel():
+    """Test Krypton module's cell_to_pixel helper."""
+    print("Testing Krypton cell_to_pixel...", end=' ')
+    cell_to_pixel  = mod_05['cell_to_pixel']
+    CELL_SIZE      = mod_05['CELL_SIZE']
+    BOARD_MARGIN_X = mod_05['BOARD_MARGIN_X']
+    BOARD_MARGIN_Y = mod_05['BOARD_MARGIN_Y']
+
+    px, py = cell_to_pixel(0, 0)
+    assert px == BOARD_MARGIN_X + CELL_SIZE // 2
+    assert py == BOARD_MARGIN_Y + CELL_SIZE // 2
+
+    px2, py2 = cell_to_pixel(1, 1)
+    assert px2 == px + CELL_SIZE
+    assert py2 == py + CELL_SIZE
+    print("✓ PASSED")
+
+
+def test_krypton_setup_scenario():
+    """Test that setup places all expected factions on the board."""
+    print("Testing Krypton scenario setup...", end=' ')
+    create_board = mod_05['create_empty_board']
+    setup        = mod_05['setup_krypton_scenario']
+    count_by     = mod_05['count_by_state']
+    KRYPTONIAN     = mod_05['KRYPTONIAN']
+    EARTHIAN_ALLY  = mod_05['EARTHIAN_ALLY']
+    EARTHIAN_ENEMY = mod_05['EARTHIAN_ENEMY']
+    EVIL           = mod_05['EVIL']
+
+    board = create_board(40, 60)
+    setup(board)
+    counts = count_by(board)
+
+    assert counts[KRYPTONIAN]     > 0, "Scenario must include Kryptonians"
+    assert counts[EARTHIAN_ALLY]  > 0, "Scenario must include Allies"
+    assert counts[EARTHIAN_ENEMY] > 0, "Scenario must include Enemies"
+    assert counts[EVIL]           > 0, "Scenario must include Evil cells"
+    print("✓ PASSED")
+
+
 def run_all_tests():
     """Run all tests."""
     print("=" * 70)
@@ -591,6 +798,18 @@ def run_all_tests():
         test_count_alive_cells,
         test_cell_to_pixel,
         test_pixel_to_cell,
+        # 05_krypton_simulation.py
+        test_krypton_empty_board,
+        test_krypton_state_constants,
+        test_krypton_count_neighbors,
+        test_krypton_rule_overwhelmed,
+        test_krypton_rule_ally_protects,
+        test_krypton_rule_favorable_birth,
+        test_krypton_rule_enemy_spawn,
+        test_krypton_rule_evil_spread,
+        test_krypton_count_by_state,
+        test_krypton_cell_to_pixel,
+        test_krypton_setup_scenario,
     ]
 
     passed = 0
