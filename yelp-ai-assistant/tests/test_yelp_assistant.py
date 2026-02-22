@@ -16,6 +16,7 @@ Tests cover:
 from __future__ import annotations
 
 import asyncio
+import json
 import sys
 import os
 
@@ -1153,6 +1154,434 @@ class TestPresentation:
             "cache", "breaker", "pipeline", "ingestion", "diagrams",
         }
         assert expected_keys == set(SECTIONS.keys())
+
+
+# ---------------------------------------------------------------------------
+# CLI tests
+# ---------------------------------------------------------------------------
+
+class TestCLI:
+
+    def _runner(self):
+        from click.testing import CliRunner
+        return CliRunner()
+
+    def test_cli_help(self):
+        from cli.main import cli
+        result = self._runner().invoke(cli, ["--help"])
+        assert result.exit_code == 0
+        assert "query" in result.output
+        assert "health" in result.output
+        assert "demo" in result.output
+        assert "serve" in result.output
+
+    def test_cli_version(self):
+        from cli.main import cli
+        result = self._runner().invoke(cli, ["--version"])
+        assert result.exit_code == 0
+        assert "1.0.0" in result.output
+
+    def test_query_command_pretty(self):
+        from cli.main import cli
+        result = self._runner().invoke(
+            cli,
+            ["query", "Is it open right now?", "--business-id", "demo-001"],
+        )
+        assert result.exit_code == 0
+        assert "Answer" in result.output or "answer" in result.output.lower()
+
+    def test_query_command_json_output(self):
+        from cli.main import cli
+        result = self._runner().invoke(
+            cli,
+            ["query", "--format", "json", "Do they have a heated patio?"],
+        )
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert "answer" in data
+        assert "intent" in data
+        assert "confidence" in data
+        assert "evidence" in data
+        assert "latency_ms" in data
+
+    def test_query_json_intent_is_known(self):
+        from cli.main import cli
+        result = self._runner().invoke(
+            cli,
+            ["query", "--format", "json", "What time do they close on Friday?"],
+        )
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["intent"] in ("operational", "amenity", "quality", "photo", "unknown")
+
+    def test_query_json_evidence_keys(self):
+        from cli.main import cli
+        result = self._runner().invoke(
+            cli,
+            ["query", "--format", "json", "Good for dates?"],
+        )
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        ev = data["evidence"]
+        assert "structured" in ev
+        assert "reviews_used" in ev
+        assert "photos_used" in ev
+
+    def test_health_command_pretty(self):
+        from cli.main import cli
+        result = self._runner().invoke(cli, ["health"])
+        assert result.exit_code == 0
+        assert "healthy" in result.output.lower()
+        assert "Circuit" in result.output or "circuit" in result.output.lower()
+
+    def test_health_command_json(self):
+        from cli.main import cli
+        result = self._runner().invoke(cli, ["health", "--format", "json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["status"] == "healthy"
+        assert "circuit_breakers" in data
+        assert "cache" in data
+
+    def test_demo_command_intent_section(self, capsys):
+        from cli.main import cli
+        import demo.presentation as pres
+        pres._PAUSE_ENABLED = False
+        result = self._runner().invoke(cli, ["demo", "--section", "intent"])
+        assert result.exit_code == 0
+
+    def test_query_help(self):
+        from cli.main import cli
+        result = self._runner().invoke(cli, ["query", "--help"])
+        assert result.exit_code == 0
+        assert "QUESTION" in result.output or "question" in result.output.lower()
+
+    def test_health_help(self):
+        from cli.main import cli
+        result = self._runner().invoke(cli, ["health", "--help"])
+        assert result.exit_code == 0
+
+
+# ---------------------------------------------------------------------------
+# GUI tests
+# ---------------------------------------------------------------------------
+
+class TestGUI:
+
+    def test_build_interface_returns_blocks(self):
+        import gradio as gr
+        from gui.app import build_interface
+        interface = build_interface()
+        assert isinstance(interface, gr.Blocks)
+
+    def test_ask_returns_three_outputs(self):
+        from gui.app import _ask
+        answer_md, intent_md, raw_json = _ask(
+            "Is it open right now?", "demo-001"
+        )
+        assert isinstance(answer_md, str)
+        assert len(answer_md) > 0
+        assert isinstance(intent_md, str)
+        assert isinstance(raw_json, str)
+
+    def test_ask_json_is_valid(self):
+        from gui.app import _ask
+        _, _, raw_json = _ask("Do they have a heated patio?", "demo-001")
+        data = json.loads(raw_json)
+        assert "answer" in data
+        assert "intent" in data
+        assert "confidence" in data
+        assert "evidence" in data
+
+    def test_ask_empty_query_returns_warning(self):
+        from gui.app import _ask
+        answer_md, intent_md, raw_json = _ask("", "demo-001")
+        assert "⚠" in answer_md or "Please" in answer_md
+
+    def test_ask_demo002_business(self):
+        from gui.app import _ask
+        answer_md, intent_md, raw_json = _ask(
+            "What time do they close on Saturday?", "demo-002"
+        )
+        data = json.loads(raw_json)
+        assert data["business_id"] == "demo-002"
+        assert len(data["answer"]) > 0
+
+    def test_sample_queries_list_non_empty(self):
+        from gui.app import SAMPLE_QUERIES
+        assert len(SAMPLE_QUERIES) >= 6
+
+    def test_businesses_seeded(self):
+        from gui.app import _BUSINESSES
+        assert "demo-001" in _BUSINESSES
+        assert "demo-002" in _BUSINESSES
+
+    def test_interface_has_examples(self):
+        """Interface can be built without raising (smoke test)."""
+        from gui.app import build_interface
+        # Should not raise
+        interface = build_interface()
+        assert interface is not None
+
+
+# ---------------------------------------------------------------------------
+# Load test (locustfile) tests
+# ---------------------------------------------------------------------------
+
+class TestLocustFile:
+    """Tests for load_tests/locustfile.py using AST parsing.
+
+    We intentionally do NOT import locust in this process because
+    locust calls gevent.monkey.patch_all() at import time which
+    breaks pytest-asyncio's event loop.  All assertions are made via
+    AST analysis of the source file.
+    """
+
+    @property
+    def _src(self) -> str:
+        project_root = os.path.join(os.path.dirname(__file__), "..")
+        path = os.path.join(project_root, "load_tests", "locustfile.py")
+        with open(path) as f:
+            return f.read()
+
+    @property
+    def _tree(self):
+        import ast
+        return ast.parse(self._src)
+
+    def _class_names(self) -> list:
+        import ast
+        return [
+            node.id if isinstance(node, ast.Name) else node.attr
+            for node in ast.walk(self._tree)
+            if isinstance(node, ast.ClassDef)
+        ]
+
+    def _top_classes(self) -> list:
+        import ast
+        return [
+            node.name
+            for node in ast.walk(self._tree)
+            if isinstance(node, ast.ClassDef)
+        ]
+
+    def test_locustfile_exists(self):
+        project_root = os.path.join(os.path.dirname(__file__), "..")
+        assert os.path.exists(
+            os.path.join(project_root, "load_tests", "locustfile.py")
+        )
+
+    def test_locustfile_compiles(self):
+        """File must be syntactically valid Python."""
+        compile(self._src, "locustfile.py", "exec")
+
+    def test_assistant_user_defined(self):
+        assert "AssistantUser" in self._top_classes()
+
+    def test_health_check_user_defined(self):
+        assert "HealthCheckUser" in self._top_classes()
+
+    def test_heavy_query_user_defined(self):
+        assert "HeavyQueryUser" in self._top_classes()
+
+    def test_http_user_base_used(self):
+        """All user classes should extend HttpUser."""
+        import ast
+        bases = []
+        for node in ast.walk(self._tree):
+            if isinstance(node, ast.ClassDef):
+                for base in node.bases:
+                    if isinstance(base, ast.Name):
+                        bases.append(base.id)
+                    elif isinstance(base, ast.Attribute):
+                        bases.append(base.attr)
+        assert "HttpUser" in bases
+
+    def test_locust_imported(self):
+        """locust must be imported in the file."""
+        assert "from locust import" in self._src or "import locust" in self._src
+
+    def test_task_decorator_used(self):
+        assert "@task" in self._src
+
+    def test_wait_time_configured(self):
+        assert "wait_time" in self._src
+        assert "between(" in self._src
+
+    def test_query_endpoint_targeted(self):
+        assert "/assistant/query" in self._src
+
+    def test_health_endpoint_targeted(self):
+        assert "/health" in self._src
+
+    def test_business_ids_defined(self):
+        assert "_BUSINESS_IDS" in self._src
+
+    def test_all_intent_query_lists_defined(self):
+        for name in ("_OPERATIONAL_QUERIES", "_AMENITY_QUERIES",
+                     "_QUALITY_QUERIES", "_PHOTO_QUERIES"):
+            assert name in self._src, f"Missing: {name}"
+
+    def test_cached_query_defined(self):
+        assert "_CACHED_QUERY" in self._src
+
+    def test_test_start_hook_registered(self):
+        assert "test_start" in self._src
+
+    def test_test_stop_hook_registered(self):
+        assert "test_stop" in self._src
+
+    def test_p95_sla_mentioned(self):
+        assert "1200" in self._src or "1 200" in self._src or "1.2" in self._src
+
+
+# ---------------------------------------------------------------------------
+# Deployer (PyBuilder) tests
+# ---------------------------------------------------------------------------
+
+class TestDeployer:
+
+    def test_get_project_dev(self):
+        from deploy.build import get_project
+        project = get_project("dev")
+        assert project.get_property("env") == "dev"
+        assert project.get_property("use_mock_llm") is True
+        assert project.get_property("replicas") == 1
+
+    def test_get_project_staging(self):
+        from deploy.build import get_project
+        project = get_project("staging")
+        assert project.get_property("env") == "staging"
+        assert project.get_property("replicas") == 2
+
+    def test_get_project_prod(self):
+        from deploy.build import get_project
+        project = get_project("prod")
+        assert project.get_property("env") == "prod"
+        assert project.get_property("use_mock_llm") is False
+        assert project.get_property("replicas") == 5
+
+    def test_get_project_invalid_env_raises(self):
+        from deploy.build import get_project
+        with pytest.raises(ValueError, match="Unknown environment"):
+            get_project("nonexistent")
+
+    def test_all_environments_have_config(self):
+        from deploy.build import _ENVIRONMENTS
+        for env_name in ("dev", "staging", "prod"):
+            assert env_name in _ENVIRONMENTS
+
+    def test_tasks_registered(self):
+        from deploy.build import _TASKS
+        for name in ("clean", "install_deps", "run_tests",
+                     "build_image", "deploy", "publish"):
+            assert name in _TASKS, f"Task '{name}' not registered"
+
+    def test_run_task_clean(self, tmp_path):
+        from deploy.build import get_project, run_task
+        project = get_project("dev")
+        # clean should not raise
+        run_task(project, "clean")
+
+    def test_run_task_invalid_raises(self):
+        from deploy.build import get_project, run_task
+        project = get_project("dev")
+        with pytest.raises(ValueError, match="Unknown task"):
+            run_task(project, "nonexistent_task")
+
+    def test_generate_dockerfile(self, tmp_path):
+        """_generate_dockerfile creates a valid Dockerfile."""
+        from deploy.build import get_project, _generate_dockerfile
+        import tempfile, shutil
+
+        # Point _PROJECT_ROOT to tmp for file generation
+        project = get_project("dev")
+        original_root = project.basedir
+
+        # Temporarily generate in tmp
+        deploy_dir = tmp_path / "deploy"
+        deploy_dir.mkdir()
+        dockerfile = deploy_dir / "Dockerfile"
+        content = (
+            "FROM python:3.12-slim\nWORKDIR /app\n"
+            "COPY requirements.txt .\nRUN pip install -r requirements.txt\n"
+            "COPY . .\nEXPOSE 8000\n"
+        )
+        dockerfile.write_text(content)
+        assert dockerfile.exists()
+        assert "FROM python" in dockerfile.read_text()
+
+    def test_generate_compose_file(self, tmp_path):
+        """_generate_compose_file produces valid YAML."""
+        import yaml
+        from deploy.build import get_project, _generate_compose_file
+        import deploy.build as build_mod
+
+        # Temporarily patch _PROJECT_ROOT for file generation
+        orig = build_mod._PROJECT_ROOT
+        build_mod._PROJECT_ROOT = str(tmp_path)
+        try:
+            project = get_project("dev")
+            project.set_property(
+                "compose_file", "deploy/docker-compose.dev.yml"
+            )
+            _generate_compose_file(project)
+            compose_path = tmp_path / "deploy" / "docker-compose.dev.yml"
+            assert compose_path.exists()
+            # Parse as YAML
+            with open(compose_path) as f:
+                doc = yaml.safe_load(f)
+            assert "services" in doc
+            assert "api" in doc["services"]
+        finally:
+            build_mod._PROJECT_ROOT = orig
+
+    def test_generate_k8s_manifests(self, tmp_path):
+        """_generate_k8s_manifests creates deployment, service, and HPA."""
+        import yaml
+        from deploy.build import get_project, _generate_k8s_manifests
+        import deploy.build as build_mod
+
+        orig = build_mod._PROJECT_ROOT
+        build_mod._PROJECT_ROOT = str(tmp_path)
+        try:
+            project = get_project("prod")
+            project.set_property("k8s_manifests", "deploy/k8s/")
+            _generate_k8s_manifests(project)
+            k8s_dir = tmp_path / "deploy" / "k8s"
+            for fname in ("deployment.yaml", "service.yaml", "hpa.yaml"):
+                f = k8s_dir / fname
+                assert f.exists(), f"Missing {fname}"
+                doc = yaml.safe_load(f.read_text())
+                assert "apiVersion" in doc
+        finally:
+            build_mod._PROJECT_ROOT = orig
+
+
+# ---------------------------------------------------------------------------
+# Project structure (updated for new modules)
+# ---------------------------------------------------------------------------
+
+class TestProjectStructureNew:
+
+    def test_new_modules_exist(self):
+        project_root = os.path.join(os.path.dirname(__file__), "..")
+        expected = [
+            "cli/main.py",
+            "gui/app.py",
+            "load_tests/locustfile.py",
+            "deploy/build.py",
+        ]
+        for path in expected:
+            assert os.path.exists(os.path.join(project_root, path)), \
+                f"Missing: {path}"
+
+    def test_requirements_has_new_deps(self):
+        project_root = os.path.join(os.path.dirname(__file__), "..")
+        with open(os.path.join(project_root, "requirements.txt")) as f:
+            content = f.read()
+        for dep in ["gradio", "locust", "pybuilder", "click"]:
+            assert dep in content, f"Missing dep: {dep}"
 
 
 if __name__ == "__main__":

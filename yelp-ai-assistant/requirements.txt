@@ -37,11 +37,23 @@ httpx>=0.25.1
 python-dotenv>=1.0.0
 python-dateutil>=2.8.2
 
+# CLI
+click>=8.1.6
+
+# GUI
+gradio==5.23.3
+
 # Diagrams — PlantUML URL encoding (no local server required)
 plantuml==0.3.0
 
 # Diagrams — Python architecture diagrams (requires graphviz system package)
 diagrams==0.25.1
+
+# Load Testing
+locust==2.43.3
+
+# Build & Deploy automation
+pybuilder==0.13.18
 
 # Testing
 pytest>=7.4.0
