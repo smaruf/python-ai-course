@@ -1,0 +1,3 @@
+# Un-ignore gui/app.py — the root .gitignore has a bare `app.py` rule that
+# would otherwise exclude this file from version control.
+!gui/app.py
