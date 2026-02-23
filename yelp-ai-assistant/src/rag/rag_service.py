@@ -11,7 +11,8 @@ Rules enforced:
   - LLM must not fabricate missing data
 
 The LLM call is mocked by default so the service works without API keys.
-A real OpenAI backend can be activated via environment variables.
+A real backend (Llama, OpenAI, GitHub Copilot) can be activated by passing
+a ``LLMBackend`` instance or via environment variables.
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ import os
 import time
 from typing import Optional
 
+from src.llm.provider import LLMBackend, LLMProvider, MockBackend, create_backend
 from src.models.schemas import EvidenceSummary, QueryIntent, QueryResponse
 from src.orchestration.orchestrator import AnswerOrchestrator, EvidenceBundle
 
@@ -32,16 +34,34 @@ class RAGService:
     AnswerOrchestrator and returns a QueryResponse.
     """
 
-    def __init__(self, use_mock: bool = True):
+    def __init__(
+        self,
+        use_mock: bool = True,
+        backend: LLMBackend | None = None,
+        web_scraper=None,
+    ):
         """
         Parameters
         ----------
         use_mock : bool
-            When True (default) the LLM call is simulated without any
-            external API call.  Set to False to enable real OpenAI calls
-            (requires OPENAI_API_KEY in the environment).
+            When True (default) and *backend* is None, uses the built-in
+            keyword-based mock so no API key is needed.  Ignored when
+            *backend* is provided explicitly.
+        backend : LLMBackend | None
+            Explicit LLM backend.  When provided, *use_mock* is ignored.
+            Use ``src.llm.provider.create_backend()`` to create one.
+        web_scraper : WebScraper | None
+            Optional ``WebScraper`` instance.  When provided, the Llama
+            backend uses it to enrich context with live web snippets before
+            calling the model.
         """
-        self._use_mock = use_mock
+        if backend is not None:
+            self._backend: LLMBackend = backend
+            self._use_mock = False
+        else:
+            self._use_mock = use_mock
+            self._backend = create_backend(LLMProvider.MOCK) if use_mock else create_backend(LLMProvider.OPENAI)
+        self._web_scraper = web_scraper
         self._orchestrator = AnswerOrchestrator()
 
     async def generate_answer(
@@ -60,7 +80,7 @@ class RAGService:
         if self._use_mock:
             answer = self._mock_answer(query, intent, bundle)
         else:
-            answer = await self._call_openai(context)
+            answer = await self._call_backend(context, query)
 
         latency_ms = round((time.monotonic() - start) * 1000, 1)
 
@@ -132,31 +152,18 @@ class RAGService:
         return "I could not find a specific answer to your question."
 
     # ------------------------------------------------------------------
-    # Real OpenAI backend
+    # Backend dispatch
     # ------------------------------------------------------------------
 
-    async def _call_openai(self, context: str) -> str:
-        """Call the OpenAI Chat Completions API with the given context."""
-        try:
-            import openai  # type: ignore
+    async def _call_backend(self, context: str, query: str) -> str:
+        """Dispatch to the configured LLM backend, optionally enriching with web scrape."""
+        from src.llm.provider import LlamaBackend
 
-            client = openai.AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
-            response = await client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are a helpful business information assistant. "
-                            "Answer questions using ONLY the provided context. "
-                            "Never fabricate information."
-                        ),
-                    },
-                    {"role": "user", "content": context},
-                ],
-                temperature=0.2,
-                max_tokens=512,
-            )
-            return response.choices[0].message.content or ""
-        except Exception as exc:  # noqa: BLE001
-            return f"LLM unavailable ({exc}). Falling back to structured data."
+        if isinstance(self._backend, LlamaBackend) and self._web_scraper is not None:
+            try:
+                web_snippets = await self._web_scraper.search_and_scrape(query)
+            except Exception:  # noqa: BLE001
+                web_snippets = None
+            return await self._backend.generate(context, query, web_snippets=web_snippets)
+
+        return await self._backend.generate(context, query)

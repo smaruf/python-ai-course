@@ -19,6 +19,12 @@ elasticsearch>=8.11.0
 # LLM Integration
 openai>=1.12.0
 
+# Local LLM (Llama via Ollama)
+ollama>=0.1.0
+
+# Web scraping (for Llama context enrichment)
+beautifulsoup4>=4.12.0
+
 # Caching
 redis>=5.0.1
 

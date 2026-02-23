@@ -8,6 +8,8 @@ Layout
 ------
   - Natural-language question text box
   - Business dropdown (pre-seeded demo businesses)
+  - AI Provider selector: Mock | Llama | OpenAI | GitHub Copilot
+  - API key field (hidden input; shown for OpenAI/Copilot; falls back to guest)
   - Formatted Markdown answer panel with intent badge
   - Raw JSON accordion for developers
   - 8 clickable example queries
@@ -41,6 +43,7 @@ if _PROJECT_ROOT not in sys.path:
 import gradio as gr
 
 from src.intent.classifier import IntentClassifier
+from src.llm.provider import LLMProvider, create_backend
 from src.models.schemas import (
     BusinessData,
     BusinessHours,
@@ -69,7 +72,20 @@ _photo_svc = PhotoHybridRetrievalService()
 _clf = IntentClassifier()
 _router = QueryRouter()
 _orc = AnswerOrchestrator()
-_rag = RAGService(use_mock=True)
+# Default RAGService uses mock backend; per-request backends are built on the fly.
+_rag_mock = RAGService(use_mock=True)
+
+# Provider → human-readable label
+_PROVIDER_LABELS = {
+    "mock":    "🤖 Mock (no auth needed)",
+    "guest":   "👤 Guest (mock answers)",
+    "llama":   "🦙 Llama (local Ollama)",
+    "openai":  "🔑 OpenAI",
+    "copilot": "🐙 GitHub Copilot",
+}
+
+# Providers that require an API key
+_PROVIDERS_NEEDING_KEY = {"openai", "copilot"}
 
 
 def _seed_businesses() -> None:
@@ -203,7 +219,7 @@ _INTENT_BADGE: dict[str, str] = {
 # Core ask function (sync wrapper around async pipeline)
 # ---------------------------------------------------------------------------
 
-def _ask(query: str, business_id: str) -> Tuple[str, str, str]:
+def _ask(query: str, business_id: str, provider: str = "mock", api_key: str = "") -> Tuple[str, str, str]:
     """
     Run the full assistant pipeline for *query* / *business_id*.
 
@@ -215,13 +231,18 @@ def _ask(query: str, business_id: str) -> Tuple[str, str, str]:
         warning = "⚠️ Please enter a question to get started."
         return warning, "", json.dumps({"error": "empty query"})
 
+    # Validate / fall back for providers that need a key
+    effective_provider = provider
+    if provider in _PROVIDERS_NEEDING_KEY and not api_key.strip():
+        effective_provider = "guest"
+
     try:
-        result = asyncio.run(_pipeline(query, business_id))
+        result = asyncio.run(_pipeline(query, business_id, effective_provider, api_key.strip()))
     except RuntimeError:
         # Already inside an event loop (e.g. during testing)
         loop = asyncio.new_event_loop()
         try:
-            result = loop.run_until_complete(_pipeline(query, business_id))
+            result = loop.run_until_complete(_pipeline(query, business_id, effective_provider, api_key.strip()))
         finally:
             loop.close()
 
@@ -231,6 +252,7 @@ def _ask(query: str, business_id: str) -> Tuple[str, str, str]:
     conf_bar = "█" * (conf_pct // 10) + "░" * (10 - conf_pct // 10)
 
     # ── Answer markdown ──────────────────────────────────────────────────────
+    provider_label = _PROVIDER_LABELS.get(effective_provider, effective_provider)
     answer_md_parts = [
         f"### {result['answer']}",
         "",
@@ -242,7 +264,14 @@ def _ask(query: str, business_id: str) -> Tuple[str, str, str]:
         f"| Reviews used | {result['evidence']['reviews_used']} |",
         f"| Photos used  | {result['evidence']['photos_used']} |",
         f"| Latency | {result['latency_ms']} ms |",
+        f"| AI Provider | {provider_label} |",
     ]
+    if effective_provider == "guest" and provider in _PROVIDERS_NEEDING_KEY:
+        answer_md_parts += [
+            "",
+            "> 💡 **Guest mode** — enter your API key in the *AI Settings* panel for "
+            "richer, real-time answers powered by " + provider.title() + ".",
+        ]
     if result.get("conflicts"):
         answer_md_parts += ["", "---", "**⚠️ Conflict notes:**"]
         for note in result["conflicts"]:
@@ -258,9 +287,20 @@ def _ask(query: str, business_id: str) -> Tuple[str, str, str]:
     return answer_md, intent_md, raw
 
 
-async def _pipeline(query: str, business_id: str) -> dict:
+async def _pipeline(query: str, business_id: str, provider: str = "mock", api_key: str = "") -> dict:
     """Async pipeline: intent → route → orchestrate → RAG."""
     import time
+
+    # Build the appropriate RAG service for this request
+    if provider == "mock" or provider == "guest":
+        rag = _rag_mock
+    else:
+        backend = create_backend(LLMProvider(provider), api_key=api_key or None)
+        web_scraper = None
+        if provider == "llama":
+            from src.tools.web_scraper import WebScraper
+            web_scraper = WebScraper()
+        rag = RAGService(use_mock=False, backend=backend, web_scraper=web_scraper)
 
     t0 = time.monotonic()
     intent, conf, _ = _clf.classify(query)
@@ -273,7 +313,7 @@ async def _pipeline(query: str, business_id: str) -> dict:
         photo_service=_photo_svc,
     )
     bundle = _orc.orchestrate(routed)
-    response = await _rag.generate_answer(query, intent, bundle)
+    response = await rag.generate_answer(query, intent, bundle)
     latency_ms = round((time.monotonic() - t0) * 1_000, 1)
 
     return {
@@ -290,6 +330,7 @@ async def _pipeline(query: str, business_id: str) -> dict:
         },
         "latency_ms": latency_ms,
         "conflicts": bundle.conflict_notes,
+        "provider": provider,
     }
 
 
@@ -301,8 +342,15 @@ def build_interface() -> gr.Blocks:
     """Construct and return the Gradio Blocks interface (does not launch)."""
 
     business_choices = [
-        (f"demo-001 — The Golden Fork (SF)", "demo-001"),
-        (f"demo-002 — The Rustic Table (NYC)", "demo-002"),
+        ("demo-001 — The Golden Fork (SF)", "demo-001"),
+        ("demo-002 — The Rustic Table (NYC)", "demo-002"),
+    ]
+
+    provider_choices = [
+        ("🤖 Mock (no auth needed)", "mock"),
+        ("🦙 Llama (local Ollama)",  "llama"),
+        ("🔑 OpenAI",                "openai"),
+        ("🐙 GitHub Copilot",        "copilot"),
     ]
 
     with gr.Blocks(
@@ -329,6 +377,45 @@ def build_interface() -> gr.Blocks:
                     label="Business",
                 )
 
+        with gr.Accordion("⚙️ AI Settings", open=False):
+            gr.Markdown(
+                "Select an AI backend. For **OpenAI** or **GitHub Copilot**, "
+                "enter your API key below — leave blank to use *guest mode* "
+                "(mock answers, no credentials stored)."
+            )
+            with gr.Row():
+                provider_radio = gr.Radio(
+                    choices=provider_choices,
+                    value="mock",
+                    label="AI Provider",
+                )
+            api_key_box = gr.Textbox(
+                label="API Key / Token (OpenAI or GitHub Copilot)",
+                placeholder="sk-... or ghp_... — leave blank for guest mode",
+                type="password",
+                visible=False,
+            )
+            auth_notice = gr.Markdown(visible=False)
+
+            def _on_provider_change(p: str):
+                needs_key = p in _PROVIDERS_NEEDING_KEY
+                notice = (
+                    f"> ⚠️ **{p.title()} authentication required.** "
+                    "Enter your API key above or leave blank to continue as a guest."
+                    if needs_key
+                    else ""
+                )
+                return (
+                    gr.update(visible=needs_key),
+                    gr.update(value=notice, visible=needs_key),
+                )
+
+            provider_radio.change(
+                fn=_on_provider_change,
+                inputs=[provider_radio],
+                outputs=[api_key_box, auth_notice],
+            )
+
         ask_btn = gr.Button("Ask", variant="primary")
 
         with gr.Row():
@@ -345,15 +432,15 @@ def build_interface() -> gr.Blocks:
             label="Example queries",
         )
 
-        # Wire up the button and Enter key
+        # Wire up the button and Enter key (now passing provider + api_key)
         ask_btn.click(
             fn=_ask,
-            inputs=[question_box, business_dd],
+            inputs=[question_box, business_dd, provider_radio, api_key_box],
             outputs=[answer_out, intent_out, json_out],
         )
         question_box.submit(
             fn=_ask,
-            inputs=[question_box, business_dd],
+            inputs=[question_box, business_dd, provider_radio, api_key_box],
             outputs=[answer_out, intent_out, json_out],
         )
 

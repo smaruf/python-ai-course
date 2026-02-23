@@ -11,17 +11,27 @@ Commands
   health       Check service health and cache stats
   demo         Run a quick end-to-end demo with the built-in sample business
   serve        Start the FastAPI server (delegates to uvicorn)
+  scrape       Scrape a URL or search query for live business information
 
 Usage
 -----
-  # Ask about a business (uses mock backend)
+  # Ask about a business (uses mock backend by default)
   python -m cli.main query --business-id 12345 "Is it open right now?"
 
-  # Run the full demo
-  python -m cli.main demo
+  # Use local Llama (requires Ollama running locally)
+  python -m cli.main query --provider llama "Do they have a heated patio?"
 
-  # Start the server
-  python -m cli.main serve --port 8000
+  # Use OpenAI — prompts for key if OPENAI_API_KEY is not set
+  python -m cli.main query --provider openai "Good for dates?"
+
+  # Use GitHub Copilot — prompts for token if GITHUB_TOKEN is not set
+  python -m cli.main query --provider copilot "What are the hours?"
+
+  # Scrape a URL for business context
+  python -m cli.main scrape --url https://example.com/bistro
+
+  # Search-and-scrape (DuckDuckGo HTML)
+  python -m cli.main scrape "The Golden Fork restaurant SF hours"
 
   # Health info
   python -m cli.main health
@@ -47,10 +57,63 @@ if _PROJECT_ROOT not in sys.path:
 
 
 # ---------------------------------------------------------------------------
+# Auth helpers
+# ---------------------------------------------------------------------------
+
+_PROVIDER_ENV_VARS = {
+    "openai":  "OPENAI_API_KEY",
+    "copilot": "GITHUB_TOKEN",
+}
+
+
+def _resolve_api_key(provider: str, api_key: Optional[str]) -> Optional[str]:
+    """
+    Return the API key for *provider*, prompting the user if necessary.
+
+    Precedence:
+      1. Explicit ``--api-key`` flag
+      2. Environment variable (``OPENAI_API_KEY`` / ``GITHUB_TOKEN``)
+      3. Interactive prompt (hidden input)
+      4. None → backend falls back to guest/mock mode
+    """
+    if provider not in _PROVIDER_ENV_VARS:
+        return api_key  # mock/llama/guest — no key needed
+
+    env_var = _PROVIDER_ENV_VARS[provider]
+    key = api_key or os.environ.get(env_var, "")
+    if key:
+        return key
+
+    click.echo(
+        click.style(
+            f"\n  🔐 {provider.title()} authentication required.\n"
+            f"     Set {env_var} in your environment to skip this prompt.\n",
+            fg="yellow",
+        )
+    )
+    key = click.prompt(
+        f"  Enter your {provider.title()} API key (leave blank for guest mode)",
+        default="",
+        hide_input=True,
+        show_default=False,
+    ).strip()
+
+    if not key:
+        click.echo(
+            click.style(
+                "  ℹ  No key provided — using guest mode (mock answers).\n",
+                fg="cyan",
+            )
+        )
+        return None
+    return key
+
+
+# ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
 
-def _build_services():
+def _build_services(provider: str = "mock", api_key: Optional[str] = None):
     """Return seeded service instances for local (no-server) operation."""
     from src.intent.classifier import IntentClassifier
     from src.models.schemas import BusinessData, BusinessHours, Photo, Review
@@ -116,20 +179,38 @@ def _build_services():
     return (
         structured_svc, review_svc, photo_svc,
         IntentClassifier(), QueryRouter(),
-        AnswerOrchestrator(), RAGService(use_mock=True),
+        AnswerOrchestrator(), _build_rag(provider, api_key),
         biz,
     )
+
+
+def _build_rag(provider: str, api_key: Optional[str]):
+    """Construct a RAGService with the appropriate LLM backend."""
+    from src.llm.provider import LLMProvider, create_backend
+    from src.rag.rag_service import RAGService
+
+    if provider == "mock":
+        return RAGService(use_mock=True)
+
+    backend = create_backend(LLMProvider(provider), api_key=api_key)
+    web_scraper = None
+    if provider == "llama":
+        from src.tools.web_scraper import WebScraper
+        web_scraper = WebScraper()
+    return RAGService(use_mock=False, backend=backend, web_scraper=web_scraper)
 
 
 async def _run_query(
     query: str,
     business_id: str,
     output_format: str,
+    provider: str = "mock",
+    api_key: Optional[str] = None,
 ) -> dict:
     """Execute the full pipeline and return a result dict."""
     from src.routing.router import QueryRouter
     (structured_svc, review_svc, photo_svc,
-     clf, router, orc, rag, biz) = _build_services()
+     clf, router, orc, rag, biz) = _build_services(provider=provider, api_key=api_key)
 
     # Use the requested business_id
     from src.models.schemas import BusinessData, BusinessHours
@@ -209,16 +290,37 @@ def cli():
     show_default=True,
     help="Output format.",
 )
-def query(question: str, business_id: str, output_format: str):
+@click.option(
+    "--provider", "-p",
+    type=click.Choice(["mock", "llama", "openai", "copilot", "guest"], case_sensitive=False),
+    default="mock",
+    show_default=True,
+    help=(
+        "LLM backend to use. "
+        "'llama' requires a running Ollama server. "
+        "'openai'/'copilot' will prompt for a key if one is not set in the environment."
+    ),
+)
+@click.option(
+    "--api-key", "-k",
+    "api_key",
+    default=None,
+    help="API key / token for openai or copilot provider (overrides env var).",
+)
+def query(question: str, business_id: str, output_format: str, provider: str, api_key: Optional[str]):
     """Ask a natural-language QUESTION about a business.
 
     \b
     Examples:
       python -m cli.main query "Is it open on Friday?"
       python -m cli.main query --business-id 12345 "Do they have a heated patio?"
+      python -m cli.main query --provider llama "Good for dates?"
+      python -m cli.main query --provider openai "What are the hours?"
       python -m cli.main query --format json "Good for dates?" | python -m json.tool
     """
-    result = asyncio.run(_run_query(question, business_id, output_format))
+    resolved_key = _resolve_api_key(provider, api_key)
+    result = asyncio.run(_run_query(question, business_id, output_format,
+                                    provider=provider, api_key=resolved_key))
 
     if output_format == "json":
         click.echo(json.dumps(result, indent=2))
@@ -240,6 +342,7 @@ def query(question: str, business_id: str, output_format: str):
     click.echo(f"  {'Intent':<20} {click.style(result['intent'], fg=color)}"
                f"  (confidence {result['intent_confidence']:.0%})")
     click.echo(f"  {'Confidence':<20} {result['confidence']:.0%}")
+    click.echo(f"  {'Provider':<20} {provider}")
     click.echo(f"  {'Structured source':<20} {result['evidence']['structured']}")
     click.echo(f"  {'Reviews used':<20} {result['evidence']['reviews_used']}")
     click.echo(f"  {'Photos used':<20} {result['evidence']['photos_used']}")
@@ -323,6 +426,71 @@ def demo(section: Optional[str]):
     pres._PAUSE_ENABLED = False
     sections = [section] if section else None
     asyncio.run(pres.run_demo(sections=sections))
+
+
+# ---------------------------------------------------------------------------
+# scrape command
+# ---------------------------------------------------------------------------
+
+@cli.command()
+@click.argument("query_or_url", metavar="QUERY_OR_URL")
+@click.option(
+    "--url", "-u",
+    is_flag=True, default=False,
+    help="Treat QUERY_OR_URL as a direct URL to scrape instead of a search query.",
+)
+@click.option(
+    "--timeout", "-t",
+    default=10.0,
+    show_default=True,
+    help="HTTP request timeout in seconds.",
+)
+def scrape(query_or_url: str, url: bool, timeout: float):
+    """Scrape live business information from the web.
+
+    \b
+    Search mode (default): performs a DuckDuckGo HTML search and returns
+    the extracted text from the result page.
+
+    URL mode (--url): fetches and parses the given URL directly.
+
+    \b
+    Examples:
+      python -m cli.main scrape "The Golden Fork restaurant SF hours"
+      python -m cli.main scrape --url https://example.com/bistro-menu
+      python -m cli.main scrape --url --timeout 5 https://yelp.com/biz/xyz
+    """
+    from src.tools.web_scraper import WebScraper
+
+    scraper = WebScraper(timeout=timeout)
+    click.echo(
+        click.style(
+            f"\n  🌐 {'Fetching' if url else 'Searching'}:  {query_or_url}\n",
+            fg="cyan",
+        )
+    )
+
+    async def _do():
+        if url:
+            result = await scraper.scrape(query_or_url)
+            return result.as_snippet(), result.ok
+        snippet = await scraper.search_and_scrape(query_or_url)
+        return snippet, True
+
+    snippet, ok = asyncio.run(_do())
+
+    if not ok:
+        click.echo(click.style(f"  ❌ {snippet}", fg="red"))
+        return
+
+    click.echo(click.style("  ── Extracted text ──", bold=True, fg="blue"))
+    # Print in chunks so terminals don't scroll endlessly
+    lines = snippet.splitlines()
+    for line in lines[:80]:
+        click.echo(f"  {line}")
+    if len(lines) > 80:
+        click.echo(click.style(f"  … ({len(lines) - 80} more lines)", fg="yellow"))
+    click.echo()
 
 
 # ---------------------------------------------------------------------------
