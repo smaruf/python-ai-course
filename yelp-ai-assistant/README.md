@@ -1,4 +1,7 @@
-# Yelp-Style AI Assistant
+# Yelp-Style AI Assistant 🍽️
+
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [AI Development Project](../ai-development-project/) | [LangChain + LangGraph](../projects/langchain-langgraph-standalone/) | [Oracle AI Prep](../oracle-job-prep/)
 
 A production-grade AI assistant for answering real-time business-related queries using hybrid freshness data ingestion, structured + unstructured data separation, hybrid photo retrieval, and Retrieval-Augmented Generation (RAG).
 
@@ -157,3 +160,16 @@ Structured data **always** wins. Reviews and photos provide supporting anecdotal
 | 2     | Streaming freshness via CDC + Kafka                 |
 | 3     | Multimodal retrieval with CLIP image embeddings     |
 | 4     | Autoscaling, SLA dashboards, real-time monitoring   |
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new features
+4. Ensure all tests pass
+5. Submit a pull request
+
+## 📄 License
+
+This project is part of the python-ai-course repository and follows the same [LICENSE](../LICENSE).

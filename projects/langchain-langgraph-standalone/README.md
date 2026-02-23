@@ -5,30 +5,53 @@
 
 A standalone project demonstrating a full-phase AI pipeline that integrates LangChain and LangGraph patterns, with configurable AI-field variants (LLM providers, embeddings, vector stores, chain patterns).
 
-Features
+## ✨ Features
+
 - Full-phase implementation: ingestion → preprocessing → embedding/vector store → chain/graph construction → orchestration → evaluation
 - Pluggable providers (OpenAI, local LLMs), vector DB presets (FAISS, Pinecone), and chain patterns (QA, summarization)
 - Config-driven presets in YAML for quick switching between variants
 - Examples and tests included
 
-Quickstart
-1. Create a virtual environment and install dependencies:
-   - python -m venv .venv
-   - source .venv/bin/activate
-   - pip install -e .
+## 🚀 Quick Start
 
-2. Run tests:
-   - python -m pytest projects/langchain-langgraph-standalone/tests
+1. **Create a virtual environment and install dependencies:**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -e .
+   ```
 
-3. Run the example:
-   - python -c "from langchain_langgraph.pipeline import Pipeline, PipelineConfig; from langchain_langgraph.integrations import LangChainIntegration, LangGraphIntegration; import yaml; cfg = yaml.safe_load(open('projects/langchain-langgraph-standalone/configs/config_variants.yaml')); v = cfg['variants']['openai-faiss-qa']; pc = PipelineConfig(name='demo', **v); p = Pipeline(pc, LangChainIntegration({}), LangGraphIntegration({})); print(p.run_full())"
+2. **Run tests:**
+   ```bash
+   python -m pytest projects/langchain-langgraph-standalone/tests
+   ```
 
-Docs
-- Usage & architecture: projects/langchain-langgraph-standalone/docs/USAGE.md
-- Presets and configuration: projects/langchain-langgraph-standalone/configs/config_variants.yaml
+3. **Run the example:**
+   ```bash
+   python -c "
+   from langchain_langgraph.pipeline import Pipeline, PipelineConfig
+   from langchain_langgraph.integrations import LangChainIntegration, LangGraphIntegration
+   import yaml
+   cfg = yaml.safe_load(open('projects/langchain-langgraph-standalone/configs/config_variants.yaml'))
+   v = cfg['variants']['openai-faiss-qa']
+   pc = PipelineConfig(name='demo', **v)
+   p = Pipeline(pc, LangChainIntegration({}), LangGraphIntegration({}))
+   print(p.run_full())
+   "
+   ```
 
-External links
-- LangChain: https://github.com/langchain-ai/langchain
-- LangGraph: https://github.com/langgraph/langgraph
-- FAISS: https://github.com/facebookresearch/faiss
-- Pinecone: https://www.pinecone.io/
+## 📚 Docs
+
+- [Usage & architecture](docs/USAGE.md)
+- [Presets and configuration](configs/config_variants.yaml)
+
+## 🔗 External Links
+
+- [LangChain](https://github.com/langchain-ai/langchain)
+- [LangGraph](https://github.com/langgraph/langgraph)
+- [FAISS](https://github.com/facebookresearch/faiss)
+- [Pinecone](https://www.pinecone.io/)
+
+## 📄 License
+
+This project is part of the python-ai-course repository and follows the same [LICENSE](../../LICENSE).

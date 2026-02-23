@@ -49,6 +49,12 @@ A comprehensive collection of Python projects covering AI development, bioinform
 - **Covers**: Async/await patterns, Threading, Event loops, Performance optimization
 - **Difficulty**: Intermediate
 
+### [Yelp-Style AI Assistant](./yelp-ai-assistant/)
+**Production-grade AI assistant for real-time business queries**
+- **Tech Stack**: Python, FastAPI, LangChain, RAG
+- **Features**: Intent classification, hybrid search (structured + vector + photo), streaming freshness pipeline
+- **Difficulty**: Advanced
+
 ---
 
 ## 💰 Financial Technology Projects
@@ -250,6 +256,7 @@ pip install -r requirements.txt
 |---------|----------|------------|------------|------------------|
 | [Philomath AI](./philomath-ai/) | Python | Beginner-Advanced | Bioinformatics, Probability | Pattern matching, Matplotlib, Monte Carlo |
 | [AI Development](./ai-development-project/) | Python | Beginner-Expert | AI/ML Development | LLMs, RAG, Vector DBs, Agents |
+| [Yelp-Style AI Assistant](./yelp-ai-assistant/) | Python | Advanced | AI/RAG Assistant | FastAPI, LangChain, Hybrid Search, Kafka |
 | [NASDAQ CSE (Python)](./nasdaq-cse/) | Python | Advanced | Financial Trading | WebSocket, OMS/RMS, Real-time |
 | [NASDAQ CSE (Go)](./nasdaq-cse-go/) | Go | Advanced | High-Performance Trading | Concurrency, Low-latency |
 | [Fintech Tools](./fintech-tools/) | Python | Intermediate-Advanced | Banking & Payments | FastAPI, FIX/FAST/ITCH, JWT |
