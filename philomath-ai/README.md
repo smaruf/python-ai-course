@@ -90,14 +90,15 @@ philomath-ai/
 │   ├── 03_rows_and_columns.py         # Working with rows and columns
 │   ├── 04_pass_by_reference.py        # Understanding mutable objects
 │   ├── 05_nested_loops.py             # Iterating through 2-D arrays
-│   ├── 06_game_of_life.py             # Conway's Game of Life with R pentomino
+│   ├── 06_game_of_life.py             # Conway's Game of Life: flat & toroidal grids, random init
 │   └── test_all.py                     # Test suite
 └── pygame-graphics/                    # Pygame graphics module
     ├── README.md                       # Detailed module documentation
     ├── 01_pygame_basics.py            # pygame setup, surfaces, coordinate system
     ├── 02_rgb_colors.py               # RGB color model, color mixing utilities
     ├── 03_snowperson.py               # Drawing a snowperson from simple shapes
-    ├── 04_game_of_life_visualization.py # Animated Game of Life with circular cells
+    ├── 04_game_of_life_visualization.py # Animated Game of Life: age colours, mouse drawing
+    ├── 05_krypton_simulation.py       # Multi-faction Game of Life (Krypton theme)
     └── test_all.py                     # Test suite
 ```
 
@@ -318,6 +319,8 @@ Based on "2-D Lists" (streamed Feb 17, 2026), covering:
 - **Pass by Reference**: Understanding mutable object behavior
 - **Nested Loops**: Iterating through multi-dimensional data
 - **Game of Life**: Conway's cellular automaton with R pentomino
+- **Toroidal Grid**: Wrapping boundary conditions (`apply_rules_toroidal`)
+- **Random Initialisation**: Seeded random boards (`create_random_grid`)
 - **Self-Replication**: Emergent complexity from simple rules
 
 ### Pygame Graphics Module
@@ -328,7 +331,11 @@ Based on "An Intro to Graphics in Python" (Chapter 3, Programming for Lovers), c
 - **Surfaces and Shapes**: Drawing rectangles and circles with pygame.draw
 - **Coordinate System**: Understanding the top-left origin and downward y-axis
 - **Snowperson Drawing**: Composing a complex drawing from simple shapes
-- **Game of Life Visualization**: Animated grid with circular cells and color
+- **Game of Life Visualization**: Animated grid with circular cells and colour
+- **Age-Based Colouring**: Cells fade from green → yellow → white as they age (`draw_board_with_age`)
+- **Interactive Drawing**: Mouse click/drag to toggle cells at runtime
+- **Speed Control**: Adjustable animation speed with arrow keys
+- **Multi-Faction Automaton**: Krypton Chronicles – themed five-state simulation (`05_krypton_simulation.py`)
 
 ## 🌍 Real-World Applications
 

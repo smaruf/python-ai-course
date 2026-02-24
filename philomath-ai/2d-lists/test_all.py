@@ -276,6 +276,101 @@ def test_count_living_cells():
     print("✓ PASSED")
 
 
+def test_count_neighbors_toroidal():
+    """Test toroidal neighbor counting (cells wrap at edges)."""
+    print("Testing toroidal neighbor counting...", end=' ')
+
+    count_neighbors_toroidal = mod_06['count_neighbors_toroidal']
+
+    grid = [
+        [1, 0, 0],
+        [0, 0, 0],
+        [0, 0, 1],
+    ]
+
+    # Corner (0,0): neighbours include the wrapping cells at row=-1/col=-1
+    # Toroidal neighbours of (0,0): (2,2)=1, (0,2)=0, (2,0)=0,
+    #   (0,1)=0, (1,0)=0, (1,1)=0, (2,1)=0, (1,2)=0  → 1
+    assert count_neighbors_toroidal(grid, 0, 0) == 1, \
+        "Toroidal corner (0,0) should see the wrapped cell at (2,2)"
+
+    # A live cell one step away from the corner that wraps
+    grid2 = [[0] * 4 for _ in range(4)]
+    grid2[0][0] = 1   # top-left corner
+    grid2[3][3] = 1   # bottom-right corner (wraps to be a neighbour of (0,0))
+    assert count_neighbors_toroidal(grid2, 0, 0) == 1, \
+        "Bottom-right cell should be a toroidal neighbour of top-left"
+
+    print("✓ PASSED")
+
+
+def test_apply_rules_toroidal():
+    """Test toroidal rule application – edges wrap so patterns are preserved."""
+    print("Testing toroidal rule application...", end=' ')
+
+    apply_rules_toroidal = mod_06['apply_rules_toroidal']
+    create_empty_grid = mod_06['create_empty_grid']
+    place_pattern = mod_06['place_pattern']
+    create_blinker = mod_06['create_blinker']
+    count_living_cells = mod_06['count_living_cells']
+
+    # Blinker in a toroidal grid must still oscillate with period 2
+    grid = create_empty_grid(5, 5)
+    place_pattern(grid, create_blinker(), 2, 1)
+    gen1 = apply_rules_toroidal(grid)
+    gen2 = apply_rules_toroidal(gen1)
+    assert gen2 == grid, "Blinker should have period 2 on a toroidal grid"
+
+    # A glider placed at the bottom-right edge should survive (not die at boundary)
+    size = 12
+    torus = create_empty_grid(size, size)
+    place_pattern(torus, [[0, 1, 0], [0, 0, 1], [1, 1, 1]], size - 4, size - 4)
+    initial_alive = count_living_cells(torus)
+    for _ in range(4):
+        torus = apply_rules_toroidal(torus)
+    # A glider keeps 5 alive cells as it moves; on a toroidal grid it wraps
+    assert count_living_cells(torus) == initial_alive, \
+        "Glider should maintain its cell count on a toroidal grid"
+
+    print("✓ PASSED")
+
+
+def test_create_random_grid():
+    """Test random grid initialisation."""
+    print("Testing random grid creation...", end=' ')
+
+    create_random_grid = mod_06['create_random_grid']
+
+    # Dimensions are correct
+    grid = create_random_grid(6, 8, density=0.5, seed=0)
+    assert len(grid) == 6, "Random grid should have 6 rows"
+    assert len(grid[0]) == 8, "Random grid should have 8 columns"
+
+    # All values are 0 or 1
+    for row in grid:
+        for cell in row:
+            assert cell in (0, 1), f"Cell value {cell} must be 0 or 1"
+
+    # Seeded calls are reproducible
+    grid_a = create_random_grid(5, 5, density=0.4, seed=42)
+    grid_b = create_random_grid(5, 5, density=0.4, seed=42)
+    assert grid_a == grid_b, "Same seed must produce identical grids"
+
+    # Different seeds give different grids (probabilistically certain)
+    grid_c = create_random_grid(5, 5, density=0.4, seed=1)
+    assert grid_a != grid_c, "Different seeds should (almost certainly) differ"
+
+    # density=0.0 → all dead; density=1.0 → all alive
+    all_dead = create_random_grid(4, 4, density=0.0)
+    assert all(cell == 0 for row in all_dead for cell in row), \
+        "density=0.0 should produce all-dead grid"
+    all_alive = create_random_grid(4, 4, density=1.0)
+    assert all(cell == 1 for row in all_alive for cell in row), \
+        "density=1.0 should produce all-alive grid"
+
+    print("✓ PASSED")
+
+
 def run_all_tests():
     """Run all tests."""
     print("=" * 70)
@@ -294,6 +389,9 @@ def run_all_tests():
         test_game_of_life_rules,
         test_game_of_life_patterns,
         test_count_living_cells,
+        test_count_neighbors_toroidal,
+        test_apply_rules_toroidal,
+        test_create_random_grid,
     ]
     
     passed = 0
