@@ -313,23 +313,52 @@ def pixel_to_cell(px, py, cell_size=CELL_SIZE,
     return None
 
 
-def draw_board(surface, board, age_board=None,
-               cell_radius=CELL_RADIUS, cell_size=CELL_SIZE,
+def draw_board(surface, board, cell_radius=CELL_RADIUS, cell_size=CELL_SIZE,
                alive_color=CELL_ALIVE_COLOR, dead_color=CELL_DEAD_COLOR):
     """
     Draw the entire Game of Life board on the surface.
 
-    Each cell is drawn as a circle.  When *age_board* is provided the colour
-    of alive cells is determined by their age (young = green, old = white);
-    otherwise a single *alive_color* is used for all alive cells.
+    Each cell is drawn as a circle: alive cells are bright, dead cells are dark.
 
     Args:
-        surface:    pygame Surface to draw on
-        board:      2-D list with cell states (0=dead, 1=alive)
-        age_board:  Optional 2-D list with cell ages; enables age colouring
+        surface:     pygame Surface to draw on
+        board:       2-D list with cell states (0=dead, 1=alive)
         cell_radius: Radius of each circle in pixels
-        cell_size:  Total cell area size in pixels
-        alive_color: Fallback colour for alive cells (no age board)
+        cell_size:   Total cell area size in pixels
+        alive_color: Colour for alive cells
+        dead_color:  Colour for dead cells
+    """
+    import pygame
+    rows = len(board)
+    cols = len(board[0])
+
+    for row in range(rows):
+        for col in range(cols):
+            center = cell_to_pixel(row, col, cell_size)
+            color = alive_color if board[row][col] == 1 else dead_color
+            pygame.draw.circle(surface, color, center, cell_radius)
+
+
+def draw_board_with_age(surface, board, age_board,
+                        cell_radius=CELL_RADIUS, cell_size=CELL_SIZE,
+                        dead_color=CELL_DEAD_COLOR):
+    """
+    Draw the Game of Life board with age-based cell colouring.
+
+    Extends draw_board() by colouring each alive cell according to how many
+    consecutive generations it has been alive (via age_to_color()).  Dead
+    cells are drawn with dead_color as usual.
+
+    This function follows the Open-Closed Principle: the original draw_board()
+    is unchanged; this function adds the new age-colouring behaviour without
+    modifying the existing interface.
+
+    Args:
+        surface:     pygame Surface to draw on
+        board:       2-D list with cell states (0=dead, 1=alive)
+        age_board:   2-D list with cell ages (same dimensions as board)
+        cell_radius: Radius of each circle in pixels
+        cell_size:   Total cell area size in pixels
         dead_color:  Colour for dead cells
     """
     import pygame
@@ -340,10 +369,7 @@ def draw_board(surface, board, age_board=None,
         for col in range(cols):
             center = cell_to_pixel(row, col, cell_size)
             if board[row][col] == 1:
-                if age_board is not None:
-                    color = age_to_color(age_board[row][col])
-                else:
-                    color = alive_color
+                color = age_to_color(age_board[row][col])
             else:
                 color = dead_color
             pygame.draw.circle(surface, color, center, cell_radius)
@@ -453,8 +479,10 @@ def main():
 
         # Draw
         screen.fill(BACKGROUND)
-        draw_board(screen, board,
-                   age_board=age_board if show_age_color else None)
+        if show_age_color:
+            draw_board_with_age(screen, board, age_board)
+        else:
+            draw_board(screen, board)
 
         # Status text
         alive = count_alive_cells(board)

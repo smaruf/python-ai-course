@@ -1,7 +1,7 @@
 # 2-D Lists - Multi-Dimensional Arrays and Cellular Automata
 
 > **Part of [Philomath AI](../README.md)** | [Python AI Course](../../README.md)  
-> See also: [Genome Algorithms](../genome_algorithms/) | [Monte Carlo Simulation](../monte-carlo/) | [Election Simulation](../election-simulation/)
+> See also: [Pygame Graphics →](../pygame-graphics/) (visualise Game of Life) | [Genome Algorithms](../genome_algorithms/) | [Monte Carlo Simulation](../monte-carlo/) | [Election Simulation](../election-simulation/)
 
 Welcome to the **2-D Lists** module, implementing concepts from "Programming for Lovers in Python: 2-D Lists" by Phillip Compeau (streamed Feb 17, 2026).
 
@@ -53,7 +53,7 @@ By working through this module, you will master:
 ├── 03_rows_and_columns.py            # Working with rows, columns, and non-rectangular lists
 ├── 04_pass_by_reference.py           # Understanding mutable objects and references
 ├── 05_nested_loops.py                # Iterating and printing 2-D patterns
-├── 06_game_of_life.py                # Conway's Game of Life with R pentomino
+├── 06_game_of_life.py                # Conway's Game of Life: flat & toroidal grids, random init
 └── test_all.py                        # Test suite for all modules
 ```
 
@@ -173,6 +173,29 @@ Implement Conway's Game of Life, a cellular automaton where simple rules create 
 3. **Death**: All other cells die or stay dead
 
 **R Pentomino**: A famous pattern that evolves for over 1000 generations before stabilizing.
+
+**Enhancements beyond the base implementation:**
+
+- **Toroidal (wrapping) boundaries** — edge cells treat the opposite edge as neighbours, creating an infinite surface with no boundary effects:
+
+```python
+# Standard flat-grid step
+new_grid = apply_rules(grid)
+
+# Toroidal step (edges wrap around)
+new_grid = apply_rules_toroidal(grid)
+```
+
+- **Random initialisation** — seed the board with randomly placed live cells instead of a fixed pattern:
+
+```python
+# 30% density, reproducible via seed
+grid = create_random_grid(rows=40, cols=60, density=0.3, seed=42)
+```
+
+- **`count_neighbors_toroidal(grid, row, col)`** — like `count_neighbors()` but uses modular arithmetic so wrapping is handled automatically.
+
+> 💡 For an animated pygame visualisation of these features (including age-based cell colouring and interactive drawing), see [pygame-graphics/04_game_of_life_visualization.py](../pygame-graphics/04_game_of_life_visualization.py).
 
 ## 🎮 Conway's Game of Life
 
@@ -330,13 +353,13 @@ def create_grid(rows, cols):
 Try these extensions to deepen your understanding:
 
 1. **Different Initial Patterns**: Try other Game of Life patterns (glider, gosper gun, etc.)
-2. **Boundary Conditions**: Implement toroidal (wrapping) boundaries
-3. **Color-Coded Cells**: Display cells by age or generation
+2. **Boundary Conditions**: ✅ Implemented — see `apply_rules_toroidal()` in `06_game_of_life.py`
+3. **Color-Coded Cells**: ✅ Implemented — see `age_to_color()` in [`../pygame-graphics/04_game_of_life_visualization.py`](../pygame-graphics/04_game_of_life_visualization.py)
 4. **Performance**: Optimize using NumPy or other techniques
 5. **3-D Cellular Automata**: Extend to three dimensions
-6. **Custom Rules**: Create your own cellular automaton rules
+6. **Custom Rules**: Create your own cellular automaton rules (see [`../pygame-graphics/05_krypton_simulation.py`](../pygame-graphics/05_krypton_simulation.py) for a themed multi-faction example)
 7. **Pattern Detection**: Find and classify emergent patterns
-8. **Interactive Visualization**: Use matplotlib animation or pygame
+8. **Interactive Visualization**: ✅ Implemented — see [`../pygame-graphics/04_game_of_life_visualization.py`](../pygame-graphics/04_game_of_life_visualization.py)
 
 ## 🤝 Contributing
 

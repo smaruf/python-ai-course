@@ -1,7 +1,7 @@
 # Pygame Graphics - An Intro to Graphics in Python
 
 > **Part of [Philomath AI](../README.md)** | [Python AI Course](../../README.md)  
-> See also: [2-D Lists](../2d-lists/) | [Genome Algorithms](../genome_algorithms/) | [Monte Carlo Simulation](../monte-carlo/)
+> See also: [← 2-D Lists](../2d-lists/) (prerequisite for Game of Life) | [Genome Algorithms](../genome_algorithms/) | [Monte Carlo Simulation](../monte-carlo/)
 
 Welcome to the **Pygame Graphics** module, implementing concepts from "Programming for Lovers in Python: An Intro to Graphics" by Phillip Compeau.
 
@@ -44,7 +44,7 @@ pygame-graphics/
 ├── 01_pygame_basics.py                   # pygame setup, surfaces, coordinate system
 ├── 02_rgb_colors.py                      # RGB color model, color mixing and utilities
 ├── 03_snowperson.py                      # Drawing a snowperson from simple shapes
-├── 04_game_of_life_visualization.py      # Animated Game of Life with circular cells
+├── 04_game_of_life_visualization.py      # Animated Game of Life: age colours, mouse drawing
 ├── 05_krypton_simulation.py             # Multi-faction Game of Life (Krypton theme)
 └── test_all.py                            # Test suite (no display required)
 ```
@@ -180,22 +180,40 @@ pygame.draw.rect(surface, color, (x, y, width, height))
 
 ### 4. Game of Life Visualization (04)
 
-Visualizing Conway's Game of Life with animated circular cells:
+Visualizing Conway's Game of Life with animated circular cells.  Builds directly on the console implementation in [2d-lists/06_game_of_life.py](../2d-lists/06_game_of_life.py).
 
+**Core drawing** (original, closed to modification):
 ```python
-def draw_board(surface, board):
+def draw_board(surface, board, cell_radius=CELL_RADIUS, cell_size=CELL_SIZE,
+               alive_color=CELL_ALIVE_COLOR, dead_color=CELL_DEAD_COLOR):
     """Draw cells as circles: green=alive, dark=dead."""
     for row in range(len(board)):
         for col in range(len(board[0])):
             center = cell_to_pixel(row, col)
-            color = CELL_ALIVE_COLOR if board[row][col] == 1 else CELL_DEAD_COLOR
+            color = alive_color if board[row][col] == 1 else dead_color
             pygame.draw.circle(surface, color, center, CELL_RADIUS)
 ```
 
+**Age-based colouring** (extension, open for new behaviour):
+```python
+# Track how long each cell has been alive
+age_board = create_age_board(BOARD_ROWS, BOARD_COLS)
+update_age_board(board, age_board)   # call once per generation
+
+# Render alive cells coloured by age (green → yellow → white)
+draw_board_with_age(surface, board, age_board)
+```
+
 **Controls in the pygame window:**
-- `SPACE` - Pause/Resume animation
-- `R` - Reset to R pentomino
-- `ESC` - Quit
+| Key / Action | Effect |
+|---|---|
+| `SPACE` | Pause / Resume animation |
+| `R` | Reset to R pentomino |
+| `A` | Toggle age-based cell colouring on/off |
+| `↑` / `↓` | Increase / decrease animation speed (20–500 ms/gen) |
+| Click | Toggle a single cell |
+| Drag | Paint live cells (draw mode) |
+| `ESC` | Quit |
 
 ### 5. Krypton Chronicles – Multi-Faction Game of Life (05)
 
