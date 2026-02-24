@@ -51,6 +51,8 @@ By working through this project, you will master:
 - Bridging computer science and molecular biology
 
 ## 📁 Directory Structure
+<details>
+    <summary>--</summary>
 
 ```
 philomath-ai/
@@ -101,6 +103,7 @@ philomath-ai/
     ├── 05_krypton_simulation.py       # Multi-faction Game of Life (Krypton theme)
     └── test_all.py                     # Test suite
 ```
+</details>
 
 ## 🚀 Quick Start
 
@@ -227,6 +230,8 @@ python 04_game_of_life_visualization.py
 ```
 
 ### Using in Your Code
+<details>
+    <summary>Code in Python:</summary>
 
 ```python
 import importlib.util
@@ -271,6 +276,7 @@ state_polls = {
 }
 results = ec_module.simulate_electoral_college(state_polls, num_simulations=10000)
 ```
+</details>
 
 ## 📖 Course Reference
 
