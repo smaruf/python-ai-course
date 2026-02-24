@@ -50,15 +50,25 @@ BOARD_MARGIN_X = 10     # Left margin for the board
 BOARD_MARGIN_Y = 10     # Top margin for the board
 
 # Animation settings
-ANIMATION_DELAY_MS = 100   # Milliseconds between generations
-MAX_GENERATIONS = 200       # Maximum generations to simulate
+ANIMATION_DELAY_MS = 100   # Milliseconds between generations (default)
+DELAY_STEP_MS = 20         # How much UP/DOWN arrow adjusts the delay
+DELAY_MIN_MS = 20          # Fastest possible speed
+DELAY_MAX_MS = 500         # Slowest possible speed
+MAX_GENERATIONS = 2000     # Maximum generations before auto-stop
 
 # Colors
 BACKGROUND = (15, 15, 15)        # Near-black background
-CELL_ALIVE_COLOR = (50, 200, 50)  # Bright green for living cells
+CELL_ALIVE_COLOR = (50, 200, 50)  # Bright green for living cells (age 1)
 CELL_DEAD_COLOR = (30, 30, 30)    # Dark gray for dead cells (subtle)
 GRID_LINE_COLOR = (40, 40, 40)    # Very subtle grid lines
 TEXT_COLOR = (200, 200, 200)      # Light gray for text
+
+# Age-based colour gradient: young cells are bright green, older cells fade
+# towards yellow then white as they age.
+AGE_COLOR_YOUNG = (50, 200, 50)    # Generation 1 – bright green
+AGE_COLOR_MID   = (200, 200, 50)   # Generation ~20 – yellow
+AGE_COLOR_OLD   = (220, 220, 220)  # Generation 50+ – near-white
+AGE_SATURATE    = 50               # Generations at which colour stops changing
 
 
 def create_empty_board(rows, cols):
@@ -176,6 +186,89 @@ def count_alive_cells(board):
     return sum(sum(row) for row in board)
 
 
+def create_age_board(rows, cols):
+    """
+    Create an age board (all cells start at age 0).
+
+    Each cell stores how many consecutive generations it has been alive.
+    A dead cell always has age 0.
+
+    Args:
+        rows: Number of rows
+        cols: Number of columns
+
+    Returns:
+        2-D list of ints, all initialised to 0
+    """
+    return [[0 for _ in range(cols)] for _ in range(rows)]
+
+
+def update_age_board(board, age_board):
+    """
+    Update the age board to match the current alive/dead state.
+
+    Alive cells increment by 1; dead cells reset to 0.
+
+    Args:
+        board:     2-D list with current cell states (0=dead, 1=alive)
+        age_board: 2-D list with current cell ages (modified in place)
+    """
+    rows = len(board)
+    cols = len(board[0])
+    for r in range(rows):
+        for c in range(cols):
+            if board[r][c] == 1:
+                age_board[r][c] += 1
+            else:
+                age_board[r][c] = 0
+
+
+def age_to_color(age,
+                 young=AGE_COLOR_YOUNG,
+                 mid=AGE_COLOR_MID,
+                 old=AGE_COLOR_OLD,
+                 saturate=AGE_SATURATE):
+    """
+    Map a cell's age to an RGB colour.
+
+    Young cells (age 1) are bright green.  As they age they shift through
+    yellow and eventually to near-white once they exceed *saturate* generations.
+
+    Args:
+        age:      How many consecutive generations the cell has been alive (>= 1)
+        young:    Colour tuple for age == 1
+        mid:      Colour tuple for age == saturate // 2
+        old:      Colour tuple for age >= saturate
+        saturate: Age at which the colour stops changing
+
+    Returns:
+        (r, g, b) colour tuple
+    """
+    if age <= 0:
+        return (0, 0, 0)
+
+    # Normalise: age=1 → t=0.0 (young), age=saturate → t=1.0 (old).
+    # When saturate <= 1 (edge case) every alive cell gets the young colour.
+    if saturate <= 1:
+        return young
+    t = min((age - 1) / (saturate - 1), 1.0)
+
+    if t <= 0.5:
+        # Interpolate young → mid
+        s = t / 0.5
+        r = int(young[0] + s * (mid[0] - young[0]))
+        g = int(young[1] + s * (mid[1] - young[1]))
+        b = int(young[2] + s * (mid[2] - young[2]))
+    else:
+        # Interpolate mid → old
+        s = (t - 0.5) / 0.5
+        r = int(mid[0] + s * (old[0] - mid[0]))
+        g = int(mid[1] + s * (old[1] - mid[1]))
+        b = int(mid[2] + s * (old[2] - mid[2]))
+
+    return (max(0, min(255, r)), max(0, min(255, g)), max(0, min(255, b)))
+
+
 def cell_to_pixel(row, col, cell_size=CELL_SIZE,
                   margin_x=BOARD_MARGIN_X, margin_y=BOARD_MARGIN_Y):
     """
@@ -220,20 +313,24 @@ def pixel_to_cell(px, py, cell_size=CELL_SIZE,
     return None
 
 
-def draw_board(surface, board, cell_radius=CELL_RADIUS, cell_size=CELL_SIZE,
+def draw_board(surface, board, age_board=None,
+               cell_radius=CELL_RADIUS, cell_size=CELL_SIZE,
                alive_color=CELL_ALIVE_COLOR, dead_color=CELL_DEAD_COLOR):
     """
     Draw the entire Game of Life board on the surface.
 
-    Each cell is drawn as a circle: alive cells are bright, dead cells are dark.
+    Each cell is drawn as a circle.  When *age_board* is provided the colour
+    of alive cells is determined by their age (young = green, old = white);
+    otherwise a single *alive_color* is used for all alive cells.
 
     Args:
-        surface: pygame Surface to draw on
-        board: 2-D list with cell states (0=dead, 1=alive)
+        surface:    pygame Surface to draw on
+        board:      2-D list with cell states (0=dead, 1=alive)
+        age_board:  Optional 2-D list with cell ages; enables age colouring
         cell_radius: Radius of each circle in pixels
-        cell_size: Total cell area size in pixels
-        alive_color: Color for alive cells
-        dead_color: Color for dead cells
+        cell_size:  Total cell area size in pixels
+        alive_color: Fallback colour for alive cells (no age board)
+        dead_color:  Colour for dead cells
     """
     import pygame
     rows = len(board)
@@ -242,13 +339,25 @@ def draw_board(surface, board, cell_radius=CELL_RADIUS, cell_size=CELL_SIZE,
     for row in range(rows):
         for col in range(cols):
             center = cell_to_pixel(row, col, cell_size)
-            color = alive_color if board[row][col] == 1 else dead_color
+            if board[row][col] == 1:
+                if age_board is not None:
+                    color = age_to_color(age_board[row][col])
+                else:
+                    color = alive_color
+            else:
+                color = dead_color
             pygame.draw.circle(surface, color, center, cell_radius)
 
 
 def main():
     """
     Main demonstration: animate the R pentomino using pygame.
+
+    Enhancements beyond the basic implementation:
+    - Cell-age colour gradient (young=green → old=white)
+    - Mouse click / drag to toggle cells while paused
+    - Speed control with UP / DOWN arrow keys
+    - 'A' key to toggle age colouring on/off
     """
     try:
         import pygame
@@ -277,49 +386,89 @@ def main():
     font = pygame.font.SysFont("monospace", 14)
     clock = pygame.time.Clock()
 
-    # Initialize board with R pentomino
+    # Initialise board and age tracking
     board = create_empty_board(BOARD_ROWS, BOARD_COLS)
     place_r_pentomino(board, BOARD_ROWS // 2 - 1, BOARD_COLS // 2 - 1)
+    age_board = create_age_board(BOARD_ROWS, BOARD_COLS)
+    update_age_board(board, age_board)
 
     generation = 0
     running = True
     paused = False
+    show_age_color = True           # Toggle with 'A'
+    delay_ms = ANIMATION_DELAY_MS   # Adjustable speed
+    mouse_held = False              # Track mouse drag state
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     paused = not paused
                 elif event.key == pygame.K_r:
-                    # Reset
+                    # Reset board and age tracking
                     board = create_empty_board(BOARD_ROWS, BOARD_COLS)
                     place_r_pentomino(board, BOARD_ROWS // 2 - 1, BOARD_COLS // 2 - 1)
+                    age_board = create_age_board(BOARD_ROWS, BOARD_COLS)
+                    update_age_board(board, age_board)
                     generation = 0
+                elif event.key == pygame.K_a:
+                    show_age_color = not show_age_color
                 elif event.key == pygame.K_ESCAPE:
                     running = False
+                elif event.key == pygame.K_UP:
+                    delay_ms = max(DELAY_MIN_MS, delay_ms - DELAY_STEP_MS)
+                elif event.key == pygame.K_DOWN:
+                    delay_ms = min(DELAY_MAX_MS, delay_ms + DELAY_STEP_MS)
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    mouse_held = True
+                    cell = pixel_to_cell(event.pos[0], event.pos[1])
+                    if cell is not None:
+                        r, c = cell
+                        board[r][c] = 1 - board[r][c]  # Toggle cell
+                        if board[r][c] == 0:
+                            age_board[r][c] = 0
+                        else:
+                            age_board[r][c] = 1
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    mouse_held = False
+
+            elif event.type == pygame.MOUSEMOTION and mouse_held:
+                cell = pixel_to_cell(event.pos[0], event.pos[1])
+                if cell is not None:
+                    r, c = cell
+                    board[r][c] = 1   # Draw mode: drag to paint live cells
+                    age_board[r][c] = 1  # Reset age to 1 when painting
 
         if not paused and generation < MAX_GENERATIONS:
             board = apply_rules(board)
+            update_age_board(board, age_board)
             generation += 1
 
         # Draw
         screen.fill(BACKGROUND)
-        draw_board(screen, board)
+        draw_board(screen, board,
+                   age_board=age_board if show_age_color else None)
 
         # Status text
         alive = count_alive_cells(board)
+        age_label = "age-color=ON" if show_age_color else "age-color=OFF"
         info = font.render(
-            f"Gen: {generation}  Alive: {alive}  "
+            f"Gen:{generation}  Alive:{alive}  delay:{delay_ms}ms  "
             f"{'[PAUSED]' if paused else '[RUNNING]'}  "
-            f"SPACE=pause  R=reset  ESC=quit",
+            f"SPACE  R  A={age_label}  ↑↓speed  click=draw  ESC",
             True, TEXT_COLOR
         )
         screen.blit(info, (BOARD_MARGIN_X, WINDOW_HEIGHT - 25))
 
         pygame.display.flip()
-        clock.tick(1000 // ANIMATION_DELAY_MS)
+        clock.tick(1000 // delay_ms)
 
     pygame.quit()
 
@@ -333,8 +482,11 @@ if __name__ == "__main__":
     print(f"Cell size: {CELL_SIZE}px total, {CELL_RADIUS}px radius")
     print(f"Animation delay: {ANIMATION_DELAY_MS}ms per generation")
     print("\nControls:")
-    print("  SPACE - Pause/Resume animation")
-    print("  R     - Reset to initial R pentomino")
-    print("  ESC   - Quit")
+    print("  SPACE      - Pause/Resume animation")
+    print("  R          - Reset to initial R pentomino")
+    print("  A          - Toggle age-based cell colouring")
+    print("  UP / DOWN  - Increase / decrease animation speed")
+    print("  Click/drag - Paint live cells (draw mode)")
+    print("  ESC        - Quit")
     print("\nStarting pygame window...")
     main()

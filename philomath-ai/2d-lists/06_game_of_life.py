@@ -30,6 +30,7 @@ Game of Life Rules:
 
 import time
 import os
+import random
 
 
 def create_empty_grid(rows, cols):
@@ -214,6 +215,85 @@ def create_block():
         [1, 1],
         [1, 1]
     ]
+
+
+def count_neighbors_toroidal(grid, row, col):
+    """
+    Count live neighbors using toroidal (wrapping) boundary conditions.
+
+    Cells at the edges wrap around to the opposite edge, so the grid
+    behaves like the surface of a donut with no boundary effects.
+
+    Args:
+        grid: 2-D list representing the grid
+        row: Row of the cell
+        col: Column of the cell
+
+    Returns:
+        Number of live neighbors (0-8)
+    """
+    rows = len(grid)
+    cols = len(grid[0])
+    count = 0
+
+    for dr in [-1, 0, 1]:
+        for dc in [-1, 0, 1]:
+            if dr == 0 and dc == 0:
+                continue
+            new_row = (row + dr) % rows  # Wrap around vertically
+            new_col = (col + dc) % cols  # Wrap around horizontally
+            if grid[new_row][new_col] == 1:
+                count += 1
+
+    return count
+
+
+def apply_rules_toroidal(grid):
+    """
+    Apply Game of Life rules with toroidal (wrapping) boundary conditions.
+
+    Uses the same birth/survival/death rules as apply_rules(), but cells
+    at the edges treat the opposite edge as their neighbor instead of the
+    boundary being treated as dead space.
+
+    Args:
+        grid: Current state of the grid
+
+    Returns:
+        New grid representing the next generation
+    """
+    rows = len(grid)
+    cols = len(grid[0])
+    new_grid = create_empty_grid(rows, cols)
+
+    for i in range(rows):
+        for j in range(cols):
+            neighbors = count_neighbors_toroidal(grid, i, j)
+            if grid[i][j] == 1:
+                new_grid[i][j] = 1 if neighbors in (2, 3) else 0
+            else:
+                new_grid[i][j] = 1 if neighbors == 3 else 0
+
+    return new_grid
+
+
+def create_random_grid(rows, cols, density=0.3, seed=None):
+    """
+    Create a grid with randomly placed live cells.
+
+    Args:
+        rows: Number of rows
+        cols: Number of columns
+        density: Probability (0.0-1.0) that any given cell starts alive
+        seed: Optional random seed for reproducibility
+
+    Returns:
+        2-D list with cells randomly set to 0 or 1
+    """
+    if seed is not None:
+        random.seed(seed)
+    return [[1 if random.random() < density else 0 for _ in range(cols)]
+            for _ in range(rows)]
 
 
 def print_grid(grid, generation=None):
@@ -428,6 +508,48 @@ def demonstrate_rules():
     print_grid(new_grid)
 
 
+def demonstrate_toroidal():
+    """
+    Demonstrate the difference between flat and toroidal grids.
+
+    A glider reaching the edge of a flat grid vanishes (dies at the boundary).
+    On a toroidal grid it wraps around and keeps travelling indefinitely.
+    """
+    print("\n" + "=" * 70)
+    print("ENHANCEMENT: TOROIDAL (WRAPPING) BOUNDARIES")
+    print("=" * 70)
+    print("\nOn a flat grid, a glider that reaches the edge disappears.")
+    print("On a toroidal grid the edges wrap around — the glider loops forever.\n")
+
+    size = 10
+
+    # ── Flat grid: glider near the bottom-right edge ─────────────────────────
+    print("Flat grid – glider placed near the bottom-right corner:")
+    flat = create_empty_grid(size, size)
+    place_pattern(flat, create_glider(), size - 4, size - 4)
+    for gen in range(5):
+        print(f"  Gen {gen}: {count_living_cells(flat)} alive")
+        flat = apply_rules(flat)
+
+    # ── Toroidal grid: same starting position ────────────────────────────────
+    print("\nToroidal grid – same starting position (glider wraps):")
+    torus = create_empty_grid(size, size)
+    place_pattern(torus, create_glider(), size - 4, size - 4)
+    for gen in range(5):
+        print(f"  Gen {gen}: {count_living_cells(torus)} alive")
+        torus = apply_rules_toroidal(torus)
+
+    print("\nNotice: on the toroidal grid the glider is preserved across the edge.")
+
+    # ── Random grid for a few steps ──────────────────────────────────────────
+    print("\nRandom grid (density=0.35, seed=42) – 5 generations:")
+    rgrid = create_random_grid(8, 12, density=0.35, seed=42)
+    for gen in range(6):
+        print(f"  Gen {gen}: {count_living_cells(rgrid)} alive")
+        if gen < 5:
+            rgrid = apply_rules_toroidal(rgrid)
+
+
 def main():
     """
     Main demonstration function.
@@ -437,17 +559,20 @@ def main():
     print("Programming for Lovers in Python - Chapter 3")
     print("Cellular Automaton and Self-Replication")
     print("=" * 70)
-    
+
     # Demonstrate the rules
     demonstrate_rules()
-    
+
     # Show simple patterns
     demonstrate_simple_patterns()
-    
+
+    # Enhancement: toroidal grid and random initialisation
+    demonstrate_toroidal()
+
     # Main event: R pentomino
     input("\nPress Enter to see the R pentomino simulation...")
     demonstrate_r_pentomino()
-    
+
     print("\n" + "=" * 70)
     print("KEY TAKEAWAYS:")
     print("=" * 70)
@@ -458,12 +583,8 @@ def main():
     print("5. Apply rules simultaneously to all cells")
     print("6. R pentomino: 5 cells → 1000+ generations of chaos")
     print("7. Self-replication emerges from simple rules!")
-    print("=" * 70)
-    print("\nExperiment ideas:")
-    print("- Try different initial patterns")
-    print("- Implement wrapping boundaries (toroidal grid)")
-    print("- Add color based on cell age")
-    print("- Try different rule sets (other cellular automata)")
+    print("8. Toroidal grid: wrap edges to eliminate boundary effects")
+    print("9. Random initialisation: explore beyond fixed patterns")
     print("=" * 70)
 
 

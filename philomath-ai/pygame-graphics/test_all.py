@@ -555,6 +555,82 @@ def test_pixel_to_cell():
     print("✓ PASSED")
 
 
+def test_create_age_board():
+    """Test age board initialisation."""
+    print("Testing age board creation...", end=' ')
+    create_age_board = mod_04['create_age_board']
+
+    age = create_age_board(5, 7)
+    assert len(age) == 5, "Age board should have 5 rows"
+    assert len(age[0]) == 7, "Age board should have 7 columns"
+    for row in age:
+        for cell in row:
+            assert cell == 0, "All ages should start at 0"
+    print("✓ PASSED")
+
+
+def test_update_age_board():
+    """Test that ages increment for alive cells and reset for dead cells."""
+    print("Testing age board update...", end=' ')
+    create_age_board = mod_04['create_age_board']
+    update_age_board = mod_04['update_age_board']
+
+    board = [
+        [1, 0, 1],
+        [0, 1, 0],
+    ]
+    age = create_age_board(2, 3)
+
+    # First update: alive cells get age 1
+    update_age_board(board, age)
+    assert age[0][0] == 1, "Alive cell should have age 1 after first update"
+    assert age[0][1] == 0, "Dead cell should stay at age 0"
+    assert age[1][1] == 1, "Alive cell should have age 1 after first update"
+
+    # Second update (same board): alive cells now have age 2
+    update_age_board(board, age)
+    assert age[0][0] == 2, "Alive cell should have age 2 after second update"
+    assert age[0][1] == 0, "Dead cell should stay at age 0"
+
+    # Cell dies – age should reset
+    board[0][0] = 0
+    update_age_board(board, age)
+    assert age[0][0] == 0, "Dead cell should reset to age 0"
+
+    print("✓ PASSED")
+
+
+def test_age_to_color():
+    """Test age-to-colour mapping."""
+    print("Testing age-to-colour mapping...", end=' ')
+    age_to_color = mod_04['age_to_color']
+    AGE_COLOR_YOUNG = mod_04['AGE_COLOR_YOUNG']
+    AGE_COLOR_OLD   = mod_04['AGE_COLOR_OLD']
+    AGE_SATURATE    = mod_04['AGE_SATURATE']
+
+    # Age 0 or below should return black (dead cell sentinel)
+    assert age_to_color(0) == (0, 0, 0), "Age 0 should map to black"
+
+    # Young cells should be close to AGE_COLOR_YOUNG
+    young_color = age_to_color(1)
+    assert young_color == AGE_COLOR_YOUNG, \
+        f"Age 1 should equal AGE_COLOR_YOUNG, got {young_color}"
+
+    # Old cells (at or beyond saturation) should be close to AGE_COLOR_OLD
+    old_color = age_to_color(AGE_SATURATE)
+    assert old_color == AGE_COLOR_OLD, \
+        f"Age {AGE_SATURATE} should equal AGE_COLOR_OLD, got {old_color}"
+
+    # All components must be in 0-255
+    for age in range(0, AGE_SATURATE + 10, 5):
+        r, g, b = age_to_color(age)
+        assert 0 <= r <= 255, f"Red channel out of range at age {age}"
+        assert 0 <= g <= 255, f"Green channel out of range at age {age}"
+        assert 0 <= b <= 255, f"Blue channel out of range at age {age}"
+
+    print("✓ PASSED")
+
+
 # ──────────────────────────────────────────────
 # Tests for 05_krypton_simulation.py
 # ──────────────────────────────────────────────
@@ -798,6 +874,9 @@ def run_all_tests():
         test_count_alive_cells,
         test_cell_to_pixel,
         test_pixel_to_cell,
+        test_create_age_board,
+        test_update_age_board,
+        test_age_to_color,
         # 05_krypton_simulation.py
         test_krypton_empty_board,
         test_krypton_state_constants,
