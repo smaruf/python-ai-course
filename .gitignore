@@ -59,5 +59,10 @@ Thumbs.db
 *.db
 *.sqlite3
 
-# Logs
-*.log
+# .NET / C# build artifacts
+obj/
+bin/
+*.user
+*.suo
+.vs/
+
