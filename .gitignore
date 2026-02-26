@@ -47,6 +47,9 @@ htmlcov/
 .idea/
 *.swp
 *.swo
+# Track VS Code settings committed deliberately to project sub-folders
+!ai-gateway/.vscode/
+!ai-gateway/.vscode/settings.json
 
 # OS
 .DS_Store
