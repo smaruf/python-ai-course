@@ -425,5 +425,112 @@ class TestAPIEndpoints:
                 assert response.status_code == 503
 
 
+# ===========================================================================
+# RAG helper + endpoint tests
+# ===========================================================================
+
+class TestRAGHelperAndEndpoint:
+    """Tests for the _build_rag_prompt helper and /ai/query/rag endpoint."""
+
+    def test_build_rag_prompt_basic(self):
+        from ai_gateway import _build_rag_prompt
+
+        result = _build_rag_prompt("What is X?", ["Doc A", "Doc B"], max_context_chars=4000)
+        assert "Context:" in result
+        assert "Doc A" in result
+        assert "Doc B" in result
+        assert "Question: What is X?" in result
+
+    def test_build_rag_prompt_truncates_to_limit(self):
+        from ai_gateway import _build_rag_prompt
+
+        big_doc = "x" * 200
+        result = _build_rag_prompt("Q?", [big_doc], max_context_chars=50)
+        # Context section must not exceed max_context_chars
+        context_section = result.split("\n\nQuestion:")[0].replace("Context:\n", "")
+        assert len(context_section) <= 50
+
+    def test_build_rag_prompt_skips_empty_docs(self):
+        from ai_gateway import _build_rag_prompt
+
+        result = _build_rag_prompt("Q?", ["", "  ", "Real doc"], max_context_chars=4000)
+        assert "Real doc" in result
+        # Empty docs should not leave stray separators at the start
+        assert not result.startswith("Context:\n---")
+
+    def test_rag_endpoint_success(self):
+        from fastapi.testclient import TestClient
+
+        with patch("ai_gateway._router") as mock_router:
+            mock_router.query.return_value = {
+                "response": "RAG answer",
+                "backend": "copilot",
+                "state": "closed",
+            }
+
+            import ai_gateway
+            with TestClient(ai_gateway.app) as tc:
+                response = tc.post(
+                    "/ai/query/rag",
+                    json={
+                        "prompt": "What is the capital?",
+                        "documents": ["France is a country in Europe.", "Paris is its capital."],
+                    },
+                )
+                assert response.status_code == 200
+                data = response.json()
+                assert data["response"] == "RAG answer"
+                assert data["backend"] == "copilot"
+
+    def test_rag_endpoint_augments_prompt(self):
+        """The augmented prompt passed to the router must include the document context."""
+        from fastapi.testclient import TestClient
+
+        captured: list = []
+
+        def capture_query(prompt):
+            captured.append(prompt)
+            return {"response": "ok", "backend": "cloud", "state": "closed"}
+
+        with patch("ai_gateway._router") as mock_router:
+            mock_router.query.side_effect = capture_query
+
+            import ai_gateway
+            with TestClient(ai_gateway.app) as tc:
+                tc.post(
+                    "/ai/query/rag",
+                    json={
+                        "prompt": "Summarise",
+                        "documents": ["Important context here."],
+                    },
+                )
+
+        assert captured, "router.query was not called"
+        assert "Important context here." in captured[0]
+        assert "Summarise" in captured[0]
+
+    def test_rag_endpoint_missing_documents(self):
+        from fastapi.testclient import TestClient
+
+        import ai_gateway
+        with TestClient(ai_gateway.app) as tc:
+            response = tc.post("/ai/query/rag", json={"prompt": "Q?"})
+            assert response.status_code == 422  # documents field is required
+
+    def test_rag_endpoint_all_backends_fail(self):
+        from fastapi.testclient import TestClient
+
+        with patch("ai_gateway._router") as mock_router:
+            mock_router.query.side_effect = RuntimeError("all down")
+
+            import ai_gateway
+            with TestClient(ai_gateway.app) as tc:
+                response = tc.post(
+                    "/ai/query/rag",
+                    json={"prompt": "Q?", "documents": ["ctx"]},
+                )
+                assert response.status_code == 503
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

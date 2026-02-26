@@ -1,6 +1,6 @@
-# AI Gateway — 3-Tier AI Failover (Copilot → Cloud → Local)
+# AI Gateway — 3-Tier AI Failover (Copilot → Cloud → Local) + RAG
 
-A production-ready AI gateway microservice that routes queries through a **3-tier failover chain**:
+A production-ready AI gateway microservice that routes queries through a **3-tier failover chain** and supports **RAG (Retrieval-Augmented Generation)** — designed for a single laptop without a GPU.
 
 | Priority | Tier        | Backend               | When used                            |
 |----------|-------------|-----------------------|--------------------------------------|
@@ -8,20 +8,28 @@ A production-ready AI gateway microservice that routes queries through a **3-tie
 | 2        | **Secondary** | Cloud LLM (OpenAI) | When Copilot circuit is OPEN         |
 | 3        | **Fallback** | Local Ollama          | When both cloud tiers are OPEN / offline |
 
+**Design goals**:  💻 Single laptop  ❌ No GPU required  🌐 Cloud-first  🛑 Local only on internet cutoff  ⚡ Lightweight  🧩 Language-agnostic REST API
+
 Each cloud tier (Copilot & OpenAI) has an independent **circuit breaker** that opens after N consecutive failures and re-probes after a configurable timeout.
 
 ```
-            ┌─────────────────────┐
-            │     Your App        │
-            └─────────┬───────────┘
-                      │ POST /ai/query
-              AI Gateway Layer
-                      │
-        ┌─────────────┼─────────────┐
-        │             │             │
-  🤖 Copilot    🌐 Cloud LLM   💻 Local LLM
-  (Primary)    (Secondary)    (Fallback)
-  GitHub       OpenAI, etc.   Ollama
+             ┌──────────────────────────┐
+             │   Your App (any language)│
+             │  Python · Java · C# · Go │
+             └────────────┬─────────────┘
+                          │ HTTP REST
+              ┌───────────▼─────────────┐
+              │       AI Gateway        │
+              │  POST /ai/query         │
+              │  POST /ai/query/rag     │
+              │  GET  /health           │
+              └───────────┬─────────────┘
+                          │ 3-tier failover
+          ┌───────────────┼───────────────┐
+          │               │               │
+    🤖 Copilot      🌐 Cloud LLM    💻 Local LLM
+    (Primary)       (Secondary)     (Fallback)
+    GitHub          OpenAI, etc.    Ollama (CPU)
 ```
 
 ## 📁 Project Structure
@@ -32,14 +40,19 @@ ai-gateway/
 ├── cloud_client.py     # Cloud LLM client (secondary — OpenAI)
 ├── local_client.py     # Local LLM client (tertiary — Ollama)
 ├── router.py           # 3-tier circuit-breaker router
-├── ai_gateway.py       # FastAPI REST service
+├── ai_gateway.py       # FastAPI REST service (plain + RAG endpoints)
 ├── Dockerfile          # Container image
 ├── docker-compose.yml  # Gateway + Ollama stack
 ├── requirements.txt    # Python dependencies
+├── examples/
+│   ├── client.py       # Python client example
+│   ├── Client.java     # Java client example
+│   ├── Client.cs       # C# client example
+│   └── client.go       # Go client example
 ├── .vscode/
 │   └── settings.json   # VS Code + Copilot settings
 └── tests/
-    └── test_gateway.py # Unit & integration tests
+    └── test_gateway.py # Unit & integration tests (36 tests)
 ```
 
 ## 🚀 Quick Start
@@ -83,7 +96,7 @@ gh auth token
 
 ## 🔌 API Reference
 
-### `POST /ai/query`
+### `POST /ai/query` — plain query
 
 ```json
 {
@@ -106,6 +119,45 @@ Response:
 | `response`| The AI model's answer                                    |
 | `backend` | `"copilot"`, `"cloud"`, or `"local"` — which tier replied |
 | `state`   | Primary (Copilot) circuit state: `closed / open / half_open` |
+
+### `POST /ai/query/rag` — RAG-augmented query
+
+Grounded responses without a GPU or vector database.  Pass text chunks as
+`documents` and the gateway injects them as context before routing through
+the 3-tier chain.
+
+```json
+{
+  "prompt": "What does the document say about refunds?",
+  "documents": [
+    "Refund policy: customers may return items within 30 days.",
+    "No refunds are issued after 30 days from purchase."
+  ],
+  "max_context_chars": 4000
+}
+```
+
+Response:
+
+```json
+{
+  "response": "According to the policy, refunds are available within 30 days of purchase.",
+  "backend": "copilot",
+  "state": "closed"
+}
+```
+
+| Field              | Default | Description                                          |
+|--------------------|---------|------------------------------------------------------|
+| `prompt`           | —       | The question to answer                               |
+| `documents`        | —       | List of text chunks to use as context                |
+| `max_context_chars`| `4000`  | Max chars of context injected (fits within model limits) |
+
+**Use cases on a no-GPU laptop**:
+- Chat over a local code snippet
+- Answer questions about a pasted document
+- Ground responses in retrieved database rows
+- Summarise meeting notes / tickets
 
 ### `GET /health`
 
@@ -152,6 +204,69 @@ CLOSED ──(N failures)──► OPEN ──(timeout)──► HALF-OPEN
 | `closed`    | Tier healthy — requests routed here first             |
 | `open`      | Tier down — skipped, next tier tried                  |
 | `half_open` | Trial request sent to test recovery                   |
+
+## 🧩 Language-Agnostic — Client Examples
+
+The gateway is a plain HTTP REST API — call it from any language.
+Ready-to-run examples live in `examples/`:
+
+### Python (stdlib — no extra packages)
+
+```python
+import json, urllib.request
+
+def query(prompt):
+    payload = json.dumps({"prompt": prompt}).encode()
+    req = urllib.request.Request(
+        "http://localhost:8000/ai/query",
+        data=payload, headers={"Content-Type": "application/json"}, method="POST"
+    )
+    with urllib.request.urlopen(req) as r:
+        return json.loads(r.read())
+
+def query_rag(prompt, documents):
+    payload = json.dumps({"prompt": prompt, "documents": documents}).encode()
+    req = urllib.request.Request(
+        "http://localhost:8000/ai/query/rag",
+        data=payload, headers={"Content-Type": "application/json"}, method="POST"
+    )
+    with urllib.request.urlopen(req) as r:
+        return json.loads(r.read())
+```
+
+### Java (stdlib — Java 11+)
+
+```java
+HttpClient http = HttpClient.newHttpClient();
+HttpRequest req = HttpRequest.newBuilder()
+    .uri(URI.create("http://localhost:8000/ai/query"))
+    .header("Content-Type", "application/json")
+    .POST(HttpRequest.BodyPublishers.ofString("{\"prompt\":\"Hello\"}"))
+    .build();
+String body = http.send(req, HttpResponse.BodyHandlers.ofString()).body();
+```
+
+### C# (stdlib — .NET 6+)
+
+```csharp
+var client = new HttpClient();
+var content = new StringContent(
+    JsonSerializer.Serialize(new { prompt = "Hello" }),
+    Encoding.UTF8, "application/json");
+var resp = await client.PostAsync("http://localhost:8000/ai/query", content);
+var json = await resp.Content.ReadAsStringAsync();
+```
+
+### Go (stdlib)
+
+```go
+body, _ := json.Marshal(map[string]string{"prompt": "Hello"})
+resp, _ := http.Post("http://localhost:8000/ai/query",
+    "application/json", bytes.NewReader(body))
+result, _ := io.ReadAll(resp.Body)
+```
+
+> See `examples/` for complete working programs in all four languages.
 
 ## 💻 VS Code + GitHub Copilot
 

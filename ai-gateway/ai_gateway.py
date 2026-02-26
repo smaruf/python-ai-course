@@ -3,11 +3,17 @@
 AI Gateway — FastAPI REST Service
 ==================================
 
-Exposes a single endpoint:
+Endpoints:
 
     POST /ai/query
     {
         "prompt": "Your question here"
+    }
+
+    POST /ai/query/rag
+    {
+        "prompt": "Your question here",
+        "documents": ["Context chunk 1", "Context chunk 2", ...]
     }
 
 The gateway routes requests through a 3-tier circuit-breaker:
@@ -15,6 +21,9 @@ The gateway routes requests through a 3-tier circuit-breaker:
   Tier 1 (primary)   : GitHub Copilot
   Tier 2 (secondary) : Cloud LLM (e.g. OpenAI)
   Tier 3 (fallback)  : Local Ollama
+
+The RAG endpoint prepends the supplied context documents to the prompt
+(simple context injection — no GPU, no vector store required).
 
 Usage:
     uvicorn ai_gateway:app --host 0.0.0.0 --port 8000 --reload
@@ -28,6 +37,7 @@ VS Code / GitHub Copilot:
 import logging
 import os
 import sys
+from typing import List
 
 # Allow running from the project root without installing the package
 sys.path.insert(0, os.path.dirname(__file__))
@@ -51,9 +61,11 @@ app = FastAPI(
     title="AI Gateway",
     description=(
         "3-tier AI query gateway: GitHub Copilot (primary) → Cloud LLM (secondary) "
-        "→ Local Ollama (fallback). Implements per-tier circuit-breaker pattern."
+        "→ Local Ollama (fallback). Implements per-tier circuit-breaker pattern. "
+        "Supports plain queries and RAG (context-augmented) queries. "
+        "Language-agnostic REST API — usable from Python, Java, C#, Go, or any HTTP client."
     ),
-    version="2.0.0",
+    version="2.1.0",
 )
 
 # Build clients from environment variables (with sensible defaults)
@@ -85,6 +97,24 @@ class QueryRequest(BaseModel):
     prompt: str = Field(..., min_length=1, description="The question or instruction for the AI")
 
 
+class RAGRequest(BaseModel):
+    prompt: str = Field(..., min_length=1, description="The question or instruction for the AI")
+    documents: List[str] = Field(
+        ...,
+        min_length=1,
+        description="Context documents to augment the prompt (text chunks / passages)",
+    )
+    max_context_chars: int = Field(
+        default=4000,
+        ge=100,
+        le=16000,
+        description=(
+            "Maximum total characters of context to inject before the prompt. "
+            "Keeps the request within model context limits."
+        ),
+    )
+
+
 class QueryResponse(BaseModel):
     response: str = Field(..., description="The AI model's answer")
     backend: str = Field(..., description="Which backend answered: 'copilot', 'cloud', or 'local'")
@@ -97,6 +127,39 @@ class HealthResponse(BaseModel):
     cloud_available: bool
     local_available: bool
     circuit_state: str
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _build_rag_prompt(prompt: str, documents: List[str], max_context_chars: int) -> str:
+    """
+    Build a RAG-augmented prompt by prepending context documents.
+
+    Concatenates documents (separated by '---') up to *max_context_chars*
+    so the total context fits within typical model limits without a GPU or
+    vector store.
+    """
+    separator = "\n---\n"
+    context_parts: List[str] = []
+    total = 0
+    for doc in documents:
+        chunk = doc.strip()
+        if not chunk:
+            continue
+        needed = len(chunk) + (len(separator) if context_parts else 0)
+        if total + needed > max_context_chars:
+            # Include as much of this chunk as fits, then stop
+            remaining = max_context_chars - total - (len(separator) if context_parts else 0)
+            if remaining > 0:
+                context_parts.append(chunk[:remaining])
+            break
+        context_parts.append(chunk)
+        total += needed
+
+    context = separator.join(context_parts)
+    return f"Context:\n{context}\n\nQuestion: {prompt}"
 
 
 # ---------------------------------------------------------------------------
@@ -119,6 +182,32 @@ def ai_query(request: QueryRequest) -> QueryResponse:
         return QueryResponse(**result)
     except Exception as exc:
         logger.error("All backends failed: %s", exc)
+        raise HTTPException(status_code=503, detail=f"All AI backends unavailable: {exc}")
+
+
+@app.post("/ai/query/rag", response_model=QueryResponse, summary="RAG-augmented query")
+def ai_query_rag(request: RAGRequest) -> QueryResponse:
+    """
+    Answer a question grounded in the supplied context documents (RAG).
+
+    The gateway prepends the provided text chunks to the prompt before
+    routing through the same 3-tier failover chain.  No GPU, embeddings
+    model, or vector database is required — making it suitable for a
+    single laptop environment.
+
+    **Example use cases**
+    - Chat over a local code-base snippet
+    - Answer questions about a pasted document
+    - Ground responses in retrieved database rows
+    """
+    augmented_prompt = _build_rag_prompt(
+        request.prompt, request.documents, request.max_context_chars
+    )
+    try:
+        result = _router.query(augmented_prompt)
+        return QueryResponse(**result)
+    except Exception as exc:
+        logger.error("All backends failed (RAG): %s", exc)
         raise HTTPException(status_code=503, detail=f"All AI backends unavailable: {exc}")
 
 
