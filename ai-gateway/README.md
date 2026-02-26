@@ -11,7 +11,15 @@ A production-ready AI gateway microservice that routes queries through a **3-tie
 | 2        | **Secondary** | Cloud LLM (OpenAI) | When Copilot circuit is OPEN         |
 | 3        | **Fallback** | Local Ollama          | When both cloud tiers are OPEN / offline |
 
-**Design goals**:  💻 Single laptop  ❌ No GPU required  🌐 Cloud-first  🛑 Local only on internet cutoff  ⚡ Lightweight  🧩 Language-agnostic REST API
+**Design goals**: 
+```
+💻 Single laptop
+❌ No GPU required  
+🌐 Cloud-first  
+🛑 Local only on the internet cutoff  
+⚡ Lightweight  
+🧩 Language-agnostic REST API
+```
 
 Each cloud tier (Copilot & OpenAI) has an independent **circuit breaker** that opens after N consecutive failures and re-probes after a configurable timeout.
 
