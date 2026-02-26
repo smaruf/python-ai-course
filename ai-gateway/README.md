@@ -1,5 +1,8 @@
 # AI Gateway — 3-Tier AI Failover (Copilot → Cloud → Local) + RAG
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [AI Development Project](../ai-development-project/) | [LangChain + LangGraph](../projects/langchain-langgraph-standalone/) | [AI Sync-Async Guide](../ai-sync-async-fix-itch/)
+
 A production-ready AI gateway microservice that routes queries through a **3-tier failover chain** and supports **RAG (Retrieval-Augmented Generation)** — designed for a single laptop without a GPU.
 
 | Priority | Tier        | Backend               | When used                            |
