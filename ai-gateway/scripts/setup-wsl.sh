@@ -82,8 +82,9 @@ fi
 if ! pgrep -x ollama &>/dev/null; then
   echo "==> Starting Ollama in the background..."
   nohup ollama serve > /tmp/ollama.log 2>&1 &
+  OLLAMA_PID=$!
   sleep 2
-  echo "    Ollama PID: $! (log: /tmp/ollama.log)"
+  echo "    Ollama PID: $OLLAMA_PID (log: /tmp/ollama.log)"
 else
   echo "==> Ollama already running."
 fi
