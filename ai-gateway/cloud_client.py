@@ -4,7 +4,7 @@ Cloud LLM Client
 ================
 
 Handles communication with cloud-based AI providers (OpenAI, Anthropic, etc.).
-Used as the primary AI backend when internet connectivity is available.
+Used as the **secondary** AI backend when GitHub Copilot (primary) is unavailable.
 """
 
 import os
@@ -13,7 +13,7 @@ from typing import Optional
 
 
 class CloudClient:
-    """Client for cloud-based LLM APIs (primary AI backend)."""
+    """Client for cloud-based LLM APIs (secondary AI backend)."""
 
     def __init__(
         self,

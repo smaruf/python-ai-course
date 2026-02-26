@@ -1,11 +1,14 @@
-# AI Gateway — Cloud/Local LLM Failover
+# AI Gateway — 3-Tier AI Failover (Copilot → Cloud → Local)
 
-A production-ready AI gateway microservice that:
+A production-ready AI gateway microservice that routes queries through a **3-tier failover chain**:
 
-- **Prefers cloud LLMs** (OpenAI by default) when internet is available
-- **Automatically falls back** to a local [Ollama](https://ollama.com) model when the cloud is unreachable
-- Implements a **circuit-breaker pattern** — after N consecutive cloud failures the gateway
-  routes all traffic to the local model and re-probes the cloud after a configurable timeout
+| Priority | Tier        | Backend               | When used                            |
+|----------|-------------|-----------------------|--------------------------------------|
+| 1        | **Primary** | GitHub Copilot        | Default — when Copilot is reachable  |
+| 2        | **Secondary** | Cloud LLM (OpenAI) | When Copilot circuit is OPEN         |
+| 3        | **Fallback** | Local Ollama          | When both cloud tiers are OPEN / offline |
+
+Each cloud tier (Copilot & OpenAI) has an independent **circuit breaker** that opens after N consecutive failures and re-probes after a configurable timeout.
 
 ```
             ┌─────────────────────┐
@@ -14,20 +17,21 @@ A production-ready AI gateway microservice that:
                       │ POST /ai/query
               AI Gateway Layer
                       │
-        ┌─────────────┴─────────────┐
-        │                           │
-   🌐 Cloud LLM                💻 Local LLM
- (Primary)                     (Fallback)
- OpenAI, etc.                  Ollama llama3
+        ┌─────────────┼─────────────┐
+        │             │             │
+  🤖 Copilot    🌐 Cloud LLM   💻 Local LLM
+  (Primary)    (Secondary)    (Fallback)
+  GitHub       OpenAI, etc.   Ollama
 ```
 
 ## 📁 Project Structure
 
 ```
 ai-gateway/
-├── cloud_client.py     # Cloud LLM client (OpenAI)
-├── local_client.py     # Local LLM client (Ollama)
-├── router.py           # Circuit-breaker router
+├── copilot_client.py   # GitHub Copilot client (primary)
+├── cloud_client.py     # Cloud LLM client (secondary — OpenAI)
+├── local_client.py     # Local LLM client (tertiary — Ollama)
+├── router.py           # 3-tier circuit-breaker router
 ├── ai_gateway.py       # FastAPI REST service
 ├── Dockerfile          # Container image
 ├── docker-compose.yml  # Gateway + Ollama stack
@@ -46,10 +50,11 @@ ai-gateway/
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Set your OpenAI key (optional — gateway falls back to local if missing)
-export OPENAI_API_KEY="sk-..."
+# 2. Set tokens (at minimum one cloud tier is required)
+export GITHUB_COPILOT_TOKEN="<your-copilot-token>"  # primary
+export OPENAI_API_KEY="sk-..."                        # secondary fallback
 
-# 3. Start local Ollama (in another terminal)
+# 3. Start local Ollama (tertiary fallback — optional but recommended)
 curl -fsSL https://ollama.com/install.sh | sh
 ollama run llama3
 
@@ -60,11 +65,21 @@ uvicorn ai_gateway:app --reload
 ### Option 2 — Docker Compose (recommended)
 
 ```bash
-# Starts both Ollama and the gateway
-OPENAI_API_KEY=sk-... docker compose up
+GITHUB_COPILOT_TOKEN=<token> OPENAI_API_KEY=sk-... docker compose up
 ```
 
 The gateway is then available at `http://localhost:8000`.
+
+### Getting a GitHub Copilot token
+
+```bash
+# Option A: GitHub CLI (recommended)
+gh auth login --scopes copilot
+gh auth token
+
+# Option B: VS Code (token stored automatically after installing Copilot extension)
+# Read from: ~/.config/github-copilot/hosts.json  (Linux/macOS)
+```
 
 ## 🔌 API Reference
 
@@ -81,50 +96,62 @@ Response:
 ```json
 {
   "response": "The capital of France is Paris.",
-  "backend": "cloud",
+  "backend": "copilot",
   "state": "closed"
 }
 ```
 
-| Field     | Description                                    |
-|-----------|------------------------------------------------|
-| `response`| The AI model's answer                          |
-| `backend` | `"cloud"` or `"local"` — which backend replied |
-| `state`   | Circuit-breaker state: `closed / open / half_open` |
+| Field     | Description                                              |
+|-----------|----------------------------------------------------------|
+| `response`| The AI model's answer                                    |
+| `backend` | `"copilot"`, `"cloud"`, or `"local"` — which tier replied |
+| `state`   | Primary (Copilot) circuit state: `closed / open / half_open` |
 
 ### `GET /health`
 
-Returns availability of each backend and current circuit state.
+Returns availability of all three backends and current Copilot circuit state.
+
+```json
+{
+  "status": "ok",
+  "copilot_available": true,
+  "cloud_available": true,
+  "local_available": false,
+  "circuit_state": "closed"
+}
+```
 
 ### `POST /admin/reset`
 
-Manually reset the circuit breaker to `closed` (cloud-preferred) state.
+Manually reset both circuit breakers to `closed` (Copilot-preferred) state.
 
 ## ⚙️ Configuration (environment variables)
 
-| Variable            | Default                   | Description                              |
-|---------------------|---------------------------|------------------------------------------|
-| `CLOUD_PROVIDER`    | `openai`                  | Cloud LLM provider                       |
-| `CLOUD_MODEL`       | `gpt-4o-mini`             | Cloud model name                         |
-| `OPENAI_API_KEY`    | *(required for cloud)*    | OpenAI API key                           |
-| `LOCAL_MODEL`       | `llama3`                  | Ollama model name                        |
-| `OLLAMA_BASE_URL`   | `http://localhost:11434`  | Ollama service URL                       |
-| `FAILURE_THRESHOLD` | `3`                       | Cloud failures before opening circuit    |
-| `RECOVERY_TIMEOUT`  | `300`                     | Seconds before re-probing cloud          |
+| Variable               | Default                   | Description                                |
+|------------------------|---------------------------|--------------------------------------------|
+| `GITHUB_COPILOT_TOKEN` | *(from VS Code config)*   | GitHub Copilot OAuth token (primary)       |
+| `COPILOT_MODEL`        | `gpt-4o`                  | Copilot model name                         |
+| `CLOUD_PROVIDER`       | `openai`                  | Secondary cloud provider                   |
+| `CLOUD_MODEL`          | `gpt-4o-mini`             | Secondary cloud model                      |
+| `OPENAI_API_KEY`       | *(required for cloud)*    | OpenAI API key (secondary)                 |
+| `LOCAL_MODEL`          | `llama3`                  | Ollama model name (fallback)               |
+| `OLLAMA_BASE_URL`      | `http://localhost:11434`  | Ollama service URL                         |
+| `FAILURE_THRESHOLD`    | `3`                       | Failures before opening a tier's circuit   |
+| `RECOVERY_TIMEOUT`     | `300`                     | Seconds before re-probing a failed tier    |
 
-## 🔄 Circuit Breaker State Machine
+## 🔄 Circuit Breaker State Machine (per tier)
 
 ```
-CLOSED ──(3 failures)──► OPEN ──(5 min)──► HALF-OPEN
-  ▲                                              │
-  └──────────────(success)──────────────────────┘
+CLOSED ──(N failures)──► OPEN ──(timeout)──► HALF-OPEN
+  ▲                                               │
+  └───────────────(success)──────────────────────┘
 ```
 
-| State       | Behaviour                                     |
-|-------------|-----------------------------------------------|
-| `closed`    | Normal — cloud is used, failures are counted  |
-| `open`      | Cloud down — all requests go to local LLM     |
-| `half_open` | Trial request sent to cloud to test recovery  |
+| State       | Behaviour                                             |
+|-------------|-------------------------------------------------------|
+| `closed`    | Tier healthy — requests routed here first             |
+| `open`      | Tier down — skipped, next tier tried                  |
+| `half_open` | Trial request sent to test recovery                   |
 
 ## 💻 VS Code + GitHub Copilot
 
@@ -139,8 +166,6 @@ The `.vscode/settings.json` file pre-configures:
 - Copilot inline suggestions enabled
 - Correct Python path for module imports
 
-Copilot will auto-complete based on the patterns in `router.py` and `ai_gateway.py`.
-
 ## 🧪 Running Tests
 
 ```bash
@@ -148,7 +173,7 @@ cd ai-gateway
 pytest tests/ -v
 ```
 
-## 🏗 Hardware Recommendations for Local Models
+## 🏗 Hardware Recommendations for Local (Fallback) Models
 
 | RAM      | Suggested model |
 |----------|-----------------|
@@ -157,12 +182,12 @@ pytest tests/ -v
 | 32 GB    | `llama3:13b`    |
 | GPU 8 GB+| Any — much faster |
 
-## ⚖️ Cloud vs Local Trade-offs
+## ⚖️ Tier Trade-offs
 
-| Feature            | Cloud          | Local            |
-|--------------------|----------------|------------------|
-| Accuracy           | ⭐⭐⭐⭐⭐          | ⭐⭐⭐              |
-| Internet required  | Yes            | No               |
-| Cost               | API-based      | Hardware-based   |
-| Latency            | Network RTT    | < 1 s (local)    |
-| Privacy            | External       | Fully private    |
+| Feature            | Copilot (Primary) | Cloud (Secondary) | Local (Fallback) |
+|--------------------|-------------------|-------------------|------------------|
+| Accuracy           | ⭐⭐⭐⭐⭐            | ⭐⭐⭐⭐              | ⭐⭐⭐              |
+| IDE integration    | ✅ Native           | ❌                 | ❌                |
+| Internet required  | Yes               | Yes               | No               |
+| Cost               | Copilot plan      | API-based         | Hardware-based   |
+| Privacy            | GitHub            | External          | Fully private    |
