@@ -44,6 +44,11 @@ ai-gateway/
 ├── Dockerfile          # Container image
 ├── docker-compose.yml  # Gateway + Ollama stack
 ├── requirements.txt    # Python dependencies
+├── scripts/
+│   ├── setup-mac.sh        # macOS one-command setup
+│   ├── setup-linux.sh      # Linux / Debian / Ubuntu one-command setup
+│   ├── setup-wsl.sh        # WSL 2 one-command setup
+│   └── setup-windows.ps1   # Windows PowerShell one-command setup
 ├── examples/
 │   ├── client.py       # Python client example
 │   ├── Client.java     # Java client example
@@ -55,27 +60,127 @@ ai-gateway/
     └── test_gateway.py # Unit & integration tests (36 tests)
 ```
 
-## 🚀 Quick Start
+## 🚀 Local Deployment (no Docker)
 
-### Option 1 — Run locally
+One-command setup scripts are provided for every major local environment.
+Each script: installs Python, creates a virtual environment, installs dependencies,
+installs Ollama (CPU-only local fallback), and generates a `.env` template.
+
+### Prerequisites (all platforms)
+
+| Requirement | Minimum version | Notes |
+|---|---|---|
+| Python | 3.11 | Installed by the script if missing |
+| pip | latest | Upgraded automatically |
+| Ollama | latest | Installed by the script; runs CPU-only |
+| GitHub Copilot token | — | `gh auth login --scopes copilot && gh auth token` |
+| OpenAI API key | — | Optional; enables cloud secondary tier |
+
+---
+
+### 🍎 macOS (Intel & Apple Silicon)
 
 ```bash
-# 1. Install dependencies
-pip install -r requirements.txt
-
-# 2. Set tokens (at minimum one cloud tier is required)
-export GITHUB_COPILOT_TOKEN="<your-copilot-token>"  # primary
-export OPENAI_API_KEY="sk-..."                        # secondary fallback
-
-# 3. Start local Ollama (tertiary fallback — optional but recommended)
-curl -fsSL https://ollama.com/install.sh | sh
-ollama run llama3
-
-# 4. Start the gateway
-uvicorn ai_gateway:app --reload
+cd ai-gateway
+chmod +x scripts/setup-mac.sh
+./scripts/setup-mac.sh
 ```
 
-### Option 2 — Docker Compose (recommended)
+Then start the gateway:
+
+```bash
+source .venv/bin/activate
+set -a && source .env && set +a        # load tokens from .env
+uvicorn ai_gateway:app --host 0.0.0.0 --port 8000 --reload
+```
+
+> Requires [Homebrew](https://brew.sh). The script installs it automatically if absent.
+
+---
+
+### 🐧 Linux / Debian / Ubuntu
+
+```bash
+cd ai-gateway
+chmod +x scripts/setup-linux.sh
+./scripts/setup-linux.sh
+```
+
+Then start the gateway:
+
+```bash
+source .venv/bin/activate
+set -a && source .env && set +a
+uvicorn ai_gateway:app --host 0.0.0.0 --port 8000 --reload
+```
+
+> Requires `sudo` (for `apt-get`). The Ollama installer registers a **systemd** service
+> so Ollama restarts automatically on reboot.
+
+---
+
+### 🪟 WSL 2 (Windows Subsystem for Linux)
+
+Open a **WSL terminal** (Ubuntu 22.04 or 24.04 recommended):
+
+```bash
+cd ai-gateway
+chmod +x scripts/setup-wsl.sh
+./scripts/setup-wsl.sh
+```
+
+Then start the gateway inside WSL:
+
+```bash
+source .venv/bin/activate
+set -a && source .env && set +a
+uvicorn ai_gateway:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Access from Windows browser / `curl`: **`http://localhost:8000`**
+(WSL 2 auto-forwards ports to Windows on Windows 11 / WSL 2.0+).
+
+> **Tip — if ports are not auto-forwarded on Windows 10:**
+> ```powershell
+> # Run once in an elevated PowerShell on the Windows host
+> netsh interface portproxy add v4tov4 listenport=8000 listenaddress=0.0.0.0 `
+>       connectport=8000 connectaddress=$(wsl hostname -I).Split()[0]
+> ```
+
+---
+
+### 🪟 Windows (native PowerShell)
+
+Open **PowerShell** (no admin required) and run:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
+cd ai-gateway
+.\scripts\setup-windows.ps1
+```
+
+Then start the gateway:
+
+```powershell
+.venv\Scripts\Activate.ps1
+
+# Load tokens from .env
+Get-Content .env | ForEach-Object {
+    if ($_ -match '^\s*([^#][^=]*)=(.+)') {
+        [System.Environment]::SetEnvironmentVariable($matches[1].Trim(), $matches[2].Trim(), 'Process')
+    }
+}
+
+uvicorn ai_gateway:app --host 0.0.0.0 --port 8000 --reload
+```
+
+> The script installs Python 3.11 and Ollama via **winget** (built into Windows 10 21H2+ and Windows 11).
+> If winget is unavailable, download them manually:
+> [python.org/downloads](https://www.python.org/downloads/) · [ollama.com/download/windows](https://ollama.com/download/windows)
+
+---
+
+### 🐳 Docker Compose (all platforms)
 
 ```bash
 GITHUB_COPILOT_TOKEN=<token> OPENAI_API_KEY=sk-... docker compose up
@@ -83,15 +188,19 @@ GITHUB_COPILOT_TOKEN=<token> OPENAI_API_KEY=sk-... docker compose up
 
 The gateway is then available at `http://localhost:8000`.
 
-### Getting a GitHub Copilot token
+---
+
+### 🔑 Getting a GitHub Copilot token
 
 ```bash
-# Option A: GitHub CLI (recommended)
+# Option A: GitHub CLI (recommended — works on all platforms)
 gh auth login --scopes copilot
-gh auth token
+gh auth token           # copy this value into GITHUB_COPILOT_TOKEN
 
-# Option B: VS Code (token stored automatically after installing Copilot extension)
-# Read from: ~/.config/github-copilot/hosts.json  (Linux/macOS)
+# Option B: VS Code extension (token stored automatically)
+# Linux/macOS: ~/.config/github-copilot/hosts.json
+# Windows:     %APPDATA%\GitHub Copilot\hosts.json
+# WSL:         /mnt/c/Users/<you>/AppData/Roaming/GitHub Copilot/hosts.json
 ```
 
 ## 🔌 API Reference
