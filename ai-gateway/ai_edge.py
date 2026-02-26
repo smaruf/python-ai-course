@@ -92,7 +92,7 @@ conn.commit()
 # UTIL
 # =========================
 def hash_prompt(prompt):
-    """Return the SHA-256 hex digest of *prompt*.
+    """Return the SHA-256 hex digest of ``prompt``.
 
     Used as the cache key so that identical prompts always resolve to the
     same lookup value regardless of their length.
@@ -197,7 +197,7 @@ def load_docs():
 load_docs()
 
 def search_docs(prompt):
-    """Find the most relevant loaded document for *prompt* using cosine similarity.
+    """Find the most relevant loaded document for ``prompt`` using cosine similarity.
 
     Encodes *prompt* with the same sentence-transformer model used during
     :func:`load_docs`, computes dot-product similarity against every stored
@@ -223,7 +223,7 @@ def search_docs(prompt):
 # CLOUD
 # =========================
 def ask_cloud(prompt):
-    """Send *prompt* to the OpenAI Chat Completions API and return the response.
+    """Send ``prompt`` to the OpenAI Chat Completions API and return the response.
 
     This is the **primary** cloud tier of the edge server.  For a full
     3-tier setup (GitHub Copilot → Cloud → Local) use ``ai_gateway.py`` with
@@ -267,7 +267,7 @@ def ask_cloud(prompt):
 # LOCAL
 # =========================
 def ask_local(prompt):
-    """Send *prompt* to the locally-running Ollama instance and return the response.
+    """Send ``prompt`` to the locally-running Ollama instance and return the response.
 
     Used as the fallback (offline) tier when the cloud tier is unavailable or
     its circuit breaker is open.
@@ -296,7 +296,7 @@ def ask_local(prompt):
 # ROUTER
 # =========================
 def ask_ai(prompt):
-    """Route *prompt* through the cache → cloud → local fallback chain.
+    """Route ``prompt`` through the cache → cloud → local fallback chain.
 
     Processing steps:
 

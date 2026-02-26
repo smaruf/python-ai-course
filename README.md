@@ -2,8 +2,6 @@
 
 A comprehensive collection of Python projects covering AI development, bioinformatics, financial technology, system design, and practical algorithms. This repository serves as both a learning path and a portfolio of real-world applications.
 
----
-
 ## 🤖 AI Tools Used in This Repository
 
 | Priority | Tool | Role | Projects |
