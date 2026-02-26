@@ -1,6 +1,7 @@
 # Fintech Tools Project 🏦
 
-> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [NASDAQ CSE Python](../nasdaq-cse/) | [NASDAQ CSE Go](../nasdaq-cse-go/) | [NASDAQ Bayesian Stats](../nasdaq-bayesian-math-ai-stats/)
 
 A comprehensive fintech toolkit for banking operations, payment processing, financial messaging protocols (FIX/FAST/ITCH), and account management with back-office capabilities. Built with FastAPI, featuring robust security and authentication.
 
