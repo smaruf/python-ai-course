@@ -2,6 +2,26 @@
 
 A comprehensive collection of Python projects covering AI development, bioinformatics, financial technology, system design, and practical algorithms. This repository serves as both a learning path and a portfolio of real-world applications.
 
+---
+
+## 🤖 AI Tools Used in This Repository
+
+| Priority | Tool | Role | Projects |
+|----------|------|------|---------|
+| **Primary** | [GitHub Copilot](https://github.com/features/copilot) | Code completion, chat, code review | All projects — used throughout development |
+| **Secondary** | [OpenAI API](https://platform.openai.com/) | Cloud LLM (GPT-4o / GPT-4o-mini) | AI Gateway, AI Edge, Yelp AI Assistant |
+| **Fallback** | [Ollama](https://ollama.com/) (local) | Offline / no-internet LLM | AI Gateway, AI Edge |
+| **Supporting** | [LangChain / LangGraph](https://www.langchain.com/) | Chains, agents, RAG pipelines | AI Development, AI Gateway, Yelp AI |
+| **Supporting** | [OCI AI Services](https://www.oracle.com/artificial-intelligence/) | Oracle cloud AI integration | Oracle AI Prep |
+
+> **GitHub Copilot is the primary AI tool** across all projects in this repository.
+> It is used for code generation, inline suggestions, and chat-assisted development.
+> Cloud LLMs (OpenAI) serve as the secondary tier, and local models (Ollama) act as
+> the offline fallback — exactly mirroring the 3-tier architecture in the
+> [AI Gateway](./ai-gateway/) project.
+
+---
+
 ## 📚 Table of Contents
 
 - [AI & Machine Learning Projects](#ai--machine-learning-projects)
@@ -52,7 +72,8 @@ A comprehensive collection of Python projects covering AI development, bioinform
 ### [AI Gateway](./ai-gateway/)
 **Production-ready 3-tier AI failover gateway with RAG support**
 - **Tech Stack**: Python, FastAPI, LangChain, Ollama, OpenAI
-- **Features**: Copilot → Cloud → Local failover chain, RAG pipeline, circuit-breaker pattern
+- **AI Tools**: GitHub Copilot *(primary)* → OpenAI Cloud *(secondary)* → Local Ollama *(fallback)*
+- **Features**: Copilot → Cloud → Local failover chain, RAG pipeline, circuit-breaker pattern, lightweight `ai_edge.py` standalone server
 - **Difficulty**: Intermediate to Advanced
 
 ### [Yelp-Style AI Assistant](./yelp-ai-assistant/)
