@@ -1,5 +1,8 @@
 # Python Async Examples
 
+> **Part of [AI Sync-Async Guide](../README.md)** | [Python AI Course](../../README.md)  
+> See also: [C# Async Examples](../csharp-examples/)
+
 Comprehensive Python examples demonstrating synchronous vs asynchronous programming patterns with AI integration.
 
 ## 📋 Prerequisites

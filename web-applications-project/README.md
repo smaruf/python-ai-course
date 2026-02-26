@@ -1,6 +1,7 @@
 # Web Applications Project
 
-> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [AI Development Project](../ai-development-project/) | [Fintech Tools](../fintech-tools/) | [Yelp-Style AI Assistant](../yelp-ai-assistant/)
 
 A collection of web application examples demonstrating different Python web frameworks and features.
 

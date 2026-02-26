@@ -1,6 +1,7 @@
 # Oracle AI Developer Preparation Project 🎯
 
-> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [AI Development Project](../ai-development-project/) | [LangChain + LangGraph](../projects/langchain-langgraph-standalone/) | [System Building Interviews](./src/system_building_interviews/)
 
 A comprehensive preparation guide and hands-on project for **Oracle AI Developer** roles, focusing on Oracle Database 23ai/26ai with AI features, OCI AI services, Generative AI development, and RAG (Retrieval-Augmented Generation) implementations.
 

@@ -1,6 +1,7 @@
 # WhatsApp Medical Report Vault - MVP
 
-> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [AI Development Project](../ai-development-project/) | [Fintech Tools](../fintech-tools/) | [Web Applications](../web-applications-project/)
 
 A secure, HIPAA-conscious WhatsApp-based medical document vault that enables users to store, organize, and retrieve their medical reports entirely through WhatsApp conversation.
 

@@ -1,5 +1,8 @@
 # C# Async Examples
 
+> **Part of [AI Sync-Async Guide](../README.md)** | [Python AI Course](../../README.md)  
+> See also: [Python Async Examples](../python-examples/)
+
 This directory contains C# examples demonstrating synchronous vs asynchronous programming patterns, particularly focused on AI integration.
 
 ## 📋 Prerequisites
