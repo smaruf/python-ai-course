@@ -49,6 +49,12 @@ A comprehensive collection of Python projects covering AI development, bioinform
 - **Covers**: Async/await patterns, Threading, Event loops, Performance optimization
 - **Difficulty**: Intermediate
 
+### [AI Gateway](./ai-gateway/)
+**Production-ready 3-tier AI failover gateway with RAG support**
+- **Tech Stack**: Python, FastAPI, LangChain, Ollama, OpenAI
+- **Features**: Copilot → Cloud → Local failover chain, RAG pipeline, circuit-breaker pattern
+- **Difficulty**: Intermediate to Advanced
+
 ### [Yelp-Style AI Assistant](./yelp-ai-assistant/)
 **Production-grade AI assistant for real-time business queries**
 - **Tech Stack**: Python, FastAPI, LangChain, RAG
@@ -257,6 +263,7 @@ pip install -r requirements.txt
 | [Philomath AI](./philomath-ai/) | Python | Beginner-Advanced | Bioinformatics, Probability | Pattern matching, Matplotlib, Monte Carlo |
 | [AI Development](./ai-development-project/) | Python | Beginner-Expert | AI/ML Development | LLMs, RAG, Vector DBs, Agents |
 | [Yelp-Style AI Assistant](./yelp-ai-assistant/) | Python | Advanced | AI/RAG Assistant | FastAPI, LangChain, Hybrid Search, Kafka |
+| [AI Gateway](./ai-gateway/) | Python | Intermediate-Advanced | AI Routing & RAG | FastAPI, LangChain, Ollama, OpenAI |
 | [NASDAQ CSE (Python)](./nasdaq-cse/) | Python | Advanced | Financial Trading | WebSocket, OMS/RMS, Real-time |
 | [NASDAQ CSE (Go)](./nasdaq-cse-go/) | Go | Advanced | High-Performance Trading | Concurrency, Low-latency |
 | [Fintech Tools](./fintech-tools/) | Python | Intermediate-Advanced | Banking & Payments | FastAPI, FIX/FAST/ITCH, JWT |
