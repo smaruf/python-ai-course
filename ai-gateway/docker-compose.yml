@@ -1,0 +1,33 @@
+services:
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+  ai-gateway:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # Tier 1 — GitHub Copilot (primary)
+      - GITHUB_COPILOT_TOKEN=${GITHUB_COPILOT_TOKEN}
+      - COPILOT_MODEL=gpt-4o
+      # Tier 2 — Cloud LLM (secondary)
+      - CLOUD_PROVIDER=openai
+      - CLOUD_MODEL=gpt-4o-mini
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # Tier 3 — Local Ollama (fallback)
+      - LOCAL_MODEL=llama3
+      - OLLAMA_BASE_URL=http://ollama:11434
+      # Circuit-breaker settings
+      - FAILURE_THRESHOLD=3
+      - RECOVERY_TIMEOUT=300
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
