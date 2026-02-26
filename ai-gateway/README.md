@@ -52,6 +52,7 @@ ai-gateway/
 ├── local_client.py     # Local LLM client (tertiary — Ollama)
 ├── router.py           # 3-tier circuit-breaker router
 ├── ai_gateway.py       # FastAPI REST service (plain + RAG endpoints)
+├── ai_edge.py          # Lightweight standalone server (stdlib HTTP + SQLite cache + RAG)
 ├── Dockerfile          # Container image
 ├── docker-compose.yml  # Gateway + Ollama stack
 ├── requirements.txt    # Python dependencies
@@ -72,6 +73,46 @@ ai-gateway/
 ```
 
 ## 🚀 Local Deployment (no Docker)
+
+### `ai_edge.py` vs `ai_gateway.py`
+
+| Feature | `ai_edge.py` | `ai_gateway.py` |
+|---|---|---|
+| Framework | Python stdlib `HTTPServer` | FastAPI + uvicorn |
+| AI tiers | Cloud (OpenAI) → Local (Ollama) | **Copilot (primary)** → Cloud → Local |
+| Caching | SQLite response cache | — |
+| RAG | Embedding similarity (sentence-transformers) | Context-injection via `/ai/query/rag` |
+| Interactive CLI | ✅ `python ai_edge.py cli` | ❌ |
+| Auto API docs | ❌ | ✅ `/docs` (Swagger UI) |
+| Best for | Single-file edge deployments, offline demos | Production services, multi-language clients |
+
+**`ai_edge.py` quick start** (no FastAPI required):
+
+```bash
+cd ai-gateway
+pip install -r requirements.txt
+export OPENAI_API_KEY=sk-...          # optional; falls back to local Ollama
+
+# Server mode (port 8080)
+python ai_edge.py
+
+# CLI mode
+python ai_edge.py cli
+```
+
+Test the server:
+
+```bash
+curl -X POST http://localhost:8080 \
+     -H "Content-Type: application/json" \
+     -d '{"prompt": "What is the capital of France?"}'
+# {"source": "cloud", "response": "The capital of France is Paris."}
+```
+
+Place any `.txt` files in `./docs/` to enable RAG — the server automatically
+loads them at startup and injects the most relevant passage into every query.
+
+
 
 One-command setup scripts are provided for every major local environment.
 Each script: installs Python, creates a virtual environment, installs dependencies,
