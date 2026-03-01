@@ -1,0 +1,6 @@
+# Block – 2×2 still life (Game of Life)
+# State: 0 = dead, 1 = alive
+....
+.##.
+.##.
+....
