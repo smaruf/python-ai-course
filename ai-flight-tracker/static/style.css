@@ -1,0 +1,125 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+header {
+  text-align: center;
+  padding: 2em 1em 1em;
+  color: white;
+}
+
+header h1 { font-size: 2em; margin-bottom: 0.3em; }
+.subtitle { color: #e8e8ff; font-size: 1.1em; }
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1em 2em 3em;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5em;
+  margin-bottom: 1.5em;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.card h2 { margin-bottom: 1em; color: #333; }
+
+.ai-card { background: #f8f9fa; }
+
+/* Map */
+#map { height: 400px; border-radius: 8px; }
+.map-controls { display: flex; align-items: center; gap: 1em; margin-bottom: 0.8em; }
+.status-text { color: #666; font-size: 0.9em; }
+
+/* Buttons */
+button {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 0.6em 1.2em;
+  border-radius: 6px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+button:hover { background: #5568d3; }
+.btn-green { background: #48bb78; }
+.btn-green:hover { background: #3da568; }
+.btn-row { display: flex; gap: 0.8em; margin-bottom: 1em; }
+
+/* Form */
+.search-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1em;
+  margin-bottom: 1em;
+}
+.field { display: flex; flex-direction: column; gap: 0.3em; }
+.field label { font-size: 0.9em; color: #555; }
+input[type=text], input[type=number] {
+  padding: 0.6em;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1em;
+}
+input:focus { outline: none; border-color: #667eea; }
+
+/* Loading */
+.loading { display: none; text-align: center; padding: 1em; color: #667eea; }
+
+/* Route cards */
+.route-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1em;
+  margin-bottom: 0.8em;
+  background: #fafafa;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.route-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.12); }
+.route-card.priority { border-left: 4px solid #ff6b6b; background: #fff5f5; }
+
+.route-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8em; }
+.route-path { font-size: 1.15em; font-weight: bold; color: #333; }
+.priority-badge {
+  background: #ff6b6b; color: white;
+  padding: 0.2em 0.7em; border-radius: 12px; font-size: 0.8em; font-weight: bold;
+}
+
+.route-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.6em;
+  margin-bottom: 0.5em;
+}
+.detail-item { display: flex; flex-direction: column; }
+.detail-label { font-size: 0.8em; color: #888; }
+.detail-value { font-weight: bold; color: #333; }
+.price-value { color: #27ae60; font-size: 1.2em; }
+.badge {
+  display: inline-block;
+  padding: 0.1em 0.5em; border-radius: 8px;
+  font-size: 0.7em; margin-left: 0.4em; vertical-align: middle;
+}
+.badge-live { background: #27ae60; color: white; }
+.badge-est { background: #aaa; color: white; }
+.stops-info { color: #777; font-size: 0.85em; margin-top: 0.4em; }
+
+/* AI section */
+.ai-input-row { display: flex; gap: 0.8em; margin-bottom: 1em; }
+.ai-input-row input { flex: 1; }
+pre {
+  background: #f0f0f0; padding: 1em; border-radius: 6px;
+  white-space: pre-wrap; font-size: 0.95em; min-height: 2em;
+}
+
+/* Flight popup */
+.flight-popup { font-size: 0.9em; line-height: 1.6; }
+.flight-popup strong { display: block; font-size: 1em; margin-bottom: 0.3em; }

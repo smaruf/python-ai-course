@@ -1,0 +1,72 @@
+{
+  "DAC-GDN": {
+    "origin": "Dhaka (DAC)",
+    "destination": "Gdansk (GDN)",
+    "base_price": 850,
+    "currency": "USD",
+    "duration_hours": 12.5,
+    "stoppages": ["Dubai (DXB)"],
+    "priority": 1,
+    "airlines": ["Emirates", "Qatar Airways"]
+  },
+  "GDN-DAC": {
+    "origin": "Gdansk (GDN)",
+    "destination": "Dhaka (DAC)",
+    "base_price": 820,
+    "currency": "USD",
+    "duration_hours": 13.0,
+    "stoppages": ["Istanbul (IST)"],
+    "priority": 1,
+    "airlines": ["Turkish Airlines", "LOT Polish Airlines"]
+  },
+  "DAC-WAW": {
+    "origin": "Dhaka (DAC)",
+    "destination": "Warsaw (WAW)",
+    "base_price": 780,
+    "currency": "USD",
+    "duration_hours": 11.5,
+    "stoppages": ["Doha (DOH)"],
+    "priority": 1,
+    "airlines": ["Qatar Airways", "LOT Polish Airlines"]
+  },
+  "WAW-DAC": {
+    "origin": "Warsaw (WAW)",
+    "destination": "Dhaka (DAC)",
+    "base_price": 760,
+    "currency": "USD",
+    "duration_hours": 12.0,
+    "stoppages": ["Abu Dhabi (AUH)"],
+    "priority": 1,
+    "airlines": ["Etihad Airways", "LOT Polish Airlines"]
+  },
+  "DAC-LHR": {
+    "origin": "Dhaka (DAC)",
+    "destination": "London (LHR)",
+    "base_price": 650,
+    "currency": "USD",
+    "duration_hours": 10.5,
+    "stoppages": ["Dubai (DXB)"],
+    "priority": 2,
+    "airlines": ["British Airways", "Emirates"]
+  },
+  "DAC-DXB": {
+    "origin": "Dhaka (DAC)",
+    "destination": "Dubai (DXB)",
+    "base_price": 420,
+    "currency": "USD",
+    "duration_hours": 5.5,
+    "stoppages": [],
+    "priority": 3,
+    "airlines": ["Emirates", "flydubai"]
+  },
+  "WAW-LHR": {
+    "origin": "Warsaw (WAW)",
+    "destination": "London (LHR)",
+    "base_price": 180,
+    "currency": "USD",
+    "duration_hours": 2.5,
+    "stoppages": [],
+    "priority": 2,
+    "airlines": ["British Airways", "LOT Polish Airlines"]
+  }
+}

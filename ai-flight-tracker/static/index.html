@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flight Tracker AI</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+<header>
+  <h1>✈️ Flight Tracker AI</h1>
+  <p class="subtitle">Live flights · Route search · AI assistant</p>
+</header>
+
+<div class="container">
+  <!-- Flight Map -->
+  <section class="card" id="map-section">
+    <h2>🗺️ Live Flight Map</h2>
+    <div class="map-controls">
+      <button id="btn-load-map" onclick="loadMapFlights()">Load Flights in View</button>
+      <span id="map-status" class="status-text"></span>
+    </div>
+    <div id="map"></div>
+  </section>
+
+  <!-- Route Search -->
+  <section class="card">
+    <h2>🔍 Search Flight Routes</h2>
+    <div class="search-form">
+      <div class="field">
+        <label>Origin</label>
+        <input id="searchOrigin" type="text" placeholder="e.g., Dhaka, DAC"/>
+      </div>
+      <div class="field">
+        <label>Destination</label>
+        <input id="searchDest" type="text" placeholder="e.g., Warsaw, WAW"/>
+      </div>
+      <div class="field">
+        <label>Max Stops</label>
+        <input id="maxStops" type="number" placeholder="Any" min="0"/>
+      </div>
+      <div class="field">
+        <label>Max Price (USD)</label>
+        <input id="maxPrice" type="number" placeholder="Any" min="0"/>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button onclick="searchRoutes()">Search Routes</button>
+      <button class="btn-green" onclick="loadAllRoutes()">Show All Routes</button>
+    </div>
+    <div id="loading" class="loading">⏳ Loading...</div>
+    <div id="routes"></div>
+  </section>
+
+  <!-- AI Assistant -->
+  <section class="card ai-card">
+    <h2>🤖 AI Assistant</h2>
+    <div class="ai-input-row">
+      <input id="question" type="text" placeholder="Ask about flights, routes, prices..." />
+      <button onclick="ask()">Ask AI</button>
+    </div>
+    <pre id="answer"></pre>
+  </section>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

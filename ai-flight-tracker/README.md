@@ -1,134 +1,182 @@
-# Flight Tracker AI - Enhanced Edition
+# Flight Tracker AI
 
-> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
-> See also: [AI Development Project](../ai-development-project/)
+> **Part of [Python AI Course](../README.md)** — A comprehensive learning repository covering AI, algorithms, and real-world applications.
 
-This is a Flask application that provides a flight tracking service with an AI-powered assistant. It uses real-time flight data from the OpenSky Network and allows users to query the data using natural language, along with comprehensive flight route search capabilities.
+A production-ready Flask application providing live flight tracking, an interactive Leaflet map, route search, dynamic pricing, and an AI assistant grounded in tool results.
 
 ## Features
 
-*   **Real-time Flight Data:** Fetches live flight data from the OpenSky Network API.
-*   **AI Assistant:** Uses Ollama to provide a natural language interface for querying flight data.
-*   **Flight Route Database:** Comprehensive database of flight routes with pricing, duration, and stoppage information.
-*   **Priority Routes:** Special prioritization for Dhaka ↔ Gdansk/Warsaw flights.
-*   **Advanced Search:** Filter routes by origin, destination, maximum stops, and price range.
-*   **Live Ticket Pricing:** Automatically fetches real-time ticket prices from external APIs when internet is available, with intelligent fallback to simulated pricing when network is unavailable.
-*   **Dynamic Pricing:** Ticket prices adjust based on booking window (last-minute, early bird, etc.) when live prices unavailable.
-*   **REST API:** Multiple endpoints for routes, search, and AI queries.
-*   **Enhanced Web Interface:** Modern, responsive UI with route cards, search functionality, and real-time updates.
+- **Interactive Flight Map** — Leaflet map with bbox-based flight fetching, plane markers, and clustering.
+- **Live Flight Data** — Real-time data from the [OpenSky Network](https://opensky-network.org/).
+- **Route Search** — Filter by origin, destination, max stops, and max price.
+- **Priority Routes** — Dhaka ↔ Gdansk/Warsaw highlighted throughout.
+- **Dynamic Pricing** — Simulated pricing with booking-window adjustments; optional live API integration.
+- **AI Assistant** — Intent-routing assistant backed by tool results (route search, live flights). No raw data truncation.
+- **Session Memory** — Remembers user preferences (e.g. last-mentioned city) within a session.
+- **Production-ready** — CORS, rate limiting, structured logging, request IDs, `/health` endpoint, Gunicorn in Docker.
 
-## How to Run
+## Project Structure
 
-1.  **Prerequisites:**
-    *   Python 3.8 or later
-    *   Flask
-    *   Docker (for running the Ollama model)
-
-2.  **Install Dependencies:**
-    ```bash
-    pip install flask requests
-    ```
-
-3.  **Run the Ollama Model:**
-    ```bash
-    docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
-    ```
-
-4.  **Pull the Llama2 Model:**
-    ```bash
-    docker exec -it ollama ollama pull llama2
-    ```
-
-5.  **Run the Application:**
-    ```bash
-    python flight_tracker.py
-    ```
-
-6.  **Access the Application:**
-    *   **Web Interface:** http://localhost:8080
-    *   **API Endpoints:** 
-        - `GET /api/routes` - List all routes (prioritized)
-        - `GET /api/route/<route_code>` - Get detailed route info
-        - `GET /api/search` - Search routes with filters
-        - `POST /api/aviation/ask` - Ask AI questions
-
-## API Usage
-
-### Search Routes
-
-Search for flight routes with filters:
-
-```bash
-# Search for routes from Dhaka to Warsaw
-curl "http://localhost:8080/api/search?origin=Dhaka&destination=Warsaw"
-
-# Search for routes with max 1 stop and max price of $800
-curl "http://localhost:8080/api/search?max_stops=1&max_price=800"
-
-# Get all routes (prioritized)
-curl "http://localhost:8080/api/routes"
+```
+ai-flight-tracker/
+├── app.py                # Flask app factory
+├── config.py             # Env-based configuration
+├── routes.json           # Flight routes data
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
+├── services/
+│   ├── opensky.py        # OpenSky API client
+│   ├── pricing.py        # Pricing with TTL cache
+│   ├── routes_repo.py    # Route data access
+│   └── ai.py             # Intent-routing AI assistant
+├── static/
+│   ├── index.html        # UI (Leaflet map + route search + AI)
+│   ├── app.js
+│   └── style.css
+└── tests/
+    ├── test_routes.py
+    ├── test_flights.py
+    └── test_ai.py
 ```
 
-### Get Route Details
+## Running Locally
 
-Get detailed information about a specific route:
+### Prerequisites
+- Python 3.11+
+- [Ollama](https://ollama.com/) (optional, for AI answers)
+
+### Quick Start
 
 ```bash
-curl "http://localhost:8080/api/route/DAC-WAW"
+cd ai-flight-tracker
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Copy and edit environment variables (optional)
+cp .env.example .env
+
+# Run the app
+python app.py
 ```
 
-### Ask AI Assistant
+Open **http://localhost:8080**.
 
-Ask questions to the AI assistant:
+### Pull AI model (optional)
 
 ```bash
+# Using Docker
+docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+docker exec -it ollama ollama pull llama2
+```
+
+## Running with Docker
+
+```bash
+cd ai-flight-tracker
+
+# Start app + Ollama
+docker-compose up --build
+```
+
+Open **http://localhost:8080**. Ollama runs at `http://ollama:11434` inside the compose network.
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and adjust as needed.
+
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `8080` | Server port |
+| `DEBUG` | `false` | Flask debug mode |
+| `SECRET_KEY` | `change-me-in-production` | Session secret key |
+| `CORS_ORIGINS` | `*` | Allowed CORS origins |
+| `OPENSKY_URL` | `https://opensky-network.org/api` | OpenSky base URL |
+| `OPENSKY_USERNAME` | _(empty)_ | Optional OpenSky credentials |
+| `OPENSKY_PASSWORD` | _(empty)_ | Optional OpenSky credentials |
+| `OPENSKY_TIMEOUT` | `10` | Timeout (seconds) for OpenSky requests |
+| `OLLAMA_URL` | `http://localhost:11434/api/generate` | Ollama endpoint |
+| `OLLAMA_MODEL` | `llama2` | Ollama model name |
+| `OLLAMA_TIMEOUT` | `30` | Timeout (seconds) for Ollama requests |
+| `CACHE_TTL` | `300` | Pricing cache TTL in seconds |
+| `RATE_LIMIT_ASK` | `10 per minute` | Rate limit for `/api/aviation/ask` |
+| `RATE_LIMIT_FLIGHTS` | `30 per minute` | Rate limit for `/api/flights` |
+| `LIVE_PRICING_ENABLED` | `false` | Enable live ticket pricing API |
+| `PRICING_API_KEY` | _(empty)_ | API key for live pricing provider |
+
+## API Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/health` | Health check |
+| `GET` | `/api/routes` | All routes (priority-sorted) |
+| `GET` | `/api/route/<code>` | Route details + pricing windows |
+| `GET` | `/api/search` | Search routes (`origin`, `destination`, `max_stops`, `max_price`) |
+| `GET` | `/api/flights` | Live flights (optional bbox: `lamin`, `lamax`, `lomin`, `lomax`) |
+| `GET` | `/api/flights/<icao24>` | Single flight details by ICAO24 |
+| `POST` | `/api/aviation/ask` | AI assistant (`{"question": "..."}`) |
+
+### Examples
+
+```bash
+# Health check
+curl http://localhost:8080/health
+
+# All routes
+curl http://localhost:8080/api/routes
+
+# Search from Dhaka, max 1 stop
+curl "http://localhost:8080/api/search?origin=Dhaka&max_stops=1"
+
+# Flights over Europe (bbox)
+curl "http://localhost:8080/api/flights?lamin=35&lamax=70&lomin=-10&lomax=40"
+
+# Single flight by ICAO24
+curl http://localhost:8080/api/flights/3c6444
+
+# Ask the AI
 curl -X POST http://localhost:8080/api/aviation/ask \
--H "Content-Type: application/json" \
--d '{"question": "What are the cheapest flights from Dhaka to Warsaw?"}'
+  -H "Content-Type: application/json" \
+  -d '{"question": "What are the cheapest flights from Dhaka to Warsaw?"}'
 ```
+
+## AI Tool Routing
+
+The AI assistant uses intent routing (no raw data truncation):
+
+1. **Intent detection** — question keywords map to one of: `list_routes`, `search_routes`, `lookup_flight`, `flights_in_bbox`.
+2. **Tool execution** — the matched tool fetches structured data (routes DB or OpenSky API).
+3. **Context building** — compact, readable text is composed from tool results.
+4. **Answer generation** — Ollama receives the context + question and generates a grounded answer.
+
+If Ollama is unavailable, the tool result context is returned directly.
 
 ## Priority Routes
 
-The following routes are prioritized (Dhaka ↔ Gdansk/Warsaw):
-- **DAC-GDN**: Dhaka → Gdansk (via Dubai, ~12.5 hours, ~$850)
-- **GDN-DAC**: Gdansk → Dhaka (via Istanbul, ~13 hours, ~$820)
-- **DAC-WAW**: Dhaka → Warsaw (via Doha, ~11.5 hours, ~$780)
-- **WAW-DAC**: Warsaw → Dhaka (via Abu Dhabi, ~12 hours, ~$760)
+| Code | Route | Via | Duration | ~Price |
+|---|---|---|---|---|
+| DAC-GDN | Dhaka → Gdansk | Dubai | 12.5h | $850 |
+| GDN-DAC | Gdansk → Dhaka | Istanbul | 13h | $820 |
+| DAC-WAW | Dhaka → Warsaw | Doha | 11.5h | $780 |
+| WAW-DAC | Warsaw → Dhaka | Abu Dhabi | 12h | $760 |
 
-## Technologies Used
+## Running Tests
 
-*   Python 3
-*   Flask
-*   Ollama (with Llama2 model)
-*   OpenSky Network API
-*   HTML/CSS/JavaScript (for the enhanced web interface)
+```bash
+cd ai-flight-tracker
+pytest tests/ -v
+```
 
-## Key Improvements
+## Technologies
 
-1. **Flight Route Database**: Added comprehensive route information including:
-   - Duration in hours
-   - Number and location of stoppages
-   - Base pricing with dynamic adjustments
-   - Available airlines
-
-2. **Priority System**: Dhaka ↔ Gdansk/Warsaw routes are marked as priority 1 and displayed first in all listings.
-
-3. **Live Ticket Pricing**: 
-   - Automatically attempts to fetch real-time prices from flight search APIs when network is available
-   - Falls back to simulated pricing when API is unavailable or network is down
-   - Visual indicators show whether prices are live (green "LIVE" badge) or estimated (gray "EST" badge)
-   - Fast timeout (3 seconds) ensures responsive user experience even with network issues
-   - **Intelligent caching** (5-minute TTL) prevents repeated API calls and improves performance by up to 100x
-
-4. **Dynamic Pricing Fallback**: When live prices unavailable, prices adjust based on:
-   - Days until departure (last-minute, early bird discounts)
-   - Market dynamics (random variation)
-
-5. **Advanced Search**: Filter routes by origin, destination, maximum stops, and price.
-
-6. **Enhanced UI**: Modern, responsive interface with:
-   - Route cards with hover effects
-   - Priority route badges
-   - Search functionality
-   - Real-time route loading
+- Python 3.11, Flask, Flask-CORS, Flask-Limiter
+- Leaflet.js + MarkerCluster (frontend map)
+- OpenSky Network API (live flights)
+- Ollama / llama2 (AI assistant)
+- Gunicorn (production server)
+- Docker / docker-compose
+- pytest (tests)
+- GitHub Actions (CI)
 

@@ -1,0 +1,36 @@
+name: AI Flight Tracker CI
+
+on:
+  push:
+    paths:
+      - "ai-flight-tracker/**"
+  pull_request:
+    paths:
+      - "ai-flight-tracker/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: ai-flight-tracker
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          flake8 . --max-line-length=120 --exclude=.venv,__pycache__ --ignore=E501,W503
+
+      - name: Run tests
+        run: pytest tests/ -v --tb=short
