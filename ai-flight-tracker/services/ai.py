@@ -89,9 +89,11 @@ def _route_intent(question: str) -> Dict[str, Any]:
 
     # Route search
     if any(kw in q for kw in ["route", "flight from", "fly from", "ticket", "price", "cheapest", "cost"]):
-        origins = ["dhaka", "dac", "gdansk", "gdn", "warsaw", "waw", "london", "lhr", "dubai", "dxb"]
-        origin_found = next((o.upper() for o in origins if o in q), "")
-        dest_found = next((o.upper() for o in origins if o in q and o.upper() != origin_found), "")
+        known = ["dhaka", "dac", "gdansk", "gdn", "warsaw", "waw", "london", "lhr", "dubai", "dxb"]
+        # Find all city/code mentions in order of appearance in the question
+        found = [o for o in known if o in q]
+        origin_found = found[0].upper() if len(found) > 0 else ""
+        dest_found = found[1].upper() if len(found) > 1 else ""
         if origin_found or dest_found:
             return {"tool": "search_routes", "result": tool_search_routes(origin=origin_found, destination=dest_found)}
         return {"tool": "list_routes", "result": tool_list_routes()}
