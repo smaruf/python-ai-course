@@ -78,13 +78,13 @@ def test_vector_math():
     assert _close(V(3, 4).magnitude_squared(), 25.0), "Magnitude² failed"
     print("✓ Magnitude / magnitude_squared")
 
-    # Normalise
+    # Normalize
     unit = V(3.0, 4.0).normalize()
-    assert _close(unit.magnitude(), 1.0), "Normalise magnitude != 1"
-    assert _close(unit.x, 0.6) and _close(unit.y, 0.8), "Normalise direction wrong"
+    assert _close(unit.magnitude(), 1.0), "Normalize magnitude != 1"
+    assert _close(unit.x, 0.6) and _close(unit.y, 0.8), "Normalize direction wrong"
     print("✓ Normalize")
 
-    # Normalise zero vector raises
+    # Normalize zero vector raises
     try:
         V(0, 0).normalize()
         assert False, "Should have raised ZeroDivisionError"

@@ -131,7 +131,7 @@ class Vector2D:
         """
         mag = self.magnitude()
         if mag == 0:
-            raise ZeroDivisionError("Cannot normalise the zero vector")
+            raise ZeroDivisionError("Cannot normalize the zero vector")
         return self / mag
 
     def dot(self, other):
