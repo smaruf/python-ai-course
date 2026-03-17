@@ -88,10 +88,11 @@ class Vector2D:
         return Vector2D(-self.x, -self.y)
 
     def __eq__(self, other):
-        """Equality check (float-safe)."""
-        if not isinstance(other, Vector2D):
+        """Equality check (float-safe, duck-typed for cross-module compatibility)."""
+        try:
+            return math.isclose(self.x, other.x) and math.isclose(self.y, other.y)
+        except AttributeError:
             return NotImplemented
-        return math.isclose(self.x, other.x) and math.isclose(self.y, other.y)
 
     def __repr__(self):
         return f"Vector2D({self.x}, {self.y})"

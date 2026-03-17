@@ -217,11 +217,9 @@ def create_sun_earth_moon(max_trail=500):
     Returns:
         list[Body]: [Sun, Earth, Moon]
     """
-    from importlib.util import spec_from_file_location, module_from_spec
-    _b = _load("02_body.py")
-    make_sun   = _b.make_sun
-    make_earth = _b.make_earth
-    make_moon  = _b.make_moon
+    make_sun   = _body.make_sun
+    make_earth = _body.make_earth
+    make_moon  = _body.make_moon
 
     sun   = make_sun(max_trail=0)
     earth = make_earth(max_trail=max_trail)

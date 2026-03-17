@@ -206,7 +206,7 @@ class Body:
 # ── Factory helpers ───────────────────────────────────────────────────────────
 
 
-def make_sun(position=None, velocity=None):
+def make_sun(position=None, velocity=None, max_trail=0):
     """Create a Sun-like body (SI units: mass in kg, position in m)."""
     return Body(
         name="Sun",
@@ -214,11 +214,11 @@ def make_sun(position=None, velocity=None):
         position=position or Vector2D(0.0, 0.0),
         velocity=velocity or zero_vector(),
         color=(255, 220, 50),
-        max_trail=0,          # The Sun barely moves in a 2-body system
+        max_trail=max_trail,   # The Sun barely moves in a 2-body system
     )
 
 
-def make_earth(position=None, velocity=None):
+def make_earth(position=None, velocity=None, max_trail=300):
     """Create an Earth-like body (SI units)."""
     return Body(
         name="Earth",
@@ -226,10 +226,11 @@ def make_earth(position=None, velocity=None):
         position=position or Vector2D(1.496e11, 0.0),   # 1 AU from origin
         velocity=velocity or Vector2D(0.0, 29_780.0),   # ~29.78 km/s
         color=(50, 130, 255),
+        max_trail=max_trail,
     )
 
 
-def make_moon(position=None, velocity=None):
+def make_moon(position=None, velocity=None, max_trail=300):
     """Create a Moon-like body (SI units, relative to Earth's position)."""
     earth_pos = Vector2D(1.496e11, 0.0)
     return Body(
@@ -238,6 +239,7 @@ def make_moon(position=None, velocity=None):
         position=position or Vector2D(earth_pos.x + 3.844e8, earth_pos.y),
         velocity=velocity or Vector2D(0.0, 29_780.0 + 1_022.0),
         color=(200, 200, 200),
+        max_trail=max_trail,
     )
 
 
