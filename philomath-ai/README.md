@@ -16,6 +16,7 @@ This project provides comprehensive learning modules for understanding computer 
 3. **Election Simulation** - Forecasting presidential elections from polling data
 4. **2-D Lists** - Multi-dimensional arrays and cellular automata (Conway's Game of Life)
 5. **Pygame Graphics** - Intro to 2D graphics: RGB colors, drawing shapes, snowperson, and Game of Life visualization
+6. **Gravity Simulator** - OOP-based gravity simulator: two-body orbits, figure-8 three-body solution, Lagrange triangle, chaos, live pygame visualization
 
 Each module includes:
 
@@ -102,6 +103,14 @@ philomath-ai/
     ├── 03_snowperson.py               # Drawing a snowperson from simple shapes
     ├── 04_game_of_life_visualization.py # Animated Game of Life: age colours, mouse drawing
     ├── 05_krypton_simulation.py       # Multi-faction Game of Life (Krypton theme)
+    └── test_all.py                     # Test suite
+gravity-simulator/                  # Gravity simulator module (Chapter 4)
+    ├── README.md                       # Detailed module documentation
+    ├── 01_vector_math.py              # 2D Vector class: arithmetic, magnitude, normalise
+    ├── 02_body.py                     # Body class: mass, position, velocity, Euler step
+    ├── 03_gravity_simulation.py       # Newton's law, leapfrog integrator, two-body orbit
+    ├── 04_three_body_problem.py       # Figure-8, Lagrange, chaotic, Sun-Earth-Moon
+    ├── 05_pygame_visualization.py     # Interactive live simulation with 4 scenarios
     └── test_all.py                     # Test suite
 ```
 </details>
@@ -230,6 +239,27 @@ python 03_snowperson.py
 python 04_game_of_life_visualization.py
 ```
 
+#### Gravity Simulator
+
+```bash
+cd gravity-simulator
+
+# Understand 2-D vector math
+python 01_vector_math.py
+
+# Explore the Body class (OOP)
+python 02_body.py
+
+# Simulate Earth orbiting the Sun for 1 year
+python 03_gravity_simulation.py
+
+# Figure-8, Lagrange, chaos, and Sun-Earth-Moon scenarios
+python 04_three_body_problem.py
+
+# Launch the interactive pygame visualization
+python 05_pygame_visualization.py
+```
+
 ### Using in Your Code
 <details>
     <summary>Code in Python:</summary>
@@ -343,6 +373,20 @@ Based on "An Intro to Graphics in Python" (Chapter 3, Programming for Lovers), c
 - **Interactive Drawing**: Mouse click/drag to toggle cells at runtime
 - **Speed Control**: Adjustable animation speed with arrow keys
 - **Multi-Faction Automaton**: Krypton Chronicles – themed five-state simulation (`05_krypton_simulation.py`)
+
+### Gravity Simulator Module
+Based on "Building a Gravity Simulator" (Chapter 4, Programming for Lovers), covering:
+
+- **Chapter 4**: Using Object-Oriented Programming to Solve the Three Body Problem
+- **Vector Math**: 2-D vectors for positions, velocities, and forces
+- **Body Class**: Encapsulating mass, position, and velocity using OOP
+- **Newton's Law**: F = G·m₁·m₂/r² and numerical integration
+- **Euler vs Leapfrog**: Simple vs symplectic integrators for energy conservation
+- **Two-Body Orbits**: Earth orbiting the Sun for one year with near-zero energy drift
+- **Figure-8 Solution**: Chenciner-Montgomery (2000) periodic three-body orbit
+- **Lagrange Triangle**: Three equal-mass bodies at corners of an equilateral triangle
+- **Chaos Theory**: Demonstrating sensitivity to initial conditions (Poincaré, 1887)
+- **Live Visualization**: Interactive pygame window with 4 scenarios, trails, zoom/pan
 
 ## 🌍 Real-World Applications
 
@@ -477,6 +521,15 @@ See the main repository [LICENSE](../LICENSE) file.
 2. **RGB colors**: pygame-graphics/02_rgb_colors.py
 3. **Draw snowperson**: pygame-graphics/03_snowperson.py
 4. **Animate Game of Life**: pygame-graphics/04_game_of_life_visualization.py
+
+### For Intermediate - Gravity Simulator (OOP & Physics)
+**Recommended after 2-D Lists or Pygame Graphics; introduces OOP through physics**:
+
+1. **Vector math**: gravity-simulator/01_vector_math.py
+2. **Body class**: gravity-simulator/02_body.py
+3. **Two-body orbit**: gravity-simulator/03_gravity_simulation.py
+4. **Three-body problem**: gravity-simulator/04_three_body_problem.py
+5. **Live visualization**: gravity-simulator/05_pygame_visualization.py
 
 ### For Advanced - Genome Algorithms
 **Recommended if comfortable with Python basics**:
