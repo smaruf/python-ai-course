@@ -5,6 +5,8 @@
 
 A comprehensive, practical, end-to-end learning project for **designing remote-aircraft (drone/RC aircraft) parts for 3D printing using Python**. This course is structured to help you design parametric parts (frames, mounts, brackets, housings) and print flight-worthy components step by step.
 
+It also includes a **full implementation guide** covering RC aircraft, fully autonomous drones, multi-language firmware (Python, TinyGo, Zig, C), and AI-based flight systems.
+
 ## 🧭 Big Picture Goal
 
 You will learn to:
@@ -13,9 +15,11 @@ You will learn to:
 * Simulate basic **strength & weight**
 * Export **STL files**
 * Optimize designs for **3D printing & flight loads**
+* Implement **firmware** from bare-metal C to AI-powered autonomy
+* Build **autonomous flight systems** with GPS, RTH, and path planning
 
 **Final Outcome:**
-> "I can write Python code that generates drone parts ready for 3D printing."
+> "I can write Python code that generates drone parts ready for 3D printing, and implement firmware to make them fly autonomously."
 
 ---
 
@@ -23,6 +27,7 @@ You will learn to:
 
 ```
 drone-3d-printing-design/
+├── IMPLEMENTATION_GUIDE.md        # 🆕 Full RC/autonomous drone guide
 ├── src/                           # Source code organized by phases
 │   ├── phase0_foundations/        # Python foundations
 │   │   ├── __init__.py
@@ -65,10 +70,36 @@ drone-3d-printing-design/
 │   │   ├── __init__.py
 │   │   ├── auto_generation.py     # Auto-generate designs
 │   │   └── design_optimization.py # Weight vs strength optimization
-│   └── phase7_integration/        # Real-world integration
+│   ├── phase7_integration/        # Real-world integration
+│   │   ├── __init__.py
+│   │   ├── hardware_integration.py # ArduPilot/PX4 integration
+│   │   └── version_control.py     # Version control utilities
+│   ├── phase_firmware/            # 🆕 Firmware implementation (all levels)
+│   │   ├── __init__.py
+│   │   ├── simple_firmware.py     # Level 1: RC pass-through, PWM mixer
+│   │   ├── medium_firmware.py     # Level 2: PID stabilisation, sensor fusion
+│   │   └── advanced_firmware.py   # Level 3: RTOS scheduler, MAVLink, GPS
+│   └── phase_ai_flight/           # 🆕 AI autonomous flight systems
 │       ├── __init__.py
-│       ├── hardware_integration.py # ArduPilot/PX4 integration
-│       └── version_control.py     # Version control utilities
+│       ├── flight_path.py         # A*, RRT* path planning algorithms
+│       ├── gps_navigation.py      # GPS waypoints, RTH, geofencing
+│       └── ai_controller.py       # Rule engine, VO avoidance, Boids swarm
+├── firmware/                      # 🆕 Multi-language firmware examples
+│   ├── python/                    # MicroPython / CircuitPython (RP2040, ESP32)
+│   │   ├── drone_firmware.py      # Full flight controller in Python
+│   │   └── README.md
+│   ├── tinygo/                    # TinyGo (Arduino, Pico, STM32)
+│   │   ├── drone_firmware.go      # Full flight controller in Go
+│   │   ├── go.mod
+│   │   └── README.md
+│   ├── zig/                       # Zig (STM32, RP2040)
+│   │   ├── drone_firmware.zig     # Full flight controller in Zig
+│   │   ├── build.zig
+│   │   └── README.md
+│   └── c/                         # Basic C (Arduino, STM32, any MCU)
+│       ├── drone_firmware.c       # Full flight controller in C
+│       ├── Makefile
+│       └── README.md
 ├── examples/                      # Practical examples
 │   ├── beginner/
 │   │   ├── simple_motor_mount.py
@@ -88,18 +119,17 @@ drone-3d-printing-design/
 │   ├── __init__.py
 │   ├── test_foundations.py
 │   ├── test_aircraft_basics.py
+│   ├── test_firmware.py           # 🆕 Firmware module tests
+│   ├── test_ai_flight.py          # 🆕 AI flight module tests
 │   ├── test_cad.py
 │   ├── test_part_design.py
 │   └── test_validation.py
 ├── docs/                          # Documentation
 │   ├── PHASE0_FOUNDATIONS.md
-│   ├── PHASE1_AIRCRAFT.md
-│   ├── PHASE2_3D_PRINTING.md
 │   ├── PHASE3_CAD.md
-│   ├── PHASE4_PART_DESIGN.md
-│   ├── PHASE5_VALIDATION.md
-│   ├── PHASE6_OPTIMIZATION.md
-│   ├── PHASE7_INTEGRATION.md
+│   ├── FIRMWARE_GUIDE.md          # 🆕 Firmware levels 1–4
+│   ├── AI_FLIGHT_GUIDE.md         # 🆕 AI autonomy: path, GPS, RTH, swarm
+│   ├── PRODUCTION_GUIDE.md        # 🆕 Tiers: hobby → industrial → tactical
 │   └── LEARNING_SCHEDULE.md
 ├── assets/                        # Images and reference materials
 ├── main.py                        # Main demo application
@@ -145,7 +175,21 @@ python examples/intermediate/flying_wing_design.py
 # Try your first motor mount design
 python examples/beginner/simple_motor_mount.py
 
-# Run tests to verify setup
+# 🆕 NEW: Run the firmware simulation demos
+python src/phase_firmware/simple_firmware.py    # Level 1 — RC pass-through
+python src/phase_firmware/medium_firmware.py    # Level 2 — PID stabilisation
+python src/phase_firmware/advanced_firmware.py  # Level 3 — RTOS + GPS mission
+
+# 🆕 NEW: Run AI flight demos
+python src/phase_ai_flight/flight_path.py       # A* and RRT* path planning
+python src/phase_ai_flight/gps_navigation.py    # GPS nav, RTH, geofencing
+python src/phase_ai_flight/ai_controller.py     # Rule engine, VO avoidance
+
+# 🆕 NEW: Compile & run C firmware simulation
+cd firmware/c && gcc -std=c11 -Wall -O2 -lm -o drone_sim drone_firmware.c && ./drone_sim
+cd -
+
+# Run tests to verify setup (142 tests total)
 python -m pytest tests/ -v
 ```
 
@@ -437,17 +481,66 @@ for arm_length in [120, 150, 180, 220]:
 
 ---
 
+### 📍 Phase 8: Firmware Implementation 🆕
+**Goal:** Write real firmware that makes your drone fly
+
+**Firmware Levels (see [`docs/FIRMWARE_GUIDE.md`](docs/FIRMWARE_GUIDE.md)):**
+
+| Level | Description | Language | Hardware |
+|-------|-------------|----------|----------|
+| 1 — Simple | RC pass-through, PWM mixer | Python / C | Arduino, RP2040 |
+| 2 — Medium | PID stabilisation, sensor fusion | Python / TinyGo | F4/F7 FC, Pico |
+| 3 — Advanced | RTOS scheduler, MAVLink, GPS | Python / Zig | STM32F4/H7, Jetson |
+| 4 — Proprietary | Encrypted comms, OTA, redundancy | C / custom | Production FC |
+
+**Files:**
+- `src/phase_firmware/simple_firmware.py` — RC input → PWM motor output
+- `src/phase_firmware/medium_firmware.py` — PID + complementary filter
+- `src/phase_firmware/advanced_firmware.py` — RTOS tasks, MAVLink, mission
+
+**Multi-language examples:**
+- `firmware/python/`  — MicroPython / CircuitPython
+- `firmware/tinygo/`  — TinyGo (Arduino / Pico / STM32)
+- `firmware/zig/`     — Zig (STM32 / RP2040)
+- `firmware/c/`       — Basic C (any MCU)
+
+---
+
+### 📍 Phase 9: AI Autonomous Flight 🆕
+**Goal:** Build fully autonomous drones with AI decision-making
+
+**Topics (see [`docs/AI_FLIGHT_GUIDE.md`](docs/AI_FLIGHT_GUIDE.md)):**
+- A* and RRT* path planning on occupancy grids
+- GPS waypoint navigation, geofencing, Return-to-Home
+- Velocity Obstacle (VO) collision avoidance
+- Neural-network edge-AI stub (TFLite / ONNX-ready)
+- Boids swarm coordination algorithm
+- Rule-based decision engine (battery, RC-loss, geofence failsafes)
+
+**Files:**
+- `src/phase_ai_flight/flight_path.py`  — A*, RRT*, path smoothing
+- `src/phase_ai_flight/gps_navigation.py` — GPS nav, RTH state machine, geofence
+- `src/phase_ai_flight/ai_controller.py` — AI controller, VO, Boids
+
+---
+
 ## 📚 Technology Stack
 
-| Component      | Technology         | Purpose                      |
-|----------------|-------------------|------------------------------|
-| Python         | CPython 3.8+      | Core language                |
-| CAD Library    | CadQuery          | Parametric design            |
-| Visualization  | CQ-Editor         | Visual design feedback       |
-| Math/Science   | NumPy, SciPy      | Engineering calculations     |
-| Testing        | pytest            | Automated testing            |
-| 3D Printing    | Cura, PrusaSlicer | Slicing and print prep       |
-| FEA (Optional) | FreeCAD FEM       | Structural analysis          |
+| Component      | Technology              | Purpose                          |
+|----------------|------------------------|----------------------------------|
+| Python         | CPython 3.8+           | Core language, firmware, AI      |
+| MicroPython    | RP2040 / ESP32         | Embedded Python firmware         |
+| TinyGo         | Arduino / Pico / STM32 | Memory-safe compiled Go firmware |
+| Zig            | STM32 / RP2040         | Zero-overhead systems firmware   |
+| C              | Any MCU (gcc/avr-gcc)  | Bare-metal production firmware   |
+| CAD Library    | CadQuery               | Parametric design                |
+| Visualization  | CQ-Editor              | Visual design feedback           |
+| Math/Science   | NumPy, SciPy           | Engineering calculations         |
+| Testing        | pytest                 | Automated testing (142 tests)    |
+| 3D Printing    | Cura, PrusaSlicer      | Slicing and print prep           |
+| FEA (Optional) | FreeCAD FEM            | Structural analysis              |
+| Flight Stack   | ArduPilot / PX4        | Open-source autopilot            |
+| AI/ML          | TFLite / ONNX          | Edge-AI inference (stub ready)   |
 
 ---
 
@@ -477,6 +570,23 @@ By the end of this course, you'll complete:
 - 3D print the part
 - Test on actual aircraft
 
+✅ **Level 1 RC Firmware** (Simple)
+- RC receiver input, PWM ESC output, quad-X motor mix
+- Runs on Arduino Nano, RP2040, STM32
+
+✅ **Level 2 Stabilised Firmware** (Medium)
+- PID roll/pitch/yaw controller with complementary filter
+- Python, TinyGo, Zig, and C implementations
+
+✅ **Level 3 Autonomous Mission** (Advanced)
+- RTOS-style task scheduler, GPS waypoint mission
+- MAVLink telemetry, failsafe, geofencing
+
+✅ **AI Flight Path Planner**
+- A* and RRT* on 2-D occupancy grid
+- GPS navigator with RTH state machine
+- Velocity Obstacle collision avoidance + Boids swarm
+
 ---
 
 ## 🧪 Testing
@@ -484,11 +594,13 @@ By the end of this course, you'll complete:
 Run the comprehensive test suite:
 
 ```bash
-# Run all tests
+# Run all tests (142 tests)
 python -m pytest tests/ -v
 
 # Run specific phase tests
-python -m pytest tests/test_cad.py -v
+python -m pytest tests/test_aircraft_basics.py -v
+python -m pytest tests/test_firmware.py -v
+python -m pytest tests/test_ai_flight.py -v
 
 # Run with coverage
 python -m pytest tests/ --cov=src --cov-report=html
