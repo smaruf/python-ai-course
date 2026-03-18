@@ -93,6 +93,7 @@ Multirotors achieve 6-DOF control purely through differential motor thrust — *
 
 ```python
 # From src/phase4_part_design/drone_arm.py
+# 20 mm = minimum clearance (mm) between propeller tip and arm mounting point
 arm_length_mm = (prop_diameter_inches * 25.4) / 2 + motor_mount_diameter_mm / 2 + 20
 ```
 
@@ -384,8 +385,8 @@ func main() {
 
     for {
         ax, ay, az, _ := imu.ReadAcceleration()
-        _ = ax; _ = ay; _ = az
-        // feed into PID loop
+        // ax, ay, az feed into the PID loop in a full implementation
+        println(ax, ay, az)
     }
 }
 ```
@@ -602,6 +603,7 @@ class ObstacleAvoider:
     def lidar_to_pointcloud(scan_ranges: list, angle_min: float,
                             angle_increment: float) -> np.ndarray:
         """Convert 2D LiDAR scan to XY point cloud."""
+        import math
         points = []
         for i, r in enumerate(scan_ranges):
             if 0.1 < r < 30.0:
@@ -620,15 +622,15 @@ class ObstacleAvoider:
 
 ```python
 def proportional_navigation(los_rate_rad_s: float,
-                             closing_speed_ms: float,
+                             closing_speed_m_s: float,
                              N: float = 4.0) -> float:
     """
     Returns lateral acceleration command (m/s²).
     N: navigation constant (typically 3–5)
-    los_rate: line-of-sight angular rate (rad/s)
-    closing_speed: relative closing velocity (m/s)
+    los_rate_rad_s: line-of-sight angular rate (rad/s)
+    closing_speed_m_s: relative closing velocity (m/s)
     """
-    return N * closing_speed_ms * los_rate_rad_s
+    return N * closing_speed_m_s * los_rate_rad_s
 ```
 
 **Behavioral state machine for loitering:**
