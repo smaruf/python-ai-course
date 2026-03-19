@@ -24,6 +24,8 @@ You will learn to:
 ---
 
 ## 📁 Project Structure
+<details>
+    <summary>..</summary>
 
 ```
 drone-3d-printing-design/
@@ -136,6 +138,7 @@ drone-3d-printing-design/
 ├── requirements.txt               # Project dependencies
 └── README.md                      # This file
 ```
+</details>
 
 ---
 
