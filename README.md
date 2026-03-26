@@ -125,6 +125,12 @@ A comprehensive collection of Python projects covering AI development, bioinform
 - **Learning Topics**: Pattern matching, Sliding windows, Probability, Data visualization
 - **Difficulty**: Beginner to Advanced (progressive learning path)
 
+### [Environmental Engineering AI](./env-engr-ai/)
+**Production-ready AI system for environmental engineering applications**
+- **Tech Stack**: Python, AI/ML
+- **Features**: Waste management, Biofuel production, Edible oil processing, Renewable energy monitoring, Water treatment, Irrigation
+- **Difficulty**: Intermediate to Advanced
+
 ### [Drone 3D Printing Design](./drone-3d-printing-design/)
 **Python-based parametric aircraft design**
 - **Tech Stack**: Python, CadQuery, 3D modeling
@@ -280,6 +286,7 @@ pip install -r requirements.txt
 | Project | Language | Complexity | Focus Area | Key Technologies |
 |---------|----------|------------|------------|------------------|
 | [Philomath AI](./philomath-ai/) | Python | Beginner-Advanced | Bioinformatics, Probability | Pattern matching, Matplotlib, Monte Carlo |
+| [Environmental Engineering AI](./env-engr-ai/) | Python | Intermediate-Advanced | Environmental Engineering | AI/ML, Waste Mgmt, Biofuel, Renewable Energy |
 | [AI Development](./ai-development-project/) | Python | Beginner-Expert | AI/ML Development | LLMs, RAG, Vector DBs, Agents |
 | [Yelp-Style AI Assistant](./yelp-ai-assistant/) | Python | Advanced | AI/RAG Assistant | FastAPI, LangChain, Hybrid Search, Kafka |
 | [AI Gateway](./ai-gateway/) | Python | Intermediate-Advanced | AI Routing & RAG | FastAPI, LangChain, Ollama, OpenAI |

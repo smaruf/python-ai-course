@@ -1,6 +1,7 @@
 # Cellular Automata Engine
 
-> **Part of [Philomath AI](../README.md)** – a comprehensive educational project.
+> **Part of [Philomath AI](../README.md)** | [Python AI Course](../../README.md)  
+> See also: [2D Lists](../2d-lists/) | [Genome Algorithms](../genome_algorithms/) | [Monte Carlo Simulation](../monte-carlo/) | [Election Simulation](../election-simulation/)
 
 A self-contained Python engine for running **Conway's Game of Life** and
 **Langton's Loops**, with terminal and pygame renderers, a preset gallery,

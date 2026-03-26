@@ -1,5 +1,8 @@
 # Python Drone Firmware
 
+> **Part of [Drone 3D Printing Design](../../README.md)** | [Python AI Course](../../../README.md)  
+> See also: [Basic-C Firmware](../c/) | [Zig Firmware](../zig/) | [TinyGo Firmware](../tinygo/)
+
 MicroPython / CircuitPython compatible flight controller.
 
 ## Target Hardware

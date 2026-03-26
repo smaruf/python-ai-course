@@ -1,7 +1,8 @@
 # Gravity Simulator – Three-Body Problem
 
-> **Part of [Philomath AI](../README.md)** – Chapter 4: *Using Object-Oriented Programming to Solve the Three Body Problem*  
-> Course: [Programming for Lovers in Python](https://programmingforlovers.com/chapters/chapter-4/) by Phillip Compeau
+> **Part of [Philomath AI](../README.md)** | [Python AI Course](../../README.md) – Chapter 4: *Using Object-Oriented Programming to Solve the Three Body Problem*  
+> Course: [Programming for Lovers in Python](https://programmingforlovers.com/chapters/chapter-4/) by Phillip Compeau  
+> See also: [Genome Algorithms](../genome_algorithms/) | [Monte Carlo Simulation](../monte-carlo/) | [Election Simulation](../election-simulation/) | [Pygame Graphics](../pygame-graphics/)
 
 A Python implementation of a gravity simulator built with OOP, Newtonian
 mechanics, and a live [pygame](https://www.pygame.org/) visualization.

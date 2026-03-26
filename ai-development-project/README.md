@@ -1,6 +1,7 @@
 # AI Development Project
 
-> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [AI Gateway](../ai-gateway/) | [Oracle AI Prep](../oracle-job-prep/) | [LangChain + LangGraph](../projects/langchain-langgraph-standalone/) | [AI Sync-Async Guide](../ai-sync-async-fix-itch/) | [Yelp-Style AI Assistant](../yelp-ai-assistant/)
 
 A comprehensive, full-phased project for learning AI development concepts and implementations.
 

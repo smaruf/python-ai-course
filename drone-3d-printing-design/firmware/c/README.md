@@ -1,5 +1,8 @@
 # Basic-C Drone Firmware
 
+> **Part of [Drone 3D Printing Design](../../README.md)** | [Python AI Course](../../../README.md)  
+> See also: [Zig Firmware](../zig/) | [TinyGo Firmware](../tinygo/) | [Python Firmware](../python/)
+
 Bare-metal C flight controller — maximum portability and performance.
 
 ## Supported Platforms

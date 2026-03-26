@@ -1,6 +1,7 @@
 # Flight Tracker AI
 
-> **Part of [Python AI Course](../README.md)** — A comprehensive learning repository covering AI, algorithms, and real-world applications.
+> **Part of [Python AI Course](../README.md)** — A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [AI Development Project](../ai-development-project/) | [AI Gateway](../ai-gateway/) | [Yelp-Style AI Assistant](../yelp-ai-assistant/)
 
 A production-ready Flask application providing live flight tracking, an interactive Leaflet map, route search, dynamic pricing, and an AI assistant grounded in tool results.
 

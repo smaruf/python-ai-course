@@ -1,5 +1,8 @@
 # Environmental Engineering AI Platform 🌱
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
+> See also: [AI Development Project](../ai-development-project/) | [AI Gateway](../ai-gateway/) | [Philomath AI](../philomath-ai/) | [Drone 3D Printing Design](../drone-3d-printing-design/)
+
 A production-ready AI system for environmental engineering applications.  
 Covers **Waste Management**, **Biofuel Production**, **Edible Oil Processing**, and **Renewable Energy** monitoring.
 
