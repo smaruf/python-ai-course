@@ -161,7 +161,7 @@ class AgronomyAdvisor:
         opt_lo, opt_hi = crop.optimal_temp_range
         avg = climate.avg_temp_c
         temp_range = opt_hi - opt_lo
-        if temp_range == 0:
+        if temp_range < 1e-6:
             temp_score = 1.0 if avg == opt_lo else 0.0
         else:
             overshoot = max(0.0, avg - opt_hi)

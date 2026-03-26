@@ -1,6 +1,7 @@
 """Smart irrigation system with AI-optimized scheduling."""
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
@@ -90,7 +91,7 @@ class IrrigationController:
         Rn = forecast.solar_radiation_wm2 * 0.0864  # W/m² → MJ/m²/day
 
         # Saturation vapour pressure (kPa)
-        es = 0.6108 * (2.718281828 ** (17.27 * T / (T + 237.3)))
+        es = 0.6108 * math.exp(17.27 * T / (T + 237.3))
         ea = es * RH
         delta = 4098.0 * es / ((T + 237.3) ** 2)
         gamma = 0.0665  # psychrometric constant kPa/°C

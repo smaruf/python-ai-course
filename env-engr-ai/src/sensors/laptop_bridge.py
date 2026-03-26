@@ -44,6 +44,9 @@ class ConnectionType(str, Enum):
 class LaptopSensorBridge:
     """Reads sensor data from an Arduino/microcontroller over USB serial."""
 
+    # Keywords indicating a known sensor/microcontroller device on serial ports
+    _DEVICE_KEYWORDS = ("arduino", "ch340", "cp210", "ftdi", "uart")
+
     def __init__(
         self,
         port: str | None = None,
@@ -75,7 +78,7 @@ class LaptopSensorBridge:
             ports = list(serial.tools.list_ports.comports())
             for p in ports:
                 desc = (p.description or "").lower()
-                if any(kw in desc for kw in ("arduino", "ch340", "cp210", "ftdi", "uart")):
+                if any(kw in desc for kw in self._DEVICE_KEYWORDS):
                     return p.device
             if ports:
                 return ports[0].device
