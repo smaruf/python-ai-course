@@ -376,7 +376,7 @@ def _demo_water() -> None:
     console.print(f"  WHO Compliance: {'[green]✓ ALL PASS[/green]' if compliant else '[red]✗ FAILED[/red]'}")
 
     report = plant.daily_production_report()
-    console.print(f"  Daily report: {report['volume_m3']} m³ produced, cost ${report['total_cost_usd']:.2f}")
+    console.print(f"  Daily report: {report['volume_produced_m3']} m³ produced, cost ${report['costs']['total_usd']:.2f}")
 
     console.rule("[bold cyan]Smart Irrigation Module[/bold cyan]")
     controller = IrrigationController()
@@ -441,7 +441,7 @@ def _demo_agronomy() -> None:
         "water_treatment": 500.0,
     }
     revenue = mgr.calculate_monthly_revenue(production_data)
-    total = sum(v for v in revenue.values() if isinstance(v, float) and v > 0)
+    total = revenue["total_monthly_revenue_usd"]
     console.print(f"  Estimated monthly byproduct revenue: [bold green]${total:.2f}[/bold green]")
 
 
