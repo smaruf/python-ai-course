@@ -175,7 +175,7 @@ A small-scale, AI-driven circular economy home industry integrating olive and Mo
 | 4 | $11,000 | $5,500 | +$5,500 | -$10,327 |
 | 5 | $14,000 | $5,800 | +$8,200 | -$2,127 |
 
-**5-Year ROI = (-$2,127 / $19,800) × 100 = -10.7%** (approaching break-even)  
+**5-Year Net Position = -$2,127** (93% of initial investment recovered; break-even expected in Year 6)  
 **Full payback expected in Year 6 at starter scale with olive maturity.**
 
 > At 2 ha scale with hired labor, 5-year ROI reaches 45–85%.

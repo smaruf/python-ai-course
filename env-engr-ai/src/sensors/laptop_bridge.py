@@ -8,14 +8,14 @@ from enum import Enum
 from typing import Any
 
 try:
-    import serial  # type: ignore
-    import serial.tools.list_ports  # type: ignore
+    import serial  # type: ignore[import-untyped]
+    import serial.tools.list_ports  # type: ignore[import-untyped]
     _SERIAL_AVAILABLE = True
 except ImportError:
     _SERIAL_AVAILABLE = False
 
 try:
-    import paho.mqtt.client as mqtt  # type: ignore
+    import paho.mqtt.client as mqtt  # type: ignore[import-untyped]
     _MQTT_AVAILABLE = True
 except ImportError:
     _MQTT_AVAILABLE = False

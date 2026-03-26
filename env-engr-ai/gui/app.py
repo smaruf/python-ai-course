@@ -35,22 +35,28 @@ except ImportError:
 # Helper: mock sensor table
 # ---------------------------------------------------------------------------
 
-def _get_sensor_table() -> list[list[Any]]:
-    """Return a list of rows representing current sensor readings."""
+def _get_sensor_data() -> list[dict[str, str]]:
+    """Return a list of sensor reading dicts for display."""
     if _BRIDGE_AVAILABLE:
         bridge = SimulatedLaptopBridge(num_sensors=3, seed=int(datetime.now().timestamp()) % 1000)
         bridge.connect()
         readings = bridge.read_sensor_data()
         rows = [
-            [r.sensor_id, f"{r.value:.3f}", r.unit, f"{r.quality:.2f}", str(r.timestamp.strftime("%H:%M:%S"))]
+            {
+                "sensor_id": r.sensor_id,
+                "value": f"{r.value:.3f}",
+                "unit": r.unit,
+                "quality": f"{r.quality:.2f}",
+                "time": r.timestamp.strftime("%H:%M:%S"),
+            }
             for r in readings
         ]
         bridge.disconnect()
         return rows
     return [
-        ["sim_temperature_00", "20.123", "C", "0.95", "00:00:00"],
-        ["sim_pH_01", "7.012", "pH", "0.97", "00:00:00"],
-        ["sim_dissolved_oxygen_02", "8.001", "mg/L", "0.90", "00:00:00"],
+        {"sensor_id": "sim_temperature_00", "value": "20.123", "unit": "C", "quality": "0.95", "time": "00:00:00"},
+        {"sensor_id": "sim_pH_01", "value": "7.012", "unit": "pH", "quality": "0.97", "time": "00:00:00"},
+        {"sensor_id": "sim_dissolved_oxygen_02", "value": "8.001", "unit": "mg/L", "quality": "0.90", "time": "00:00:00"},
     ]
 
 
@@ -93,15 +99,16 @@ def _get_revenue_figure() -> Any:
 
 
 # ---------------------------------------------------------------------------
-# Tab creator functions
+# Tab creator functions (must be called inside a gr.Blocks context)
 # ---------------------------------------------------------------------------
 
 def create_monitoring_tab() -> Any:
     """Create the Live Monitoring tab showing real-time sensor readings.
 
     Uses SimulatedLaptopBridge when no hardware is present.  Returns a
-    gr.Tab() object containing a sensor data table and a refresh button.
-    If Gradio is not available, returns None.
+    gr.Tab() object containing a sensor data JSON view and a refresh button.
+    MUST be called inside a ``gr.Blocks`` context so event handlers work.
+    Returns None if Gradio is not available.
     """
     if not _GRADIO_AVAILABLE:
         return None
@@ -109,20 +116,9 @@ def create_monitoring_tab() -> Any:
     with gr.Tab("📊 Live Monitoring") as tab:
         gr.Markdown("## Live Sensor Readings")
         gr.Markdown("Readings from all connected sensors (simulated when hardware absent).")
-
-        table = gr.Dataframe(
-            headers=["Sensor ID", "Value", "Unit", "Quality", "Time"],
-            value=_get_sensor_table(),
-            interactive=False,
-            label="Sensor Data",
-        )
-
+        sensor_json = gr.JSON(label="Sensor Data", value=_get_sensor_data())
         refresh_btn = gr.Button("🔄 Refresh Readings")
-
-        def refresh() -> list[list[Any]]:
-            return _get_sensor_table()
-
-        refresh_btn.click(fn=refresh, inputs=[], outputs=[table])
+        refresh_btn.click(fn=_get_sensor_data, inputs=[], outputs=[sensor_json])
 
     return tab
 
@@ -131,7 +127,8 @@ def create_sensor_deploy_tab() -> Any:
     """Create the Sensor Deployment tab for configuring connected sensors.
 
     Shows detected serial ports and allows the user to test the connection.
-    Returns a gr.Tab() object.  Returns None if Gradio is unavailable.
+    MUST be called inside a ``gr.Blocks`` context.
+    Returns None if Gradio is unavailable.
     """
     if not _GRADIO_AVAILABLE:
         return None
@@ -141,21 +138,13 @@ def create_sensor_deploy_tab() -> Any:
 
         if _BRIDGE_AVAILABLE:
             from src.sensors.laptop_bridge import LaptopSensorBridge
-            bridge = LaptopSensorBridge()
-            detected = bridge.auto_detect_port() or "No device detected"
+            _bridge = LaptopSensorBridge()
+            detected = _bridge.auto_detect_port() or "No device detected"
         else:
             detected = "Bridge library unavailable"
 
-        gr.Textbox(
-            value=detected,
-            label="Auto-detected Port",
-            interactive=False,
-        )
-
-        port_input = gr.Textbox(
-            placeholder="/dev/ttyACM0 or COM3",
-            label="Override Port (optional)",
-        )
+        gr.Textbox(value=detected, label="Auto-detected Port", interactive=False)
+        port_input = gr.Textbox(placeholder="/dev/ttyACM0 or COM3", label="Override Port (optional)")
         test_btn = gr.Button("🔌 Test Connection")
         result_box = gr.Textbox(label="Connection Result", interactive=False)
 
@@ -203,12 +192,10 @@ def create_system_overview_tab() -> Any:
 
     with gr.Tab("🌍 System Overview") as tab:
         gr.Markdown("## Environmental Engineering Platform — Module Status")
-        gr.Dataframe(
-            headers=["Module", "Status"],
-            value=rows,
-            interactive=False,
-            label="Module Health",
-        )
+        status_md_lines = ["| Module | Status |", "|---|---|"]
+        for label, status in rows:
+            status_md_lines.append(f"| {label} | {status} |")
+        gr.Markdown("\n".join(status_md_lines))
         gr.Markdown(f"**Platform timestamp:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     return tab
