@@ -1,5 +1,8 @@
 # TinyGo Drone Firmware
 
+> **Part of [Drone 3D Printing Design](../../README.md)** | [Python AI Course](../../../README.md)  
+> See also: [Basic-C Firmware](../c/) | [Zig Firmware](../zig/) | [Python Firmware](../python/)
+
 Memory-safe, compiled Go firmware for embedded flight controllers.
 
 ## Why TinyGo?

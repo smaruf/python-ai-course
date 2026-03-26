@@ -1,5 +1,8 @@
 # Zig Drone Firmware
 
+> **Part of [Drone 3D Printing Design](../../README.md)** | [Python AI Course](../../../README.md)  
+> See also: [Basic-C Firmware](../c/) | [TinyGo Firmware](../tinygo/) | [Python Firmware](../python/)
+
 Zero-overhead, memory-safe systems firmware written in Zig.
 
 ## Why Zig?
