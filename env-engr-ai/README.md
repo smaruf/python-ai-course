@@ -63,6 +63,43 @@ Covers **Waste Management**, **Biofuel Production**, **Edible Oil Processing**, 
 - **SolarPanelMonitor**: PV efficiency tracking, P&O MPPT algorithm, fault detection (shading, hot spots)
 - **WindTurbineMonitor**: Betz limit power curve, vibration anomaly detection, predictive maintenance NN
 
+### 5. Water Treatment Plant (`src/water_treatment/`)
+- **WaterTreatmentPlant**: Full 6-stage treatment simulation (Intake → Coagulation → Sedimentation → Filtration → Disinfection → Distribution)
+- **WaterQualityMonitor**: AI-powered anomaly detection using `AdaptiveAIController`
+- **WaterQualityMetrics**: Tracks turbidity, pH, dissolved oxygen, chlorine, TDS, E.coli, temperature
+- WHO drinking water standard compliance checks built-in
+- Chemical cost estimation (coagulants, chlorine)
+- Small home/village scale (10 m³/day default)
+
+### 6. Smart Irrigation (`src/water_treatment/irrigation.py`)
+- **IrrigationController**: AI-optimized irrigation scheduling
+- **Penman-Monteith ET₀** evapotranspiration calculation
+- Soil moisture zone management with per-zone targets
+- Weather forecast integration for predictive scheduling
+- Drip irrigation and sprinkler support
+- Water savings estimation vs traditional irrigation
+
+### 7. Agronomy – Cross-Planting Guide (`src/agronomy/`)
+- **AgronomyAdvisor**: Feasibility assessment for BD (Bangladesh) ↔ PL (Poland) cross-planting
+  - Olive trees in Bangladesh 🇧🇩
+  - Moringa/Marenga trees in Poland 🇵🇱
+  - Sunflower and Rapeseed (biodiesel crops) for both countries
+- Climate-based scoring (temperature, rainfall, frost tolerance, soil pH)
+- Variety recommendations (cold-hardy olive for PL, drought-tolerant Moringa for BD)
+- Month-by-month planting calendars
+- **ByproductMarketManager**: Complete byproduct catalog with pricing and sales channels
+  - 10+ byproducts tracked across all processes
+  - Monthly revenue calculation
+  - Market opportunity reports
+
+### 8. Laptop/IoT Direct Sensor Bridge (`src/sensors/laptop_bridge.py`)
+- **LaptopSensorBridge**: USB serial connection to Arduino/sensors without Raspberry Pi
+- **MQTTSensorBridge**: WiFi/MQTT IoT sensor integration (paho-mqtt)
+- **SimulatedLaptopBridge**: Full simulation mode for testing without hardware
+- **IoTSensorHub**: Manages multiple bridges simultaneously (USB + MQTT)
+- Auto-detection of serial ports
+- Graceful imports (works without pyserial or paho-mqtt installed)
+
 ---
 
 ## Hardware Requirements
@@ -80,6 +117,12 @@ Covers **Waste Management**, **Biofuel Production**, **Edible Oil Processing**, 
 - pH analog sensor (A1)
 - Capacitive moisture sensor (A2)
 
+### Laptop/Direct Connection (no RPi needed)
+- Any laptop with USB port running this platform
+- Arduino connected via USB serial (auto-detected)
+- ESP32/ESP8266 sensors via WiFi MQTT broker
+- Works on Windows, macOS, Linux
+
 ---
 
 ## Quick Start
@@ -90,25 +133,93 @@ cd env-engr-ai
 pip install -r requirements.txt
 ```
 
-### 2. Run demo
+### 2. Run demo (original 4 modules)
 ```bash
 python main.py demo
 ```
 
-### 3. Start monitoring dashboard (30 seconds)
+### 3. Water treatment + irrigation demo
+```bash
+python main.py water
+```
+
+### 4. Agronomy cross-planting + byproduct market
+```bash
+python main.py agronomy
+```
+
+### 5. Launch Gradio web GUI
+```bash
+python main.py gui
+# Then open http://localhost:7860 in your browser
+```
+
+### 6. Sensor deployment wizard (auto-detect ports)
+```bash
+python main.py deploy
+```
+
+### 7. Start monitoring dashboard (30 seconds)
 ```bash
 python main.py monitor --duration 30
 ```
 
-### 4. Run simulations
+### 8. Run simulations
 ```bash
 python main.py simulate --module biofuel --steps 20
 ```
 
-### 5. Run tests
+### 9. Run tests
 ```bash
 python -m pytest tests/ -v --tb=short
 ```
+
+---
+
+## Business Plan Summary
+
+See [`docs/business_plan.md`](docs/business_plan.md) for the full business plan.
+
+| Metric | Starter (0.5 ha) | Full Scale (5 ha) |
+|--------|-----------------|-------------------|
+| Capital investment | $12,000–$20,000 | $80,000–$150,000 |
+| Annual revenue (Year 3+) | $8,000–$15,000 | $50,000–$150,000 |
+| Break-even | 5–7 years | 3–5 years |
+| Primary products | Olive oil, Moringa oil, Bioethanol | Same + commercial scale |
+| Key byproducts | Moringa leaf powder, Compost, Biogas | + Export-grade oil, Carbon credits |
+
+---
+
+## Home Industry Demonstration
+
+See [`docs/home_industry_guide.md`](docs/home_industry_guide.md) for the complete guide.
+
+This platform enables a **zero-waste circular economy** at home scale:
+- Every process output becomes the input to another process
+- Water is treated and recycled (80%+ recovery)
+- Solar + biogas provides ≥85% energy self-sufficiency
+- All crop residues become fertilizer or biofuel feedstock
+- AI monitoring ensures optimal performance with minimal labor (15 hr/week)
+
+**Minimum demo setup:** $420 (Moringa pots + water filter + Arduino + 100W solar panel)
+
+---
+
+## GUI – Gradio Web Interface
+
+```bash
+# Install Gradio (if not already)
+pip install gradio>=4.0.0
+
+# Launch
+python main.py gui --port 7860
+```
+
+The web interface has 4 tabs:
+1. **📊 Live Monitoring** – real-time sensor readings with auto-refresh
+2. **🔌 Sensor Deployment** – detect ports, configure and test sensors
+3. **🌍 System Overview** – status of all 6 modules
+4. **💰 Business Analytics** – byproduct revenues and production costs
 
 ---
 
@@ -118,6 +229,8 @@ python -m pytest tests/ -v --tb=short
 env-engr-ai/
 ├── main.py                       # CLI entry point (typer)
 ├── requirements.txt
+├── gui/
+│   └── app.py                    # Gradio web GUI (4 tabs)
 ├── src/
 │   ├── models/
 │   │   ├── schemas.py            # Pydantic v2 schemas
@@ -126,7 +239,8 @@ env-engr-ai/
 │   ├── sensors/
 │   │   ├── base.py               # AbstractSensor, SensorRegistry, MockSensor
 │   │   ├── rpi_sensors.py        # DHT22, MQ135, DS18B20, PHSensor
-│   │   └── arduino_sensors.py    # ArduinoSerialBridge, SimulatedArduinoBridge
+│   │   ├── arduino_sensors.py    # ArduinoSerialBridge, SimulatedArduinoBridge
+│   │   └── laptop_bridge.py      # LaptopSensorBridge, MQTTSensorBridge, IoTSensorHub
 │   ├── waste_management/
 │   │   ├── classifier.py         # WasteClassifier, WasteOptimizer
 │   │   └── optimizer.py          # RouteOptimizer, CollectionScheduler
@@ -139,15 +253,28 @@ env-engr-ai/
 │   ├── renewable_energy/
 │   │   ├── solar.py              # SolarPanelMonitor, MPPT
 │   │   └── wind.py               # WindTurbineMonitor, power curve
+│   ├── water_treatment/
+│   │   ├── treatment_plant.py    # WaterTreatmentPlant, WaterQualityMonitor
+│   │   └── irrigation.py         # IrrigationController, Penman-Monteith ET₀
+│   ├── agronomy/
+│   │   ├── planting_guide.py     # AgronomyAdvisor, BD↔PL cross-planting
+│   │   └── byproduct_market.py   # ByproductMarketManager, circular economy catalog
 │   └── monitoring/
 │       ├── dashboard.py          # Rich TUI dashboard
 │       ├── alerting.py           # AlertManager
 │       └── data_store.py         # LocalDataStore, TimeSeriesBuffer
 ├── firmware/
 │   ├── rpi/sensor_node.py        # RPi data collection daemon
-│   └── arduino/sensor_node.ino  # Arduino sketch
-├── tests/                        # pytest test suite
-└── docs/                         # Architecture and setup docs
+│   └── arduino/sensor_node.ino   # Arduino sketch
+├── tests/                        # pytest test suite (90+ tests)
+└── docs/
+    ├── architecture.md           # System architecture
+    ├── ai_models.md              # AI model documentation
+    ├── hardware_setup.md         # Raspberry Pi + Arduino setup
+    ├── monitoring.md             # Monitoring dashboard guide
+    ├── infrastructure.md         # Infrastructure construction guide
+    ├── business_plan.md          # Full business plan with ROI
+    └── home_industry_guide.md    # Sustainable home industry guide
 ```
 
 ---

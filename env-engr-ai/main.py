@@ -337,5 +337,196 @@ def simulate(
     console.print(f"\n[bold green]✓ Simulation complete![/bold green]")
 
 
+def _demo_water() -> None:
+    from src.water_treatment.treatment_plant import (
+        WaterQualityMetrics, WaterTreatmentPlant, WaterQualityMonitor
+    )
+    from src.water_treatment.irrigation import (
+        IrrigationController, SoilMoistureZone, WeatherForecast
+    )
+    from datetime import datetime
+
+    console.rule("[bold cyan]Water Treatment Module[/bold cyan]")
+
+    plant = WaterTreatmentPlant(capacity_m3_per_day=10.0)
+    raw_water = WaterQualityMetrics(
+        turbidity=45.0, ph=7.2, dissolved_oxygen=8.0,
+        chlorine=0.0, tds=320.0, e_coli=150.0, temperature=22.0
+    )
+    results = plant.run_full_treatment(raw_water)
+    table = Table(title="Water Treatment Stages")
+    table.add_column("Stage", style="cyan")
+    table.add_column("Turbidity NTU", justify="right")
+    table.add_column("pH", justify="right")
+    table.add_column("Chlorine mg/L", justify="right")
+    table.add_column("E.coli CFU/100mL", justify="right")
+    for stage_name, metrics in results.items():
+        table.add_row(
+            stage_name,
+            f"{metrics.turbidity:.2f}",
+            f"{metrics.ph:.2f}",
+            f"{metrics.chlorine:.2f}",
+            f"{metrics.e_coli:.1f}",
+        )
+    console.print(table)
+
+    final = list(results.values())[-1]
+    who = plant.check_who_standards(final)
+    compliant = all(who.values())
+    console.print(f"  WHO Compliance: {'[green]✓ ALL PASS[/green]' if compliant else '[red]✗ FAILED[/red]'}")
+
+    report = plant.daily_production_report()
+    console.print(f"  Daily report: {report['volume_m3']} m³ produced, cost ${report['total_cost_usd']:.2f}")
+
+    console.rule("[bold cyan]Smart Irrigation Module[/bold cyan]")
+    controller = IrrigationController()
+    zone = SoilMoistureZone(
+        zone_id="zone_01", crop_type="olive", area_m2=250.0,
+        current_moisture_pct=35.0, target_moisture_pct=65.0,
+        last_irrigated=datetime.now()
+    )
+    controller.add_zone(zone)
+    forecast = WeatherForecast(
+        temperature_c=28.0, rainfall_mm=0.0, humidity_pct=60.0,
+        wind_speed_ms=2.5, solar_radiation_wm2=650.0,
+        forecast_date=datetime.now()
+    )
+    need = controller.calculate_water_need("zone_01", forecast)
+    console.print(f"  Zone 01 (olive, 250 m²) water need: {need:.1f} L")
+    schedule = controller.generate_schedule(forecast)
+    console.print(f"  Generated {len(schedule)} irrigation schedules")
+
+
+def _demo_agronomy() -> None:
+    from src.agronomy.planting_guide import AgronomyAdvisor
+    from src.agronomy.byproduct_market import ByproductMarketManager
+
+    console.rule("[bold cyan]Agronomy Cross-Planting Module (BD ↔ PL)[/bold cyan]")
+    advisor = AgronomyAdvisor()
+
+    table = Table(title="Crop Feasibility by Country")
+    table.add_column("Crop", style="cyan")
+    table.add_column("Country", style="bold")
+    table.add_column("Feasibility", justify="right")
+    table.add_column("Risk", justify="right")
+    table.add_column("Est. Yield %", justify="right")
+
+    for crop in ["OLIVE", "MORINGA", "SUNFLOWER", "RAPESEED"]:
+        for country in ["BD", "PL"]:
+            f = advisor.assess_feasibility(crop, country)
+            table.add_row(
+                crop, country,
+                f"{f.feasibility_score:.2f}",
+                f.risk_level,
+                f"{f.estimated_yield_pct_of_optimal:.0f}%",
+            )
+    console.print(table)
+
+    console.rule("[bold cyan]Byproduct Market Module[/bold cyan]")
+    mgr = ByproductMarketManager()
+    byproducts = mgr.list_byproducts()
+    bp_table = Table(title="Available Byproducts")
+    bp_table.add_column("Name", style="cyan")
+    bp_table.add_column("Source", style="dim")
+    bp_table.add_column("Price/unit", justify="right")
+    for bp in byproducts[:8]:
+        bp_table.add_row(bp.name, bp.source_process, f"${bp.market_price_usd_per_unit:.2f}/{bp.unit}")
+    console.print(bp_table)
+
+    production_data = {
+        "waste_management": 1000.0,
+        "biofuel": 100.0,
+        "edible_oil": 200.0,
+        "renewable_energy": 500.0,
+        "water_treatment": 500.0,
+    }
+    revenue = mgr.calculate_monthly_revenue(production_data)
+    total = sum(v for v in revenue.values() if isinstance(v, float) and v > 0)
+    console.print(f"  Estimated monthly byproduct revenue: [bold green]${total:.2f}[/bold green]")
+
+
+@app.command()
+def water(
+    capacity: float = typer.Option(10.0, help="Plant capacity in m³/day"),
+) -> None:
+    """Demo water treatment plant and smart irrigation system."""
+    _banner()
+    _demo_water()
+    console.print("\n[bold green]✓ Water module demo complete![/bold green]")
+
+
+@app.command()
+def agronomy() -> None:
+    """Show cross-planting guide (BD↔PL) and byproduct market analysis."""
+    _banner()
+    _demo_agronomy()
+    console.print("\n[bold green]✓ Agronomy module demo complete![/bold green]")
+
+
+@app.command()
+def gui(
+    host: str = typer.Option("0.0.0.0", help="Host to bind to"),
+    port: int = typer.Option(7860, help="Port to listen on"),
+    share: bool = typer.Option(False, help="Create public Gradio share link"),
+) -> None:
+    """Launch the Gradio web GUI for monitoring and sensor deployment."""
+    _banner()
+    console.print(f"[dim]Launching GUI on {host}:{port}...[/dim]")
+    try:
+        from gui.app import launch_gui
+        launch_gui(host=host, port=port, share=share)
+    except ImportError as e:
+        console.print(f"[red]Failed to import GUI: {e}[/red]")
+        console.print("[yellow]Install gradio: pip install gradio>=4.0.0[/yellow]")
+
+
+@app.command()
+def deploy(
+    port: str = typer.Option(None, help="Serial port (auto-detect if not specified)"),
+) -> None:
+    """Sensor deployment wizard – auto-detect ports, configure, and test connections."""
+    _banner()
+    console.print("[bold cyan]🔌 Sensor Deployment Wizard[/bold cyan]\n")
+    from src.sensors.laptop_bridge import LaptopSensorBridge, SimulatedLaptopBridge, IoTSensorHub
+
+    bridge = LaptopSensorBridge(port=port)
+    detected = bridge.auto_detect_port()
+    if detected:
+        console.print(f"  [green]Detected sensor port:[/green] {detected}")
+    else:
+        console.print("  [yellow]No hardware sensor detected – using simulation mode[/yellow]")
+
+    sim = SimulatedLaptopBridge(num_sensors=3)
+    sim.connect()
+    readings = sim.read_sensor_data()
+    table = Table(title="Simulated Sensor Readings")
+    table.add_column("Sensor ID", style="cyan")
+    table.add_column("Value", justify="right")
+    table.add_column("Unit")
+    table.add_column("Quality", justify="right")
+    for r in readings:
+        table.add_row(r.sensor_id, f"{r.value:.3f}", r.unit, f"{r.quality:.2f}")
+    console.print(table)
+    sim.disconnect()
+    console.print("\n[bold green]✓ Deployment wizard complete![/bold green]")
+
+
+# ---------------------------------------------------------------------------
+# Update demo command to include water and agronomy
+# ---------------------------------------------------------------------------
+
+@app.command(name="demo-all")
+def demo_all() -> None:
+    """Run the complete demo including water treatment and agronomy modules."""
+    _banner()
+    _demo_waste_management()
+    _demo_biofuel()
+    _demo_edible_oil()
+    _demo_renewable_energy()
+    _demo_water()
+    _demo_agronomy()
+    console.print("\n[bold green]✓ Full platform demo complete![/bold green]")
+
+
 if __name__ == "__main__":
     app()
