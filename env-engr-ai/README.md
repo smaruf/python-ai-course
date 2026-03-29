@@ -12,32 +12,32 @@ Covers **Waste Management**, **Biofuel Production**, **Edible Oil Processing**, 
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                       Environmental Engineering AI Platform                  │
-├──────────────┬──────────────────┬─────────────────┬──────────────────────────┤
-│   Hardware   │   Data Layer     │    AI Engine     │   Monitoring/Control     │
-│              │                  │                  │                          │
+│                       Environmental Engineering AI Platform                 │
+├──────────────┬──────────────────┬─────────────────┬─────────────────────────┤
+│   Hardware   │   Data Layer     │    AI Engine    │   Monitoring/Control    │
+│              │                  │                 │                         │
 │  ┌─────────┐ │ ┌──────────────┐ │ ┌──────────────┐│ ┌───────────────────┐   │
 │  │ Arduino │─┼─│SerialBridge  │ │ │NeuralNetwork ││ │ MonitoringDashbrd │   │
 │  └─────────┘ │ └──────┬───────┘ │ │(numpy-only)  ││ │ (Rich TUI)        │   │
 │              │        │         │ └──────────────┘│ └───────────────────┘   │
 │  ┌─────────┐ │ ┌──────▼───────┐ │ ┌──────────────┐│ ┌───────────────────┐   │
-│  │  RPi    │─┼─│SensorRegistry│ │ │AdaptiveNN    ││ │ AlertManager       │   │
+│  │  RPi    │─┼─│SensorRegistry│ │ │AdaptiveNN    ││ │ AlertManager      │   │
 │  │ DHT22   │ │ └──────┬───────┘ │ │(online learn)││ └───────────────────┘   │
 │  │ DS18B20 │ │        │         │ └──────────────┘│ ┌───────────────────┐   │
 │  │ MQ135   │ │ ┌──────▼───────┐ │ ┌──────────────┐│ │ DataStore         │   │
 │  │ pH EZO  │ │ │TimeSeriesBuf │ │ │RuleEngine    ││ │ (CSV/JSON/Buffer) │   │
 │  └─────────┘ │ └──────────────┘ │ └──────────────┘│ └───────────────────┘   │
-└──────────────┴──────────────────┴─────────────────┴──────────────────────────┘
+└──────────────┴──────────────────┴─────────────────┴─────────────────────────┘
                                           │
-                ┌─────────────────────────┼──────────────────────┐
-                │                         │                       │
-     ┌──────────▼─────┐      ┌────────────▼──────┐   ┌──────────▼──────────┐
-     │ Waste Mgmt      │      │  Biofuel           │   │  Edible Oil          │
-     │ WasteClassifier │      │  FermentationMon   │   │  ExtractionMonitor   │
-     │ RouteOptimizer  │      │  FermentationCtrl  │   │  OilQualityCtrl      │
-     │ CarbonCalc      │      │  BiofuelProcCtrl   │   │  Olive (PL)          │
-     └─────────────────┘      │  PIDController     │   │  Moringa/Marenga(BD) │
-                              └────────────────────┘   └──────────────────────┘
+                ┌─────────────────────────┼─────────────────────┐
+                │                         │                     │
+     ┌──────────▼─────┐      ┌────────────▼──────┐   ┌──────────▼────────┐
+     │ Waste Mgmt     │      │  Biofuel          │   │  Edible Oil       │
+     │ WasteClassifier│      │  FermentationMon  │   │  ExtractionMonitor│
+     │ RouteOptimizer │      │  FermentationCtrl │   │  OilQualityCtrl   │
+     │ CarbonCalc     │      │  BiofuelProcCtrl  │   │  Olive (PL)       │
+     └────────────────┘      │  PIDController    │   │  Marenga(BD)      │
+                             └───────────────────┘   └───────────────────┘
 ```
 
 ---
@@ -227,7 +227,9 @@ The web interface has 4 tabs:
 ---
 
 ## Project Structure
-
+<details>
+  <summary>+/-</summary>
+  
 ```
 env-engr-ai/
 ├── main.py                       # CLI entry point (typer)
@@ -279,6 +281,7 @@ env-engr-ai/
     ├── business_plan.md          # Full business plan with ROI
     └── home_industry_guide.md    # Sustainable home industry guide
 ```
+</details>
 
 ---
 
