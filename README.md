@@ -118,11 +118,15 @@ A comprehensive collection of Python projects covering AI development, bioinform
 ### [Philomath AI](./philomath-ai/) ⭐
 **Comprehensive learning project from "Programming for Lovers in Python"**
 - **Tech Stack**: Python, Matplotlib, NumPy
-- **Three Major Modules**:
+- **Modules**:
   1. **[Genome Algorithms](./philomath-ai/genome_algorithms/)** - DNA analysis, pattern matching, origin of replication
   2. **[Monte Carlo Simulation](./philomath-ai/monte-carlo/)** - Random numbers, dice simulation, Craps game
   3. **[Election Simulation](./philomath-ai/election-simulation/)** - Electoral College forecasting from polling data
-- **Learning Topics**: Pattern matching, Sliding windows, Probability, Data visualization
+  4. **[2-D Lists & Cellular Automata](./philomath-ai/2d-lists/)** - Conway's Game of Life, toroidal grids
+  5. **[Pygame Graphics](./philomath-ai/pygame-graphics/)** - RGB colors, animation, interactive drawing
+  6. **[Gravity Simulator](./philomath-ai/gravity-simulator/)** - OOP physics, three-body problem, live visualization
+  7. **[Rosalind Genetics](./philomath-ai/rosalind-genetics/)** ⭐ NEW — Mendel's Laws, binomial probability, consensus sequences (Ep. 4)
+- **Learning Topics**: Pattern matching, Sliding windows, Probability, Genetics, Data visualization
 - **Difficulty**: Beginner to Advanced (progressive learning path)
 
 ### [Environmental Engineering AI](./env-engr-ai/)
@@ -285,7 +289,7 @@ pip install -r requirements.txt
 
 | Project | Language | Complexity | Focus Area | Key Technologies |
 |---------|----------|------------|------------|------------------|
-| [Philomath AI](./philomath-ai/) | Python | Beginner-Advanced | Bioinformatics, Probability | Pattern matching, Matplotlib, Monte Carlo |
+| [Philomath AI](./philomath-ai/) | Python | Beginner-Advanced | Bioinformatics, Genetics, Probability | Pattern matching, Matplotlib, Monte Carlo, Binomial distribution |
 | [Environmental Engineering AI](./env-engr-ai/) | Python | Intermediate-Advanced | Environmental Engineering | AI/ML, Waste Mgmt, Biofuel, Renewable Energy |
 | [AI Development](./ai-development-project/) | Python | Beginner-Expert | AI/ML Development | LLMs, RAG, Vector DBs, Agents |
 | [Yelp-Style AI Assistant](./yelp-ai-assistant/) | Python | Advanced | AI/RAG Assistant | FastAPI, LangChain, Hybrid Search, Kafka |
