@@ -17,6 +17,7 @@ This project provides comprehensive learning modules for understanding computer 
 4. **2-D Lists** - Multi-dimensional arrays and cellular automata (Conway's Game of Life)
 5. **Pygame Graphics** - Intro to 2D graphics: RGB colors, drawing shapes, snowperson, and Game of Life visualization
 6. **Gravity Simulator** - OOP-based gravity simulator: two-body orbits, figure-8 three-body solution, Lagrange triangle, chaos, live pygame visualization
+7. **Rosalind Genetics** ⭐ - Genetics & probability problems from [Rosalind](https://rosalind.info) (Episode 4: IPRB, IEV, LIA, PROB, CONS)
 
 Each module includes:
 
@@ -111,6 +112,14 @@ gravity-simulator/                  # Gravity simulator module (Chapter 4)
     ├── 03_gravity_simulation.py       # Newton's law, leapfrog integrator, two-body orbit
     ├── 04_three_body_problem.py       # Figure-8, Lagrange, chaotic, Sun-Earth-Moon
     ├── 05_pygame_visualization.py     # Interactive live simulation with 4 scenarios
+    └── test_all.py                     # Test suite
+└── rosalind-genetics/                  # Rosalind genetics & probability (Episode 4)
+    ├── README.md                       # Detailed module documentation
+    ├── 01_iprb_mendels_first_law.py   # Mendel's First Law: P(dominant offspring)
+    ├── 02_iev_expected_offspring.py    # Expected dominant offspring from 6 cross types
+    ├── 03_lia_independent_alleles.py   # Independent assortment, binomial distribution
+    ├── 04_prob_random_strings.py       # Log-probability of random DNA strings
+    ├── 05_cons_consensus_profile.py    # Profile matrix and consensus sequence
     └── test_all.py                     # Test suite
 ```
 </details>
@@ -260,6 +269,30 @@ python 04_three_body_problem.py
 python 05_pygame_visualization.py
 ```
 
+#### Rosalind Genetics & Probability (Episode 4)
+
+```bash
+cd rosalind-genetics
+
+# IPRB: Mendel's First Law — P(dominant offspring) from mixed population
+python 01_iprb_mendels_first_law.py
+
+# IEV: Expected dominant offspring across six Mendelian cross types
+python 02_iev_expected_offspring.py
+
+# LIA: Independent alleles — binomial probability after k generations
+python 03_lia_independent_alleles.py
+
+# PROB: Log-probability of a random DNA string at varying GC content
+python 04_prob_random_strings.py
+
+# CONS: Consensus sequence and profile matrix from FASTA sequences
+python 05_cons_consensus_profile.py
+
+# Run the full test suite
+python test_all.py
+```
+
 ### Using in Your Code
 <details>
     <summary>Code in Python:</summary>
@@ -388,6 +421,21 @@ Based on "Building a Gravity Simulator" (Chapter 4, Programming for Lovers), cov
 - **Chaos Theory**: Demonstrating sensitivity to initial conditions (Poincaré, 1887)
 - **Live Visualization**: Interactive pygame window with 4 scenarios, trails, zoom/pan
 
+### Rosalind Genetics & Probability Module (Episode 4)
+Based on Philomath Episode 4 live stream with Phillip Compeau (Carnegie Mellon),
+solving genetics and probability problems on [Rosalind](https://rosalind.info):
+
+- **IPRB — Mendel's First Law**: Sampling without replacement, complement rule,
+  Punnett squares, six genotype cross types
+- **IEV — Expected Offspring**: Linearity of expectation applied to Mendelian crosses,
+  dominant-phenotype probabilities for each cross type
+- **LIA — Independent Alleles**: Mendel's Second Law (independent assortment),
+  binomial distribution, CDF tail probability P(X ≥ n)
+- **PROB — Random Strings**: GC-content DNA model, log-probability to avoid underflow,
+  per-nucleotide probability computation
+- **CONS — Consensus and Profile**: FASTA parsing, profile matrix construction,
+  consensus string derivation, sequence conservation analysis
+
 ## 🌍 Real-World Applications
 
 ### Genome Algorithms
@@ -440,6 +488,16 @@ These skills are used in:
 - **Data Visualization**: Custom animated charts and scientific plots
 - **Generative Art**: Algorithmic artwork and animations
 - **Prototyping**: Rapid prototyping of game and UI concepts
+
+### Rosalind Genetics & Probability
+These techniques are used in:
+
+- **Population Genetics**: Predicting allele frequencies across generations (Hardy-Weinberg)
+- **Breeding Programs**: Estimating expected phenotypic outcomes from controlled crosses
+- **Phylogenetics**: Sequence consensus and conservation for evolutionary analysis
+- **Genomics**: GC-content analysis for species identification and genome annotation
+- **Drug Discovery**: Identifying conserved binding sites in protein-coding sequences
+- **Bioinformatics Pipelines**: Profile matrices underpin tools like MEME, JASPAR
 
 ## 📚 Additional Resources
 
@@ -530,6 +588,15 @@ See the main repository [LICENSE](../LICENSE) file.
 3. **Two-body orbit**: gravity-simulator/03_gravity_simulation.py
 4. **Three-body problem**: gravity-simulator/04_three_body_problem.py
 5. **Live visualization**: gravity-simulator/05_pygame_visualization.py
+
+### For Intermediate - Rosalind Genetics & Probability (Episode 4)
+**Recommended after Monte Carlo; combines genetics theory with probability**:
+
+1. **Mendel's First Law**: rosalind-genetics/01_iprb_mendels_first_law.py
+2. **Expected offspring**: rosalind-genetics/02_iev_expected_offspring.py
+3. **Independent alleles**: rosalind-genetics/03_lia_independent_alleles.py
+4. **Random strings**: rosalind-genetics/04_prob_random_strings.py
+5. **Consensus & profile**: rosalind-genetics/05_cons_consensus_profile.py
 
 ### For Advanced - Genome Algorithms
 **Recommended if comfortable with Python basics**:
