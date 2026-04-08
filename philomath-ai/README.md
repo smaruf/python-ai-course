@@ -18,6 +18,7 @@ This project provides comprehensive learning modules for understanding computer 
 5. **Pygame Graphics** - Intro to 2D graphics: RGB colors, drawing shapes, snowperson, and Game of Life visualization
 6. **Gravity Simulator** - OOP-based gravity simulator: two-body orbits, figure-8 three-body solution, Lagrange triangle, chaos, live pygame visualization
 7. **Rosalind Genetics** ⭐ - Genetics & probability problems from [Rosalind](https://rosalind.info) (Episode 4: IPRB, IEV, LIA, PROB, CONS)
+8. **Trees Part 2** ⭐ - Recursion, UPGMA phylogenetics, Newick format, real biological datasets (Chapter 5)
 
 Each module includes:
 
@@ -121,6 +122,23 @@ gravity-simulator/                  # Gravity simulator module (Chapter 4)
     ├── 04_prob_random_strings.py       # Log-probability of random DNA strings
     ├── 05_cons_consensus_profile.py    # Profile matrix and consensus sequence
     └── test_all.py                     # Test suite
+└── trees-part2/                        # Chapter 5: recursion, UPGMA, phylogenetics
+    ├── README.md                       # Module documentation
+    ├── 01_recursion.py                 # Factorial, Fibonacci (naive/memo/iterative)
+    ├── 02_tree_node.py                 # TreeNode class: is_leaf, count_leaves
+    ├── 03_upgma.py                     # UPGMA algorithm
+    ├── 04_newick.py                    # Newick format serialization/parsing
+    ├── 05_pipeline.py                  # End-to-end pipeline + 5 datasets
+    ├── 06_cli.py                       # Command-line interface
+    ├── 07_gui.py                       # Tkinter GUI
+    ├── test_all.py                     # Test suite
+    └── data/                           # CSV distance matrices
+        ├── README.md
+        ├── great_apes.csv
+        ├── hemoglobin.csv
+        ├── hiv_subtypes.csv
+        ├── sars_cov2.csv
+        └── mtdna_haplogroups.csv
 ```
 </details>
 
