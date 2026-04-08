@@ -261,7 +261,9 @@ if __name__ == "__main__":
 
     # Five-taxon great-apes tree
     print("\n── Five-taxon tree (great apes) ──")
-    import sys, importlib.util, os
+    import sys
+    import importlib.util
+    import os
     upgma_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "03_upgma.py")
     spec = importlib.util.spec_from_file_location("upgma_mod", upgma_path)
     upgma_mod = importlib.util.module_from_spec(spec)

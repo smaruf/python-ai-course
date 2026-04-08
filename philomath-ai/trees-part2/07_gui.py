@@ -211,7 +211,7 @@ class TreesApp(tk.Tk):
 
     # ── Recursion callbacks ────────────────────────────────────────────────────
 
-    def _get_n(self, max_naive: int = 40) -> int | None:
+    def _get_n(self) -> int | None:
         try:
             n = int(self._n_var.get())
             if n < 0:
