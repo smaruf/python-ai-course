@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: camel-level4-intelligent-routing
+
+camel:
+  springboot:
+    name: CamelLevel4
+    main-run-controller: true
+
+kafka:
+  brokers: localhost:9092
+
+ai:
+  provider: openai
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    model: gpt-4o-mini
+
+server:
+  port: 8084
+
+logging:
+  level:
+    com.example.camel: DEBUG
+    org.apache.camel: INFO

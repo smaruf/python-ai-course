@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: camel-level9-realtime-ai
+
+camel:
+  springboot:
+    name: CamelLevel9
+    main-run-controller: true
+
+kafka:
+  brokers: localhost:9092
+
+ai:
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    model: gpt-4o
+
+decision:
+  confidence:
+    execute-threshold: 0.85
+    review-threshold: 0.60
+  feedback:
+    window-hours: 24
+    min-accuracy-threshold: 0.60
+
+server:
+  port: 8089
+
+logging:
+  level:
+    com.example.camel: DEBUG
+    org.apache.camel: INFO
