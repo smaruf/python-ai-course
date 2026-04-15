@@ -8,6 +8,7 @@ from __future__ import annotations
 import csv
 import io
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -28,7 +29,7 @@ from analysis.analyze_results import (
 
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Helpers — use tempfile for cross-platform compatibility
 # ---------------------------------------------------------------------------
 _STATS_FIELDNAMES = [
     "Type", "Name", "Request Count", "Failure Count",
@@ -52,21 +53,26 @@ def _make_stats_csv(rows: list, *, include_aggregated: bool = True) -> Path:
                      "Requests/s": "8.5", "95%": "450"})
         writer.writerow(agg)
 
-    tmp = Path("/tmp/test_stats.csv")
-    tmp.write_text(buf.getvalue(), encoding="utf-8")
-    return tmp
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix="_stats.csv", delete=False, encoding="utf-8"
+    ) as fh:
+        fh.write(buf.getvalue())
+        return Path(fh.name)
 
 
 def _make_failures_csv(rows: list) -> Path:
-    tmp = Path("/tmp/test_failures.csv")
     buf = io.StringIO()
     fieldnames = ["Method", "Name", "Error", "Occurrences"]
     writer = csv.DictWriter(buf, fieldnames=fieldnames)
     writer.writeheader()
     for r in rows:
         writer.writerow(r)
-    tmp.write_text(buf.getvalue(), encoding="utf-8")
-    return tmp
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix="_failures.csv", delete=False, encoding="utf-8"
+    ) as fh:
+        fh.write(buf.getvalue())
+        return Path(fh.name)
 
 
 def _sample_endpoint_row(
@@ -164,7 +170,7 @@ class TestParseStatsCsv:
         assert len(endpoints) == 2
 
     def test_missing_file_returns_empty(self):
-        result = parse_stats_csv(Path("/tmp/nonexistent_xyz.csv"))
+        result = parse_stats_csv(Path("/nonexistent/path/stats.csv"))
         assert result == []
 
 
@@ -182,7 +188,7 @@ class TestParseFailuresCsv:
         assert failures[0]["Error"] == "Connection refused"
 
     def test_missing_file_returns_empty(self):
-        result = parse_failures_csv(Path("/tmp/nonexistent_failures.csv"))
+        result = parse_failures_csv(Path("/nonexistent/path/failures.csv"))
         assert result == []
 
 
