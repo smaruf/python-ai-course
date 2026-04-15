@@ -17,6 +17,7 @@ The system simulates real-world use cases such as **market data processing, news
 - [Quick Start](#-quick-start)
 - [Tech Stack](#-tech-stack)
 - [Learning Path](#-learning-path)
+- [Load Tests & CI/CD](#-load-tests--cicd)
 
 ---
 
@@ -161,6 +162,41 @@ Cloud-scale distributed systems and autonomous AI agents.
 - Domain-focused (finance, trading systems)
 - Scalable from beginner to enterprise level
 - Combines **integration + AI + streaming** (rare combo)
+
+---
+
+## 🧪 Load Tests & CI/CD
+
+### Load Tests (Locust)
+
+Python-based load test suite targeting each level's REST and Kafka endpoints:
+
+```bash
+cd load-tests
+pip install -r requirements.txt
+locust -f locustfile.py --host http://localhost:8080
+```
+
+See [load-tests/README.md](./load-tests/README.md) for full usage, including headless CI mode and the result analysis tool.
+
+### Result Analysis
+
+```bash
+python load-tests/analysis/analyze_results.py --csv-prefix results/load_test
+```
+
+Generates a console summary, `analysis_report.md`, and `analysis_report.html` with per-endpoint SLO badges (P95 < 2 s, error rate < 1 %).
+
+### CI/CD Pipeline
+
+The [`.github/workflows/camel-pipeline-ci.yml`](../.github/workflows/camel-pipeline-ci.yml) workflow runs automatically on every push or pull request touching `camel-ai-data-pipeline/`:
+
+| Job | Description |
+|-----|-------------|
+| **build-java** | Builds Level 0 & 1 Maven modules, uploads JARs |
+| **test-load-tests** | Lints Python code (`flake8`) and runs 16 unit tests for the analyser |
+| **load-test** | Spins up a Flask stub server, runs Locust (10 users, 60 s), analyses results, uploads HTML/CSV artifacts |
+| **docs-check** | Verifies all internal README cross-links resolve |
 
 ---
 
