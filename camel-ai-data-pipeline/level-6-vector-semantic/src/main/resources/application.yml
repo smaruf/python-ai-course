@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: camel-level6-vector-semantic
+
+camel:
+  springboot:
+    name: CamelLevel6
+    main-run-controller: true
+
+kafka:
+  brokers: localhost:9092
+
+ai:
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    embedding-model: text-embedding-ada-002
+    chat-model: gpt-4o-mini
+
+vector-db:
+  provider: weaviate     # or "faiss" for local
+  weaviate:
+    url: http://localhost:8080
+  faiss:
+    index-path: ./faiss-index
+
+server:
+  port: 8086
+
+logging:
+  level:
+    com.example.camel: DEBUG
+    org.apache.camel: INFO

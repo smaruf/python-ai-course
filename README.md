@@ -23,6 +23,7 @@ A comprehensive collection of Python projects covering AI development, bioinform
 ## 📚 Table of Contents
 
 - [AI & Machine Learning Projects](#ai--machine-learning-projects)
+  - [Intelligent Data Pipeline (Camel + AI)](#intelligent-data-pipeline-with-apache-camel--ai)
 - [Financial Technology Projects](#financial-technology-projects)
 - [Bioinformatics & Computational Science](#bioinformatics--computational-science)
 - [Algorithms & Data Structures](#algorithms--data-structures)
@@ -34,6 +35,13 @@ A comprehensive collection of Python projects covering AI development, bioinform
 ---
 
 ## 🤖 AI & Machine Learning Projects
+
+### [Intelligent Data Pipeline with Apache Camel + AI](./camel-ai-data-pipeline/)
+**Progressive end-to-end data engineering system from zero to expert**
+- **Tech Stack**: Java, Spring Boot, Apache Camel, Apache Kafka, OpenAI API, Docker/Kubernetes
+- **Covers**: Camel routing → Kafka streaming → AI enrichment → Vector/RAG → Finance domain → Cloud-native
+- **Levels**: 10 progressive levels (0–9): Fundamentals → Real-Time AI Decision System
+- **Highlights**: Market data anomaly detection, sentiment classification, RAG pipelines, Camel K on Kubernetes, autonomous AI agents
 
 ### [AI Development Project](./ai-development-project/)
 **Full-phased AI implementation covering modern AI features**
@@ -267,9 +275,10 @@ pip install -r requirements.txt
 
 #### AI/ML Specialist
 1. [AI Development Project](./ai-development-project/)
-2. [Oracle AI Developer Prep](./oracle-job-prep/)
-3. [LangChain Standalone](./projects/langchain-langgraph-standalone/)
-4. [AI Sync-Async Guide](./ai-sync-async-fix-itch/)
+2. [Camel AI Data Pipeline](./camel-ai-data-pipeline/) — Integration + AI + Streaming
+3. [Oracle AI Developer Prep](./oracle-job-prep/)
+4. [LangChain Standalone](./projects/langchain-langgraph-standalone/)
+5. [AI Sync-Async Guide](./ai-sync-async-fix-itch/)
 
 #### Fintech Developer
 1. [Fintech Tools](./fintech-tools/)
@@ -289,6 +298,7 @@ pip install -r requirements.txt
 
 | Project | Language | Complexity | Focus Area | Key Technologies |
 |---------|----------|------------|------------|------------------|
+| [Camel AI Data Pipeline](./camel-ai-data-pipeline/) | Java | Beginner-Expert | Data Engineering + AI | Apache Camel, Kafka, OpenAI, Kubernetes, Camel K |
 | [Philomath AI](./philomath-ai/) | Python | Beginner-Advanced | Bioinformatics, Genetics, Probability | Pattern matching, Matplotlib, Monte Carlo, Binomial distribution |
 | [Environmental Engineering AI](./env-engr-ai/) | Python | Intermediate-Advanced | Environmental Engineering | AI/ML, Waste Mgmt, Biofuel, Renewable Energy |
 | [AI Development](./ai-development-project/) | Python | Beginner-Expert | AI/ML Development | LLMs, RAG, Vector DBs, Agents |
