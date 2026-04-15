@@ -66,7 +66,7 @@ export OPENAI_API_KEY="your-key-here"
 mvn spring-boot:run
 
 # Watch alerts in real-time:
-# http://localhost:8080/api/alerts
+# http://localhost:8087/api/alerts
 ```
 
 ## 📌 Pipeline

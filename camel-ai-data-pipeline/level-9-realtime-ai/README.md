@@ -67,9 +67,9 @@ docker-compose up -d
 export OPENAI_API_KEY="your-key-here"
 mvn spring-boot:run
 
-# Real-time dashboard: http://localhost:8080
-# Decision audit log:  http://localhost:8080/api/decisions
-# Agent status:        http://localhost:8080/api/agents
+# Real-time dashboard: http://localhost:8089
+# Decision audit log:  http://localhost:8089/api/decisions
+# Agent status:        http://localhost:8089/api/agents
 ```
 
 ## 📌 Architecture
