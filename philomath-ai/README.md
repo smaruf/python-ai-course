@@ -11,14 +11,23 @@ This project provides comprehensive learning modules for understanding computer 
 
 ### Modules Available
 
-1. **Genome Algorithms** - Bioinformatics algorithms for DNA analysis
-2. **Monte Carlo Simulation** - Random number generation, probability, and simulation methods
-3. **Election Simulation** - Forecasting presidential elections from polling data
-4. **2-D Lists** - Multi-dimensional arrays and cellular automata (Conway's Game of Life)
-5. **Pygame Graphics** - Intro to 2D graphics: RGB colors, drawing shapes, snowperson, and Game of Life visualization
-6. **Gravity Simulator** - OOP-based gravity simulator: two-body orbits, figure-8 three-body solution, Lagrange triangle, chaos, live pygame visualization
-7. **Rosalind Genetics** ⭐ - Genetics & probability problems from [Rosalind](https://rosalind.info) (Episode 4: IPRB, IEV, LIA, PROB, CONS)
-8. **Trees Part 2** ⭐ - Recursion, UPGMA phylogenetics, Newick format, real biological datasets (Chapter 5)
+#### Rosalind Bioinformatics Sessions
+1. **[DNA Basics](rosalind-dna/)** ⭐ — Sessions 1–2: counting nucleotides, reverse complement, GC content ([DNA](https://rosalind.info/problems/dna/), [REVC](https://rosalind.info/problems/revc/), [GC](https://rosalind.info/problems/gc/))
+2. **[k-mers & Distance](rosalind-kmers/)** ⭐ — Sessions 3–4: Hamming distance, k-mer composition, motif finding ([HAMM](https://rosalind.info/problems/hamm/), [KMER](https://rosalind.info/problems/kmer/), [SUBS](https://rosalind.info/problems/subs/))
+3. **[Rosalind Genetics](rosalind-genetics/)** ⭐ — Session 5: Genetics & probability (Episode 4: [IPRB](https://rosalind.info/problems/iprb/), [IEV](https://rosalind.info/problems/iev/), [LIA](https://rosalind.info/problems/lia/), [PROB](https://rosalind.info/problems/prob/), [CONS](https://rosalind.info/problems/cons/))
+4. **[Graph Theory](rosalind-graphs/)** ⭐ — Sessions 6–7: adjacency lists, BFS/DFS, tree completion ([TREE](https://rosalind.info/problems/tree/))
+5. **[Genome Assembly](rosalind-assembly/)** ⭐ — Session 8: shortest superstring, error correction ([LONG](https://rosalind.info/problems/long/), [CORR](https://rosalind.info/problems/corr/))
+6. **[Phylogeny](rosalind-phylogeny/)** ⭐ — Session 8: p-distance matrix, internal nodes ([PDST](https://rosalind.info/problems/pdst/), [INOD](https://rosalind.info/problems/inod/))
+
+#### Simulation & Algorithms Sessions
+7. **Genome Algorithms** — Bioinformatics algorithms for DNA analysis
+8. **Monte Carlo Simulation** — Random number generation, probability, and simulation methods
+9. **Election Simulation** — Forecasting presidential elections from polling data
+10. **2-D Lists** — Multi-dimensional arrays and cellular automata (Conway's Game of Life)
+11. **Pygame Graphics** — Intro to 2D graphics: RGB colors, drawing shapes, snowperson, and Game of Life visualization
+12. **Gravity Simulator** — OOP-based gravity simulator: two-body orbits, figure-8 three-body solution, Lagrange triangle, chaos, live pygame visualization
+13. **Trees Part 2** ⭐ — Recursion, UPGMA phylogenetics, Newick format, real biological datasets (Chapter 5)
+14. **Cellular Automata** — Conway's Game of Life and Langton's Loops engine with terminal and pygame renderers
 
 Each module includes:
 
@@ -62,6 +71,36 @@ By working through this project, you will master:
 philomath-ai/
 ├── README.md                           # This file - project overview
 ├── requirements.txt                    # Python dependencies
+│
+├── rosalind-dna/                       # Sessions 1-2: DNA basics
+│   ├── README.md
+│   ├── 01_count_nucleotides.py        # DNA: count A,C,G,T in a string
+│   ├── 02_reverse_complement.py       # REVC: reverse complement
+│   ├── 03_gc_content.py               # GC: highest GC content in FASTA
+│   └── test_all.py
+├── rosalind-kmers/                     # Sessions 3-4: k-mers & distance
+│   ├── README.md
+│   ├── 01_hamming_distance.py         # HAMM: number of mismatching positions
+│   ├── 02_kmer_composition.py         # KMER: k-mer frequency vector
+│   ├── 03_finding_motif.py            # SUBS: all locations of a motif
+│   └── test_all.py
+├── rosalind-graphs/                    # Sessions 6-7: graph theory
+│   ├── README.md
+│   ├── 01_adjacency_list.py           # Build and query adjacency lists
+│   ├── 02_bfs_dfs.py                  # BFS, DFS, connected components
+│   ├── 03_tree_completion.py          # TREE: min edges to complete a tree
+│   └── test_all.py
+├── rosalind-assembly/                  # Session 8: genome assembly
+│   ├── README.md
+│   ├── 01_shortest_superstring.py     # LONG: greedy shortest superstring
+│   ├── 02_error_correction.py         # CORR: error correction in reads
+│   └── test_all.py
+├── rosalind-phylogeny/                 # Session 8: phylogeny
+│   ├── README.md
+│   ├── 01_distance_matrix.py          # PDST: p-distance matrix
+│   ├── 02_internal_nodes.py           # INOD: internal nodes in binary tree
+│   └── test_all.py
+│
 ├── genome_algorithms/                  # Bioinformatics module
 │   ├── README.md                       # Detailed module documentation
 │   ├── 01_clump_finding.py            # Finding DnaA boxes (clumps)
@@ -160,6 +199,59 @@ pip install -r requirements.txt
 ### Running Examples
 
 Each module can be run standalone to see demonstrations:
+
+#### DNA Basics (Sessions 1–2)
+
+```bash
+cd rosalind-dna
+
+python 01_count_nucleotides.py   # Count A,C,G,T in a DNA string
+python 02_reverse_complement.py  # Compute reverse complement
+python 03_gc_content.py          # Find highest GC-content record in FASTA
+python test_all.py               # Run full test suite
+```
+
+#### k-mers & Distance (Sessions 3–4)
+
+```bash
+cd rosalind-kmers
+
+python 01_hamming_distance.py    # Count mismatching positions
+python 02_kmer_composition.py    # k-mer frequency vector (lex order)
+python 03_finding_motif.py       # All 1-indexed locations of a motif
+python test_all.py
+```
+
+#### Graph Theory (Sessions 6–7)
+
+```bash
+cd rosalind-graphs
+
+python 01_adjacency_list.py      # Build and query adjacency lists
+python 02_bfs_dfs.py             # BFS, DFS, connected components
+python 03_tree_completion.py     # Min edges to complete a tree (TREE)
+python test_all.py
+```
+
+#### Genome Assembly (Session 8)
+
+```bash
+cd rosalind-assembly
+
+python 01_shortest_superstring.py  # Greedy shortest superstring (LONG)
+python 02_error_correction.py      # Error correction in reads (CORR)
+python test_all.py
+```
+
+#### Phylogeny (Session 8)
+
+```bash
+cd rosalind-phylogeny
+
+python 01_distance_matrix.py    # p-distance matrix from FASTA (PDST)
+python 02_internal_nodes.py     # Internal nodes in binary tree (INOD)
+python test_all.py
+```
 
 #### Genome Algorithms
 
@@ -364,6 +456,34 @@ results = ec_module.simulate_electoral_college(state_polls, num_simulations=1000
 
 This project implements concepts from **"Programming for Lovers in Python"** by Phillip Compeau:
 
+### DNA Basics Module (Sessions 1–2)
+Rosalind beginner problems:
+- **DNA**: Counting nucleotides in a DNA string
+- **REVC**: Reverse complement of a DNA string
+- **GC**: Finding the record with highest GC content in FASTA
+
+### k-mers & Distance Module (Sessions 3–4)
+String analysis on DNA:
+- **HAMM**: Hamming distance between two DNA strings
+- **KMER**: k-mer composition vector in lexicographic order
+- **SUBS**: Finding all occurrences of a motif (overlapping)
+
+### Graph Theory Module (Sessions 6–7)
+Graph algorithms for bioinformatics:
+- **Adjacency lists**: Representing directed/undirected graphs
+- **BFS/DFS**: Traversal, connected components
+- **TREE**: Minimum edges to complete a spanning tree
+
+### Genome Assembly Module (Session 8)
+Assembling reads into a genome:
+- **LONG**: Greedy shortest superstring from overlapping reads
+- **CORR**: Error correction using read frequency and reverse complements
+
+### Phylogeny Module (Session 8)
+Evolutionary distance and tree structure:
+- **PDST**: p-distance matrix from aligned DNA strings
+- **INOD**: Number of internal nodes in a rooted binary tree
+
 ### Genome Algorithms Module
 Based on the "Genome Algorithms" course, covering:
 
@@ -565,6 +685,13 @@ See the main repository [LICENSE](../LICENSE) file.
 
 ## 💡 Learning Path
 
+### For Beginners — Rosalind DNA Basics (Sessions 1–2)
+**Recommended if new to bioinformatics; no prerequisites beyond basic Python**:
+
+1. **Count nucleotides**: rosalind-dna/01_count_nucleotides.py
+2. **Reverse complement**: rosalind-dna/02_reverse_complement.py
+3. **GC content**: rosalind-dna/03_gc_content.py
+
 ### For Beginners - Start with Monte Carlo
 **Recommended if new to programming or probability**:
 
@@ -627,6 +754,16 @@ See the main repository [LICENSE](../LICENSE) file.
 6. **Visualize results**: genome_algorithms/06_visualization.py
 7. **Align sequences**: genome_algorithms/07_sequence_alignment.py
 8. **Complete pipeline**: genome_algorithms/08_complete_workflow.py
+
+### For Advanced — Rosalind Bioinformatics Track (Sessions 1–8)
+**Follow the Rosalind session sequence for a structured bioinformatics curriculum**:
+
+1. **DNA Basics (Sessions 1–2)**: rosalind-dna/ — nucleotide counting, reverse complement, GC content
+2. **k-mers & Distance (Sessions 3–4)**: rosalind-kmers/ — Hamming distance, k-mer composition, motif finding
+3. **Probability (Session 5)**: rosalind-genetics/ — Mendelian genetics, expected value, binomial distribution
+4. **Graphs (Sessions 6–7)**: rosalind-graphs/ — adjacency lists, BFS/DFS, tree completion
+5. **Genome Assembly (Session 8)**: rosalind-assembly/ — shortest superstring, error correction
+6. **Phylogeny (Session 8)**: rosalind-phylogeny/ — p-distance matrix, internal nodes
 
 Each module builds on previous concepts, so following these orders is recommended for maximum learning benefit.
 
