@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: camel-level7-domain-finance
+
+camel:
+  springboot:
+    name: CamelLevel7
+    main-run-controller: true
+
+kafka:
+  brokers: localhost:9092
+
+market:
+  simulator:
+    symbols: AAPL,MSFT,GOOGL,AMZN,TSLA
+    tick-interval-ms: 100
+    anomaly-probability: 0.02
+
+ai:
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    model: gpt-4o-mini
+
+server:
+  port: 8087
+
+logging:
+  level:
+    com.example.camel: DEBUG
+    org.apache.camel: INFO

@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: camel-level2-streaming
+
+camel:
+  springboot:
+    name: CamelLevel2
+    main-run-controller: true
+
+kafka:
+  brokers: localhost:9092
+
+server:
+  port: 8082
+
+logging:
+  level:
+    com.example.camel: DEBUG
+    org.apache.camel: INFO
+    org.apache.kafka: WARN

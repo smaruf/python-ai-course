@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: camel-level1-data-engineering
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pipeline
+    username: pipeline
+    password: pipeline
+    driver-class-name: org.postgresql.Driver
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/pipeline
+
+camel:
+  springboot:
+    name: CamelLevel1
+    main-run-controller: true
+
+server:
+  port: 8081
+
+logging:
+  level:
+    com.example.camel: DEBUG
+    org.apache.camel: INFO

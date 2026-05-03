@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: camel-level0-fundamentals
+
+camel:
+  springboot:
+    name: CamelLevel0
+    main-run-controller: true
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.example.camel: DEBUG
+    org.apache.camel: INFO
