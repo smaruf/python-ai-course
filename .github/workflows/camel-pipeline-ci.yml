@@ -1,0 +1,216 @@
+name: Camel AI Pipeline — CI/CD
+
+on:
+  push:
+    paths:
+      - "camel-ai-data-pipeline/**"
+  pull_request:
+    paths:
+      - "camel-ai-data-pipeline/**"
+
+defaults:
+  run:
+    working-directory: camel-ai-data-pipeline
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 1: Build every Maven module and run any existing unit tests
+  # ─────────────────────────────────────────────────────────────────────────
+  build-java:
+    name: Build Java modules (Levels 0–1)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    strategy:
+      matrix:
+        module:
+          - level-0-fundamentals
+          - level-1-data-engineering
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+          cache: maven
+
+      - name: Build ${{ matrix.module }}
+        working-directory: camel-ai-data-pipeline/${{ matrix.module }}
+        run: mvn -B -ntp clean package -DskipTests
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.module }}-jar
+          path: camel-ai-data-pipeline/${{ matrix.module }}/target/*.jar
+          if-no-files-found: warn
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 2: Python lint and unit tests (analysis tool + scenarios)
+  # ─────────────────────────────────────────────────────────────────────────
+  test-load-tests:
+    name: Load test suite — lint & unit tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: camel-ai-data-pipeline/load-tests/requirements.txt
+
+      - name: Install dependencies
+        working-directory: camel-ai-data-pipeline/load-tests
+        run: pip install -r requirements.txt
+
+      - name: Lint with flake8
+        working-directory: camel-ai-data-pipeline/load-tests
+        run: |
+          pip install flake8 -q
+          flake8 . \
+            --max-line-length=120 \
+            --exclude=__pycache__,.venv \
+            --ignore=E501,W503
+
+      - name: Run analysis unit tests
+        working-directory: camel-ai-data-pipeline/load-tests
+        run: pytest tests/ -v --tb=short
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 3: Locust load test (headless) against a mock/stub server
+  #        Runs only on push to default branch or on demand.
+  #        Uses a tiny Flask stub so no real Spring Boot is needed in CI.
+  # ─────────────────────────────────────────────────────────────────────────
+  load-test:
+    name: Load test — headless Locust + analysis
+    runs-on: ubuntu-latest
+    needs: [test-load-tests]
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: camel-ai-data-pipeline/load-tests/requirements.txt
+
+      - name: Install dependencies (load-tests + stub server)
+        working-directory: camel-ai-data-pipeline/load-tests
+        run: |
+          pip install -r requirements.txt
+          pip install flask -q
+
+      - name: Start stub server
+        working-directory: camel-ai-data-pipeline/load-tests
+        run: |
+          python - << 'EOF' &
+          from flask import Flask, jsonify, request
+          import threading, time
+
+          app = Flask("stub")
+
+          @app.route("/api/message",        methods=["POST"])
+          @app.route("/api/enrich/sentiment",methods=["POST"])
+          @app.route("/api/enrich/batch",    methods=["POST"])
+          @app.route("/api/ask",             methods=["POST"])
+          @app.route("/api/embed",           methods=["POST"])
+          @app.route("/api/ticks",           methods=["POST"])
+          def ok_post(): return jsonify({"status": "ok", "sentiment": "positive", "confidence": 0.9}), 200
+
+          @app.route("/actuator/health")
+          @app.route("/api/enrich/status")
+          @app.route("/api/alerts")
+          @app.route("/api/alerts/critical")
+          def ok_get(): return jsonify({"status": "UP"}), 200
+
+          @app.route("/api/search")
+          def search(): return jsonify({"results": []}), 200
+
+          @app.route("/api/symbols/<symbol>")
+          def symbol(symbol): return jsonify({"symbol": symbol, "ticks": []}), 200
+
+          app.run(host="0.0.0.0", port=8080, threaded=True)
+          EOF
+          sleep 3
+          curl -sf http://localhost:8080/actuator/health && echo "Stub server is up"
+
+      - name: Run Locust (headless, 10 users, 60 s)
+        working-directory: camel-ai-data-pipeline/load-tests
+        run: |
+          mkdir -p results
+          locust -f locustfile.py \
+                 --host http://localhost:8080 \
+                 --headless \
+                 --users 10 \
+                 --spawn-rate 2 \
+                 --run-time 60s \
+                 --csv results/load_test \
+                 --html results/load_test_report.html \
+                 --exit-code-on-error 0
+
+      - name: Analyse load test results
+        working-directory: camel-ai-data-pipeline/load-tests
+        run: |
+          python analysis/analyze_results.py \
+            --csv-prefix results/load_test \
+            --output-dir results
+
+      - name: Upload load test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-results
+          path: |
+            camel-ai-data-pipeline/load-tests/results/
+          retention-days: 30
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 4: Architecture & documentation lint
+  # ─────────────────────────────────────────────────────────────────────────
+  docs-check:
+    name: Documentation — broken link check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check internal README links
+        run: |
+          python - << 'EOF'
+          import re, sys
+          from pathlib import Path
+
+          root = Path("camel-ai-data-pipeline")
+          errors = []
+          md_link = re.compile(r'\[.*?\]\(\./([^)#]+)')
+
+          for md in root.rglob("*.md"):
+              for m in md_link.finditer(md.read_text(encoding="utf-8")):
+                  target = (md.parent / m.group(1)).resolve()
+                  if not target.exists():
+                      errors.append(f"{md}: broken link -> {m.group(1)}")
+
+          if errors:
+              print("Broken internal links found:")
+              for e in errors:
+                  print(f"  {e}")
+              sys.exit(1)
+          else:
+              print(f"All internal README links OK ({len(list(root.rglob('*.md')))} files checked)")
+          EOF

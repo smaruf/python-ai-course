@@ -1,0 +1,18 @@
+{
+  "type": "record",
+  "name": "NewsEvent",
+  "namespace": "com.example.camel.level5",
+  "doc": "Market news event schema with AI enrichment fields",
+  "fields": [
+    {"name": "id",        "type": "string",          "doc": "Unique message ID"},
+    {"name": "title",     "type": "string",          "doc": "News headline"},
+    {"name": "body",      "type": "string",          "doc": "Full news article text"},
+    {"name": "source",    "type": "string",          "doc": "News source name"},
+    {"name": "symbol",    "type": ["null", "string"],"default": null, "doc": "Related stock symbol"},
+    {"name": "timestamp", "type": "long",            "logicalType": "timestamp-millis"},
+    {"name": "sentiment", "type": ["null", "string"],"default": null, "doc": "AI sentiment: positive/negative/neutral"},
+    {"name": "confidence","type": ["null", "double"],"default": null, "doc": "AI confidence score 0.0-1.0"},
+    {"name": "summary",   "type": ["null", "string"],"default": null, "doc": "AI-generated summary"},
+    {"name": "tags",      "type": {"type": "array", "items": "string"}, "default": [], "doc": "AI-generated topic tags"}
+  ]
+}

@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: camel-level3-ai-integration
+
+camel:
+  springboot:
+    name: CamelLevel3
+    main-run-controller: true
+
+kafka:
+  brokers: localhost:9092
+
+ai:
+  provider: openai        # or "ollama" for local
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    model: gpt-4o-mini
+  ollama:
+    base-url: http://localhost:11434
+    model: llama3.1
+
+server:
+  port: 8083
+
+logging:
+  level:
+    com.example.camel: DEBUG
+    org.apache.camel: INFO

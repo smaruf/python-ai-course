@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: camel-level5-advanced-engineering
+
+camel:
+  springboot:
+    name: CamelLevel5
+    main-run-controller: true
+
+kafka:
+  brokers: localhost:9092
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+server:
+  port: 8085
+
+logging:
+  level:
+    com.example.camel: DEBUG
+    org.apache.camel: INFO
