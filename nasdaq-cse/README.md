@@ -7,6 +7,50 @@ This document summarizes the upcoming **CSE Commodity Exchange in Bangladesh**, 
 
 ---
 
+## Terminal CLI (Command-Line Buy/Sell)
+
+Use `terminal_cli.py` for fast command-line order entry.
+
+### Start terminal mode
+
+```bash
+cd /home/runner/work/python-ai-course/python-ai-course/nasdaq-cse
+python terminal_cli.py
+```
+
+Optional live OMS connection:
+
+```bash
+python terminal_cli.py --host http://localhost:8000 --user-id 1
+```
+
+### Buy/Sell command syntax
+
+```text
+b <SYMBOL> <QTY> <PRICE>   # limit buy
+s <SYMBOL> <QTY> <PRICE>   # limit sell
+bm <SYMBOL> <QTY>          # market buy
+sm <SYMBOL> <QTY>          # market sell
+```
+
+Examples:
+
+```text
+b BATBC 100 25.40
+s GP 500 350
+bm BATBC 100
+sm GP 500
+```
+
+### Batch mode (non-interactive)
+
+```bash
+echo "b BATBC 100 25.40" | python terminal_cli.py --batch
+echo "s GP 500 350" | python terminal_cli.py --batch
+```
+
+---
+
 ## 1. Commodity Exchange Landscape in Bangladesh (CSE)
 
 - **Launch Goal:** Late 2025 (trial runs in Dec 2025)
@@ -208,4 +252,3 @@ Distress selling                     Price hedging before harvest
 ---
 
 **End of Document**
-
