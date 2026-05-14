@@ -116,7 +116,13 @@ class ParsedCommand:
             else f"{self.quantity:.0f}%" if self.quantity_is_pct
             else "?"
         )
-        type_label = "Market" if self.order_type == "MARKET" else f"@ {self.price:.2f}" if self.price else "Limit"
+        type_label: str
+        if self.order_type == "MARKET":
+            type_label = "Market"
+        elif self.price:
+            type_label = f"@ {self.price:.2f}"
+        else:
+            type_label = "Limit"
         if self.quantity and self.price:
             value = self.quantity * self.price
             return f"{side_label} {self.symbol}  qty {qty_str}  {type_label}  value ≈ {value:,.2f} BDT"

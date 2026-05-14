@@ -49,14 +49,18 @@ class _SimulatedOMS:
         self._next_id: int = 100001
 
     async def submit_order(self, user_id: int, order_request: dict) -> dict:
+        import random
         order_id = str(self._next_id)
         self._next_id += 1
-        status = "FILLED" if order_request.get("order_type") == "MARKET" else "PENDING"
-        price = order_request.get("price") or 0.0
+        is_market = order_request.get("order_type") == "MARKET"
+        status = "FILLED" if is_market else "PENDING"
+        # Use provided limit price or simulate a market execution price
+        limit_price = order_request.get("price")
+        exec_price = limit_price if limit_price else round(100.0 * (1 + random.uniform(-0.005, 0.005)), 2)
         self._orders[order_id] = {**order_request, "status": status, "user_id": user_id}
         trades = []
         if status == "FILLED":
-            trades = [{"trade_id": f"T{order_id}", "price": price, "quantity": order_request.get("quantity", 0)}]
+            trades = [{"trade_id": f"T{order_id}", "price": exec_price, "quantity": order_request.get("quantity", 0)}]
         return {
             "success": True,
             "order_id": order_id,
