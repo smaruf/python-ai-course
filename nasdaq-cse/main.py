@@ -19,6 +19,8 @@ from market_data.provider import gold_price_provider, chart_generator
 from ai_assistant.bot import trading_bot
 from oms.manager import order_manager
 from rms.manager import risk_manager
+from terminal.commands import TerminalCommandExecutor
+from terminal.symbols import autocomplete as symbol_autocomplete
 
 
 # Background task for updating market data and positions
@@ -73,9 +75,27 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+# Terminal executor (shared, user_id resolved per-request)
+_terminal_executor_cache: Dict[int, TerminalCommandExecutor] = {}
+
+
+def get_terminal_executor(user_id: int) -> TerminalCommandExecutor:
+    if user_id not in _terminal_executor_cache:
+        _terminal_executor_cache[user_id] = TerminalCommandExecutor(
+            order_manager=order_manager,
+            user_id=user_id,
+        )
+    return _terminal_executor_cache[user_id]
+
+
 # Pydantic models for API
 class ChatMessage(BaseModel):
     message: str
+    user_id: int = 1
+
+
+class TerminalCommand(BaseModel):
+    command: str
     user_id: int = 1
 
 class TradingContext(BaseModel):
@@ -228,6 +248,53 @@ async def chat_with_ai(message: ChatMessage):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Terminal / Command Mode endpoints ─────────────────────────────────────────
+
+@app.post("/api/terminal/execute")
+async def terminal_execute(cmd_body: TerminalCommand):
+    """
+    Execute a terminal-style order command.
+
+    Examples::
+
+        {"command": "b BATBC 100 25.40", "user_id": 1}
+        {"command": "bm GP 200",          "user_id": 1}
+        {"command": "c 982734",            "user_id": 1}
+    """
+    try:
+        executor = get_terminal_executor(cmd_body.user_id)
+        results = await executor.execute(cmd_body.command)
+        return JSONResponse(content={
+            "results": [r.to_dict() for r in results],
+            "command": cmd_body.command,
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/terminal/complete")
+async def terminal_autocomplete(prefix: str = "", max_results: int = 10):
+    """Return symbol autocomplete suggestions for the given prefix."""
+    matches = symbol_autocomplete(prefix, max_results=max_results)
+    return JSONResponse(content={"suggestions": matches})
+
+
+@app.get("/api/terminal/history")
+async def terminal_history(user_id: int = 1, limit: int = 50):
+    """Return the command history for a user."""
+    executor = get_terminal_executor(user_id)
+    history = executor.history[-limit:]
+    return JSONResponse(content={"history": history})
+
+
+@app.delete("/api/terminal/history")
+async def terminal_clear_history(user_id: int = 1):
+    """Clear the command history for a user."""
+    executor = get_terminal_executor(user_id)
+    executor.clear_history()
+    return JSONResponse(content={"cleared": True})
 
 @app.get("/api/ai/analysis")
 async def get_ai_analysis(user_id: int = 1):
@@ -488,9 +555,169 @@ def get_main_html():
         .position-item.loss {
             border-left-color: #dc3545;
         }
+        /* ── OMS Terminal overlay ──────────────────────────────────────── */
+        #terminalOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 9000;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 80px;
+        }
+        #terminalOverlay.open { display: flex; }
+        #terminalBox {
+            background: #0d1117;
+            color: #c9d1d9;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.92rem;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+            width: min(720px, 95vw);
+            display: flex;
+            flex-direction: column;
+        }
+        #terminalHeader {
+            background: #161b22;
+            padding: 0.6rem 1rem;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #58a6ff;
+            font-weight: 600;
+        }
+        #terminalHeader .kbd {
+            font-size: 0.78rem;
+            color: #8b949e;
+            font-weight: normal;
+        }
+        #terminalOutput {
+            padding: 0.75rem 1rem;
+            min-height: 140px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        #terminalOutput .line-ok   { color: #3fb950; }
+        #terminalOutput .line-err  { color: #f85149; }
+        #terminalOutput .line-cmd  { color: #e3b341; }
+        #terminalOutput .line-hint { color: #8b949e; font-style: italic; }
+        #terminalPreview {
+            border-top: 1px solid #21262d;
+            padding: 0.4rem 1rem;
+            color: #8b949e;
+            font-size: 0.85rem;
+            min-height: 1.5rem;
+        }
+        #terminalInputRow {
+            border-top: 1px solid #21262d;
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            gap: 0.5rem;
+        }
+        #terminalInputRow span { color: #58a6ff; }
+        #terminalInput {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #c9d1d9;
+            font-family: inherit;
+            font-size: inherit;
+            caret-color: #58a6ff;
+        }
+        #terminalSuggest {
+            padding: 0 1rem 0.6rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        .suggest-chip {
+            background: #21262d;
+            color: #58a6ff;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border: 1px solid #30363d;
+        }
+        .suggest-chip:hover { background: #30363d; }
+        #terminalToggleBtn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 8999;
+            background: #1f6feb;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 0.65rem 1.2rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+        #terminalToggleBtn:hover { background: #388bfd; }
+        .term-clear-btn {
+            background: transparent;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            color: #8b949e;
+            cursor: pointer;
+            font-size: 0.78rem;
+            padding: 0.1rem 0.45rem;
+            margin-left: 0.5rem;
+        }
+        .term-clear-btn:hover { background: #21262d; color: #c9d1d9; }
+        .term-result-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: baseline;
+        }
+        .term-result-row .term-ts {
+            color: #484f58;
+            font-size: 0.78rem;
+            min-width: 5.5rem;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
+    <!-- ── OMS Terminal floating overlay ──────────────────────────────── -->
+    <div id="terminalOverlay" role="dialog" aria-label="OMS Terminal">
+        <div id="terminalBox">
+            <div id="terminalHeader">
+                <span>⚡ OMS Terminal — FastTrade CMD</span>
+                <span style="display:flex;align-items:center;gap:0.25rem;">
+                    <span class="kbd">Ctrl+Space / Alt+T &nbsp;|&nbsp; ↑↓ history &nbsp;|&nbsp; Esc close</span>
+                    <button class="term-clear-btn" onclick="clearTerminal()" title="Clear output and history (cls)">⌫ cls</button>
+                </span>
+            </div>
+            <div id="terminalOutput">
+                <span class="line-hint">Commands are case-insensitive.  Examples:
+  b BATBC 100 25.40     → Limit buy
+  bm GP 200             → Market buy
+  s BATBC 50 25.60      → Limit sell
+  c &lt;order_id&gt;          → Cancel
+  m &lt;order_id&gt; 25.80 100 → Modify
+  b BATBC 5k 25.40      → qty shorthand (5k=5000)
+  cls                   → clear output &amp; history
+  help                  → full command reference
+</span>
+            </div>
+            <div id="terminalPreview"></div>
+            <div id="terminalInputRow">
+                <span>&gt;</span>
+                <input id="terminalInput" type="text" placeholder="b BATBC 100 25.40" autocomplete="off" spellcheck="false"/>
+            </div>
+            <div id="terminalSuggest"></div>
+        </div>
+    </div>
+    <button id="terminalToggleBtn" onclick="toggleTerminal()" title="Open OMS Terminal (Ctrl+Space)">⚡ Terminal</button>
     <div class="header">
         <h1>🏛️ NASDAQ CSE Gold Derivatives Trading Simulator</h1>
         <div class="subtitle">
@@ -763,7 +990,225 @@ def get_main_html():
             refreshChart();
             refreshOrders();
             refreshPositions();
+            initTerminal();
         };
+
+        // ── OMS Terminal ──────────────────────────────────────────────────
+        const termOverlay  = document.getElementById('terminalOverlay');
+        const termInput    = document.getElementById('terminalInput');
+        const termOutput   = document.getElementById('terminalOutput');
+        const termPreview  = document.getElementById('terminalPreview');
+        const termSuggest  = document.getElementById('terminalSuggest');
+        let termHistory    = [];
+        let termHistIdx    = -1;
+        let suggestDebounce = null;
+
+        function initTerminal() {
+            // Keyboard shortcut: Ctrl+Space or Alt+T
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey && e.code === 'Space') || (e.altKey && e.key === 't')) {
+                    e.preventDefault();
+                    toggleTerminal();
+                }
+                if (e.key === 'Escape' && termOverlay.classList.contains('open')) {
+                    closeTerminal();
+                }
+            });
+
+            termInput.addEventListener('keydown', handleTerminalKeyDown);
+            termInput.addEventListener('input', onTerminalInput);
+            termOverlay.addEventListener('click', (e) => {
+                if (e.target === termOverlay) closeTerminal();
+            });
+        }
+
+        function toggleTerminal() {
+            if (termOverlay.classList.contains('open')) {
+                closeTerminal();
+            } else {
+                openTerminal();
+            }
+        }
+
+        function openTerminal() {
+            termOverlay.classList.add('open');
+            termInput.focus();
+        }
+
+        function closeTerminal() {
+            termOverlay.classList.remove('open');
+        }
+
+        async function handleTerminalKeyDown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                await submitTerminalCommand();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                navigateHistory(1);
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                navigateHistory(-1);
+            } else if (e.key === 'Tab') {
+                e.preventDefault();
+                applyFirstSuggestion();
+            }
+        }
+
+        function navigateHistory(direction) {
+            if (termHistory.length === 0) return;
+            termHistIdx = Math.max(0, Math.min(termHistory.length - 1, termHistIdx + direction));
+            termInput.value = termHistory[termHistory.length - 1 - termHistIdx] || '';
+            updatePreview();
+        }
+
+        function onTerminalInput() {
+            termHistIdx = -1;
+            clearTimeout(suggestDebounce);
+            suggestDebounce = setTimeout(() => {
+                updatePreview();
+                fetchSuggestions();
+            }, 80);
+        }
+
+        function updatePreview() {
+            const cmd = termInput.value.trim();
+            if (!cmd) { termPreview.textContent = ''; return; }
+            // Client-side lightweight preview (no server call needed)
+            const tokens = cmd.split(/\s+/);
+            const verb = (tokens[0] || '').toLowerCase();
+            const typeMap = {b:'Buy', buy:'Buy', bm:'Buy Market', s:'Sell', sell:'Sell', sm:'Sell Market',
+                             c:'Cancel', cancel:'Cancel', m:'Modify', modify:'Modify', rr:'Repeat last', help:'Help','?':'Help'};
+            const type = typeMap[verb] || '';
+            if (!type) { termPreview.textContent = ''; return; }
+            const symbol = tokens[1] ? tokens[1].toUpperCase() : '';
+            const qty    = tokens[2] ? parseQtyShorthand(tokens[2]) : null;
+            const price  = tokens[3] ? parseFloat(tokens[3]) : null;
+            let preview  = type;
+            if (symbol) preview += `  ${symbol}`;
+            if (qty !== null && !isNaN(qty)) preview += `  qty=${qty.toLocaleString()}`;
+            if (price !== null && !isNaN(price)) {
+                preview += `  @ ${price.toFixed(2)}`;
+                if (qty) preview += `  ≈ ${(qty * price).toLocaleString(undefined,{maximumFractionDigits:0})} BDT`;
+            }
+            termPreview.textContent = preview;
+        }
+
+        function parseQtyShorthand(s) {
+            s = s.replace('%','').toLowerCase();
+            if (s.endsWith('k')) return parseFloat(s) * 1000;
+            if (s.endsWith('m')) return parseFloat(s) * 1_000_000;
+            return parseFloat(s);
+        }
+
+        async function fetchSuggestions() {
+            const tokens = termInput.value.trim().split(/\s+/);
+            if (tokens.length < 2) { termSuggest.innerHTML = ''; return; }
+            const verb = tokens[0].toLowerCase();
+            if (!['b','s','bm','sm','buy','sell'].includes(verb)) {
+                termSuggest.innerHTML = ''; return;
+            }
+            // autocomplete on the symbol token regardless of its case
+            const prefix = tokens[1] || '';
+            if (prefix.length < 1) { termSuggest.innerHTML = ''; return; }
+            try {
+                const resp = await fetch(`/api/terminal/complete?prefix=${encodeURIComponent(prefix)}&max_results=6`);
+                const data = await resp.json();
+                renderSuggestions(data.suggestions || []);
+            } catch(_) {}
+        }
+
+        function renderSuggestions(suggestions) {
+            termSuggest.innerHTML = suggestions.map(s =>
+                `<span class="suggest-chip" onclick="applySuggestion('${s.symbol}')" title="${s.name}">${s.symbol}</span>`
+            ).join('');
+        }
+
+        function applySuggestion(sym) {
+            const tokens = termInput.value.trim().split(/\s+/);
+            tokens[1] = sym;
+            termInput.value = tokens.join(' ') + ' ';
+            termInput.focus();
+            termSuggest.innerHTML = '';
+            updatePreview();
+        }
+
+        function applyFirstSuggestion() {
+            const first = termSuggest.querySelector('.suggest-chip');
+            if (first) first.click();
+        }
+
+        async function submitTerminalCommand() {
+            const cmd = termInput.value.trim();
+            if (!cmd) return;
+
+            // locally detect cls/clear so output clears before the API reply
+            const verb = cmd.split(/\s+/)[0].toLowerCase();
+            if (['cls','clear','clearhistory','clr'].includes(verb)) {
+                clearTerminal();
+                termInput.value = '';
+                // also notify server to clear server-side history
+                fetch('/api/terminal/history?user_id=1', {method: 'DELETE'}).catch(() => {});
+                return;
+            }
+
+            appendLine('line-cmd', '> ' + cmd);
+            termHistory.push(cmd);
+            termHistIdx = -1;
+            termInput.value = '';
+            termPreview.textContent = '';
+            termSuggest.innerHTML = '';
+
+            try {
+                const resp = await fetch('/api/terminal/execute', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({command: cmd, user_id: 1})
+                });
+                const data = await resp.json();
+                for (const r of (data.results || [])) {
+                    if (r.data && r.data.clear_output) {
+                        clearOutput();
+                    } else {
+                        appendLine(r.success ? 'line-ok' : 'line-err', r.message);
+                        if (r.order_id) refreshOrders();
+                    }
+                }
+            } catch(err) {
+                appendLine('line-err', '❌ Network error: ' + err.message);
+            }
+        }
+
+        function _timestamp() {
+            const d = new Date();
+            return d.toTimeString().slice(0,8);
+        }
+
+        function appendLine(cls, text) {
+            const row = document.createElement('div');
+            row.className = 'term-result-row';
+            const ts = document.createElement('span');
+            ts.className = 'term-ts';
+            ts.textContent = _timestamp();
+            const msg = document.createElement('span');
+            msg.className = cls;
+            msg.style.whiteSpace = 'pre-wrap';
+            msg.textContent = text;
+            row.appendChild(ts);
+            row.appendChild(msg);
+            termOutput.appendChild(row);
+            termOutput.scrollTop = termOutput.scrollHeight;
+        }
+
+        function clearOutput() {
+            termOutput.innerHTML = '';
+        }
+
+        function clearTerminal() {
+            clearOutput();
+            termHistory = [];
+            termHistIdx = -1;
+        }
     </script>
 </body>
 </html>
