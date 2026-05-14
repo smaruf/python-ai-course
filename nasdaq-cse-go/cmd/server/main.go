@@ -17,10 +17,12 @@ import (
 	"github.com/smaruf/python-ai-course/nasdaq-cse-go/internal/aiassistant"
 	"github.com/smaruf/python-ai-course/nasdaq-cse-go/internal/communication"
 	"github.com/smaruf/python-ai-course/nasdaq-cse-go/internal/core"
+	"github.com/smaruf/python-ai-course/nasdaq-cse-go/internal/dealer"
 	"github.com/smaruf/python-ai-course/nasdaq-cse-go/internal/marketdata"
 	"github.com/smaruf/python-ai-course/nasdaq-cse-go/internal/oms"
 	"github.com/smaruf/python-ai-course/nasdaq-cse-go/internal/rms"
 	"github.com/smaruf/python-ai-course/nasdaq-cse-go/internal/storage"
+	"github.com/smaruf/python-ai-course/nasdaq-cse-go/internal/terminal"
 )
 
 // Server holds all service dependencies
@@ -32,6 +34,8 @@ type Server struct {
 	riskManager     *rms.RiskManager
 	tradingBot      *aiassistant.TradingBot
 	commManager     *communication.CommunicationManager
+	dealerManager   *dealer.Manager
+	terminalParser  *terminal.Parser
 	wsConnections   map[*websocket.Conn]bool
 	wsUpgrader      websocket.Upgrader
 }
@@ -56,6 +60,8 @@ func NewServer() (*Server, error) {
 	riskManager := rms.NewRiskManager(db.GetDB())
 	tradingBot := aiassistant.NewTradingBot()
 	commManager := communication.NewCommunicationManager()
+	dealerMgr := dealer.NewManager(db.GetDB())
+	termParser := terminal.NewParser(dealerMgr)
 
 	// WebSocket upgrader
 	wsUpgrader := websocket.Upgrader{
@@ -65,15 +71,17 @@ func NewServer() (*Server, error) {
 	}
 
 	server := &Server{
-		db:            db,
-		jsonStorage:   jsonStorage,
-		marketData:    marketData,
-		orderManager:  orderManager,
-		riskManager:   riskManager,
-		tradingBot:    tradingBot,
-		commManager:   commManager,
-		wsConnections: make(map[*websocket.Conn]bool),
-		wsUpgrader:    wsUpgrader,
+		db:             db,
+		jsonStorage:    jsonStorage,
+		marketData:     marketData,
+		orderManager:   orderManager,
+		riskManager:    riskManager,
+		tradingBot:     tradingBot,
+		commManager:    commManager,
+		dealerManager:  dealerMgr,
+		terminalParser: termParser,
+		wsConnections:  make(map[*websocket.Conn]bool),
+		wsUpgrader:     wsUpgrader,
 	}
 
 	// Start background tasks
@@ -140,6 +148,26 @@ func (s *Server) setupRoutes() *gin.Engine {
 		// Risk management
 		api.GET("/risk/report", s.handleRiskReport)
 		api.GET("/risk/margin", s.handleMarginStatus)
+
+		// Multi-BO dealer workstation
+		api.POST("/terminal/command", s.handleTerminalCommand)
+		api.GET("/dealer/context", s.handleGetDealerContext)
+		api.POST("/dealer/switch-bo", s.handleSwitchBO)
+		api.GET("/dealer/bo-list", s.handleListBOs)
+		api.GET("/dealer/groups", s.handleListGroups)
+		api.GET("/dealer/risk-dashboard", s.handleDealerRiskDashboard)
+		api.GET("/dealer/audit", s.handleGetAuditLog)
+		api.GET("/bo/:bo_id/dashboard", s.handleBODashboard)
+		api.GET("/bo/:bo_id/positions", s.handleBOPositions)
+		api.GET("/bo/:bo_id/orders", s.handleBOOrders)
+		api.GET("/bo/:bo_id/watchlist", s.handleGetWatchlist)
+		api.POST("/bo/:bo_id/watchlist", s.handleAddWatchlist)
+		api.GET("/bo/search", s.handleBOSearch)
+		api.POST("/bo/order", s.handleSubmitBOOrder)
+		api.POST("/bo/group-order", s.handleGroupOrder)
+		api.POST("/bo/basket-order", s.handleBasketOrder)
+		api.POST("/bo/alloc-order", s.handleAllocOrder)
+		api.POST("/bo/clone-order", s.handleCloneOrder)
 	}
 
 	// WebSocket endpoint
@@ -148,28 +176,367 @@ func (s *Server) setupRoutes() *gin.Engine {
 	return router
 }
 
-// handleRoot serves the main trading interface
+// handleRoot serves the Bloomberg-style multi-BO dealer workstation UI
 func (s *Server) handleRoot(c *gin.Context) {
-	html := `
-<!DOCTYPE html>
+	html := `<!DOCTYPE html>
 <html>
 <head>
-    <title>NASDAQ CSE Gold Derivatives Trading Simulator</title>
+    <title>Bloomberg-Lite Multi-BO Dealer Workstation</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .price { font-size: 2em; font-weight: bold; color: #2ecc71; }
-        .change { font-weight: bold; }
-        .positive { color: #27ae60; }
-        .negative { color: #e74c3c; }
-        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
-        .connected { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .disconnected { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Courier New', monospace; background: #0a0a0a; color: #e0e0e0; height: 100vh; overflow: hidden; }
+        /* Header */
+        #header { background: #1a1a2e; color: #f0c040; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0c040; font-size: 13px; }
+        #header h1 { font-size: 14px; letter-spacing: 2px; }
+        #active-bo { background: #222; color: #4fc3f7; padding: 3px 10px; border: 1px solid #4fc3f7; border-radius: 3px; font-size: 12px; }
+        /* Main layout */
+        #workspace { display: grid; grid-template-columns: 200px 1fr 280px; grid-template-rows: 1fr 180px; height: calc(100vh - 36px); gap: 2px; background: #111; padding: 2px; }
+        /* Panels */
+        .panel { background: #0f0f1a; border: 1px solid #2a2a4a; overflow: hidden; display: flex; flex-direction: column; }
+        .panel-title { background: #1a1a3e; color: #f0c040; padding: 4px 8px; font-size: 11px; font-weight: bold; letter-spacing: 1px; border-bottom: 1px solid #2a2a4a; flex-shrink: 0; }
+        .panel-body { flex: 1; overflow-y: auto; padding: 6px; font-size: 11px; }
+        /* BO List */
+        #bo-list-panel { grid-row: 1 / 3; }
+        .bo-item { padding: 4px 6px; cursor: pointer; border-bottom: 1px solid #1a1a2e; border-radius: 2px; }
+        .bo-item:hover { background: #1a2a3a; }
+        .bo-item.active { background: #0a2a4a; border-left: 3px solid #4fc3f7; }
+        .bo-id { color: #4fc3f7; font-weight: bold; font-size: 12px; }
+        .bo-name { color: #aaa; font-size: 10px; }
+        .bo-bp { color: #4caf50; font-size: 10px; }
+        /* Main area */
+        #main-area { grid-column: 2; grid-row: 1; display: grid; grid-template-rows: 1fr 1fr; gap: 2px; }
+        /* Positions & depth */
+        #depth-panel { }
+        #positions-panel { }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th { background: #1a1a3e; color: #f0c040; padding: 3px 6px; text-align: left; position: sticky; top: 0; }
+        td { padding: 3px 6px; border-bottom: 1px solid #1a1a2e; }
+        tr:hover td { background: #1a1a2e; }
+        .pos { color: #4caf50; }
+        .neg { color: #ef5350; }
+        /* Orders panel */
+        #orders-panel { grid-column: 3; grid-row: 1; }
+        /* Dashboard */
+        #dashboard-panel { grid-column: 2 / 4; grid-row: 2; }
+        /* Terminal */
+        #terminal-panel { grid-column: 2 / 4; grid-row: 2; display: flex; flex-direction: column; }
+        #terminal-output { flex: 1; overflow-y: auto; padding: 6px; font-size: 11px; font-family: 'Courier New', monospace; background: #050510; color: #c8e6c9; white-space: pre-wrap; }
+        #terminal-input-row { display: flex; padding: 4px; background: #0a0a1a; border-top: 1px solid #2a2a4a; }
+        #terminal-prompt { color: #f0c040; padding: 4px 6px; font-size: 12px; }
+        #terminal-input { flex: 1; background: transparent; border: none; color: #e0e0e0; font-family: 'Courier New', monospace; font-size: 12px; outline: none; }
+        .cmd-ok { color: #4caf50; }
+        .cmd-err { color: #ef5350; }
+        .cmd-info { color: #4fc3f7; }
+        /* Market strip */
+        #market-strip { background: #050518; border-bottom: 1px solid #2a2a4a; padding: 3px 8px; font-size: 11px; display: flex; gap: 20px; flex-wrap: wrap; }
+        .quote-item { display: flex; gap: 6px; }
+        .sym { color: #f0c040; font-weight: bold; }
+        .ltp { color: #e0e0e0; }
+        .chg-pos { color: #4caf50; }
+        .chg-neg { color: #ef5350; }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 2px; }
+        .badge-hni { color: #ff9800; } .badge-margin { color: #ef5350; } .badge-inst { color: #9c27b0; }
+        .badge-prop { color: #f0c040; } .badge-family { color: #4fc3f7; }
     </style>
+</head>
+<body>
+<div id="header">
+    <h1>&#9632; BLOOMBERG-LITE DEALER WORKSTATION &mdash; CSE/DSE</h1>
+    <div style="display:flex;gap:10px;align-items:center;">
+        <div id="ws-status" style="color:#ef5350;font-size:11px;">&#9679; WS</div>
+        <div>Dealer: <strong style="color:#f0c040;">demo_trader</strong></div>
+        <div id="active-bo">Active BO: NONE</div>
+        <div id="clock" style="color:#888;font-size:11px;"></div>
+    </div>
+</div>
+
+<div id="market-strip" id="market-strip">
+    <span class="quote-item"><span class="sym">GP</span> <span class="ltp" id="q-GP">350.00</span> <span class="chg-pos">+1.50</span></span>
+    <span class="quote-item"><span class="sym">BATBC</span> <span class="ltp" id="q-BATBC">25.40</span> <span class="chg-neg">-0.10</span></span>
+    <span class="quote-item"><span class="sym">SQPH</span> <span class="ltp" id="q-SQPH">220.00</span> <span class="chg-pos">+2.00</span></span>
+    <span class="quote-item"><span class="sym">BRAC</span> <span class="ltp" id="q-BRAC">45.00</span> <span class="chg-pos">+0.50</span></span>
+    <span class="quote-item"><span class="sym">ROBI</span> <span class="ltp" id="q-ROBI">18.50</span> <span class="chg-neg">-0.20</span></span>
+    <span class="quote-item"><span class="sym">LHBL</span> <span class="ltp" id="q-LHBL">60.00</span> <span class="chg-pos">+1.00</span></span>
+</div>
+
+<div id="workspace">
+    <!-- BO List -->
+    <div class="panel" id="bo-list-panel">
+        <div class="panel-title">&#9632; BO ACCOUNTS</div>
+        <div class="panel-body" id="bo-list">Loading...</div>
+    </div>
+
+    <!-- Main area: depth + positions -->
+    <div id="main-area">
+        <div class="panel" id="positions-panel">
+            <div class="panel-title">&#9632; POSITIONS</div>
+            <div class="panel-body">
+                <table id="pos-table">
+                    <thead><tr><th>Symbol</th><th>Qty</th><th>Avg</th><th>LTP</th><th>P/L</th></tr></thead>
+                    <tbody id="pos-body"><tr><td colspan="5" style="color:#666;">Select a BO account</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="panel" id="depth-panel">
+            <div class="panel-title">&#9632; OPEN ORDERS</div>
+            <div class="panel-body">
+                <table id="ord-table">
+                    <thead><tr><th>ID</th><th>Side</th><th>Symbol</th><th>Qty</th><th>Price</th><th>Status</th></tr></thead>
+                    <tbody id="ord-body"><tr><td colspan="6" style="color:#666;">Select a BO account</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Orders / Dashboard -->
+    <div class="panel" id="orders-panel">
+        <div class="panel-title">&#9632; BO DASHBOARD</div>
+        <div class="panel-body" id="bo-dashboard">
+            <div style="color:#666;margin-top:20px;text-align:center;">Select a BO account<br>or type: dashboard BO1001</div>
+        </div>
+    </div>
+
+    <!-- Terminal (bottom) -->
+    <div class="panel" id="terminal-panel">
+        <div class="panel-title">&#9632; TERMINAL &mdash; type <span style="color:#4fc3f7;">help</span> for commands</div>
+        <div id="terminal-output">Bloomberg-Lite Terminal ready. Type <span class="cmd-info">help</span> for command reference.
+Type <span class="cmd-info">b BO1001 GP 100 350</span> to buy, <span class="cmd-info">s BO1002 BATBC 500 25.4</span> to sell.
+Type <span class="cmd-info">bo maruf</span> to search BO accounts.
+</div>
+        <div id="terminal-input-row">
+            <span id="terminal-prompt">TERMINAL&gt;</span>
+            <input id="terminal-input" type="text" autocomplete="off" spellcheck="false" placeholder="Enter command...">
+        </div>
+    </div>
+</div>
+
+<script>
+const DEALER_ID = 1;
+let activeBOID = null;
+let ws = null;
+let cmdHistory = [];
+let histIdx = -1;
+
+// Clock
+function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleTimeString('en-GB');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// WebSocket
+function connectWS() {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    ws = new WebSocket(proto + '//' + location.host + '/ws');
+    ws.onopen = () => { document.getElementById('ws-status').style.color = '#4caf50'; };
+    ws.onclose = () => { document.getElementById('ws-status').style.color = '#ef5350'; setTimeout(connectWS, 3000); };
+    ws.onmessage = (e) => {
+        try {
+            const d = JSON.parse(e.data);
+            if (d.type === 'market_data') updateMarketStrip(d.data);
+        } catch(ex) {}
+    };
+}
+connectWS();
+
+function updateMarketStrip(data) {
+    if (data.price) document.getElementById('q-GP').textContent = data.price.toFixed(2);
+}
+
+// Load BO list
+function loadBOList() {
+    fetch('/api/dealer/bo-list?dealer_id=' + DEALER_ID)
+        .then(r => r.json())
+        .then(bos => {
+            const el = document.getElementById('bo-list');
+            if (!bos || bos.length === 0) { el.textContent = 'No BO accounts'; return; }
+            el.innerHTML = '';
+            bos.forEach(bo => {
+                const div = document.createElement('div');
+                div.className = 'bo-item' + (bo.bo_id === activeBOID ? ' active' : '');
+                div.dataset.boid = bo.bo_id;
+                const badgeClass = {HNI:'badge-hni',MARGIN:'badge-margin',INSTITUTIONAL:'badge-inst',PROP:'badge-prop',FAMILY_OFFICE:'badge-family'}[bo.group_type] || '';
+                div.innerHTML = '<div class="bo-id">' + bo.bo_id + '</div>' +
+                    '<div class="bo-name">' + bo.client_name + '</div>' +
+                    '<div class="bo-bp">BP: ' + formatNum(bo.buying_power) + ' <span class="' + badgeClass + '">' + bo.group_type + '</span></div>';
+                div.onclick = () => selectBO(bo.bo_id);
+                el.appendChild(div);
+            });
+        })
+        .catch(() => {});
+}
+
+function selectBO(boID) {
+    activeBOID = boID;
+    document.getElementById('active-bo').textContent = 'Active BO: ' + boID;
+    document.querySelectorAll('.bo-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.boid === boID);
+    });
+    loadBODashboard(boID);
+    loadBOPositions(boID);
+    loadBOOrders(boID);
+    // Also switch server context
+    fetch('/api/dealer/switch-bo', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({bo_id: boID, dealer_id: DEALER_ID})
+    }).catch(() => {});
+}
+
+function loadBODashboard(boID) {
+    fetch('/api/bo/' + boID + '/dashboard')
+        .then(r => r.json())
+        .then(d => {
+            const el = document.getElementById('bo-dashboard');
+            const pnlClass = d.unrealized_pnl >= 0 ? 'pos' : 'neg';
+            el.innerHTML = '<div style="padding:8px;line-height:1.8">' +
+                '<div>&#9632; <strong style="color:#4fc3f7">' + d.bo_id + '</strong> &mdash; ' + d.client_name + '</div>' +
+                '<div>Buying Power: <strong style="color:#4caf50">' + formatNum(d.buying_power) + '</strong></div>' +
+                '<div>Exposure: <strong>' + formatNum(d.exposure) + '</strong></div>' +
+                '<div>Margin: <strong style="color:' + (d.margin_status==='OK'?'#4caf50':'#ef5350') + '">' + d.margin_status + '</strong></div>' +
+                '<div>Holdings: <strong>' + d.holdings + '</strong></div>' +
+                '<div>P/L: <strong class="' + pnlClass + '">' + formatNum(d.unrealized_pnl) + '</strong></div>' +
+                '<div>Pending Orders: <strong>' + d.pending_orders + '</strong></div>' +
+                '</div>';
+        })
+        .catch(() => {});
+}
+
+function loadBOPositions(boID) {
+    fetch('/api/bo/' + boID + '/positions')
+        .then(r => r.json())
+        .then(positions => {
+            const tbody = document.getElementById('pos-body');
+            if (!positions || positions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="color:#666;">No open positions</td></tr>';
+                return;
+            }
+            tbody.innerHTML = positions.map(p => {
+                const pnlClass = p.unrealized_pnl >= 0 ? 'pos' : 'neg';
+                return '<tr><td style="color:#f0c040">' + p.symbol + '</td>' +
+                    '<td>' + p.quantity.toFixed(0) + '</td>' +
+                    '<td>' + p.avg_price.toFixed(2) + '</td>' +
+                    '<td>' + (p.ltp||0).toFixed(2) + '</td>' +
+                    '<td class="' + pnlClass + '">' + (p.unrealized_pnl||0).toFixed(2) + '</td></tr>';
+            }).join('');
+        })
+        .catch(() => {});
+}
+
+function loadBOOrders(boID) {
+    fetch('/api/bo/' + boID + '/orders?limit=15')
+        .then(r => r.json())
+        .then(orders => {
+            const tbody = document.getElementById('ord-body');
+            if (!orders || orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="color:#666;">No orders</td></tr>';
+                return;
+            }
+            tbody.innerHTML = orders.map(o => {
+                const sideColor = o.side === 'BUY' ? '#4caf50' : '#ef5350';
+                const price = o.price ? o.price.toFixed(2) : 'MKT';
+                return '<tr>' +
+                    '<td style="color:#888">' + o.order_id.substring(0,8) + '</td>' +
+                    '<td style="color:' + sideColor + '">' + o.side + '</td>' +
+                    '<td style="color:#f0c040">' + o.symbol + '</td>' +
+                    '<td>' + o.quantity.toFixed(0) + '</td>' +
+                    '<td>' + price + '</td>' +
+                    '<td style="color:#888">' + o.status + '</td></tr>';
+            }).join('');
+        })
+        .catch(() => {});
+}
+
+// Terminal
+const termInput = document.getElementById('terminal-input');
+const termOutput = document.getElementById('terminal-output');
+
+termInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+        const cmd = termInput.value.trim();
+        if (!cmd) return;
+        cmdHistory.unshift(cmd);
+        histIdx = -1;
+        termInput.value = '';
+        appendTerminal('> ' + cmd, 'cmd-info');
+        executeCommand(cmd);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (histIdx < cmdHistory.length - 1) { histIdx++; termInput.value = cmdHistory[histIdx]; }
+    } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (histIdx > 0) { histIdx--; termInput.value = cmdHistory[histIdx]; }
+        else { histIdx = -1; termInput.value = ''; }
+    }
+});
+
+function executeCommand(cmd) {
+    fetch('/api/terminal/command', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({command: cmd, dealer_id: DEALER_ID})
+    })
+    .then(r => r.json())
+    .then(resp => {
+        if (resp.success) {
+            appendTerminal(resp.output, 'cmd-ok');
+        } else {
+            appendTerminal(resp.output || resp.error, 'cmd-err');
+        }
+        // Refresh if order-related command
+        if (activeBOID && /^(b |bm |s |sm |clone|repeat|reverse|basket|alloc)/i.test(cmd)) {
+            loadBOPositions(activeBOID);
+            loadBOOrders(activeBOID);
+            loadBODashboard(activeBOID);
+            loadBOList();
+        }
+        if (/^switch/i.test(cmd)) {
+            const m = cmd.match(/switch\s+(\S+)/i);
+            if (m) { selectBO(m[1].toUpperCase()); }
+        }
+    })
+    .catch(err => appendTerminal('Network error: ' + err, 'cmd-err'));
+}
+
+function appendTerminal(text, cls) {
+    const span = document.createElement('span');
+    span.className = cls || '';
+    span.textContent = text + '\n';
+    termOutput.appendChild(span);
+    termOutput.scrollTop = termOutput.scrollHeight;
+}
+
+function formatNum(n) {
+    if (!n && n !== 0) return '-';
+    if (Math.abs(n) >= 1e7) return (n/1e7).toFixed(2) + 'Cr';
+    if (Math.abs(n) >= 1e5) return (n/1e5).toFixed(2) + 'L';
+    if (Math.abs(n) >= 1e3) return (n/1e3).toFixed(2) + 'K';
+    return n.toFixed(2);
+}
+
+// Init
+loadBOList();
+termInput.focus();
+
+// Refresh every 15s
+setInterval(() => {
+    loadBOList();
+    if (activeBOID) {
+        loadBOPositions(activeBOID);
+        loadBODashboard(activeBOID);
+    }
+}, 15000);
+</script>
+</body>
+</html>`
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
+}
 </head>
 <body>
     <div class="header">

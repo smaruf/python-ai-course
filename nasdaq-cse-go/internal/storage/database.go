@@ -37,6 +37,16 @@ func NewDatabaseManager(databasePath string) (*DatabaseManager, error) {
 		&core.Position{},
 		&core.MarketData{},
 		&core.AIAnalysis{},
+		// Multi-BO dealer workstation models
+		&core.BOAccount{},
+		&core.ClientGroup{},
+		&core.ClientGroupMember{},
+		&core.Watchlist{},
+		&core.WatchlistItem{},
+		&core.AuditLog{},
+		&core.DealerPermission{},
+		&core.BOOrder{},
+		&core.BOPosition{},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
@@ -47,6 +57,11 @@ func NewDatabaseManager(databasePath string) (*DatabaseManager, error) {
 	// Initialize sample data
 	if err := dm.initSampleData(); err != nil {
 		return nil, fmt.Errorf("failed to initialize sample data: %w", err)
+	}
+
+	// Initialize BO sample data
+	if err := dm.initBOSampleData(); err != nil {
+		return nil, fmt.Errorf("failed to initialize BO sample data: %w", err)
 	}
 
 	return dm, nil
@@ -127,6 +142,77 @@ func (dm *DatabaseManager) initSampleData() error {
 	if err := dm.db.Create(&user).Error; err != nil {
 		return fmt.Errorf("failed to create sample user: %w", err)
 	}
+
+	return nil
+}
+
+// initBOSampleData seeds sample BO accounts, groups, and dealer permissions
+func (dm *DatabaseManager) initBOSampleData() error {
+	var count int64
+	dm.db.Model(&core.BOAccount{}).Count(&count)
+	if count > 0 {
+		return nil // Already seeded
+	}
+
+	// Sample BO accounts (managed by dealer user ID 1)
+	boAccounts := []core.BOAccount{
+		{BOID: "BO1001", ClientName: "Maruf Rahman", DealerID: 1, GroupType: core.ClientGroupHNI, BuyingPower: 2500000, MarginStatus: "OK", IsActive: true},
+		{BOID: "BO1002", ClientName: "Fatima Begum", DealerID: 1, GroupType: core.ClientGroupMargin, BuyingPower: 800000, MarginStatus: "OK", IsActive: true},
+		{BOID: "BO1003", ClientName: "Abdul Karim", DealerID: 1, GroupType: core.ClientGroupHNI, BuyingPower: 5000000, MarginStatus: "OK", IsActive: true},
+		{BOID: "BO1004", ClientName: "Nasrin Akter", DealerID: 1, GroupType: core.ClientGroupFamilyOffice, BuyingPower: 1200000, MarginStatus: "OK", IsActive: true},
+		{BOID: "BO1005", ClientName: "BRAC Capital Fund", DealerID: 1, GroupType: core.ClientGroupInstitutional, BuyingPower: 10000000, MarginStatus: "OK", IsActive: true},
+	}
+
+	for i := range boAccounts {
+		if err := dm.db.Create(&boAccounts[i]).Error; err != nil {
+			return fmt.Errorf("failed to create BO account %s: %w", boAccounts[i].BOID, err)
+		}
+	}
+
+	// Sample client groups
+	groups := []core.ClientGroup{
+		{GroupName: "GROUP-HNI", GroupType: core.ClientGroupHNI, DealerID: 1, Description: "High Net-worth Individual clients", IsActive: true},
+		{GroupName: "GROUP-MARGIN", GroupType: core.ClientGroupMargin, DealerID: 1, Description: "Margin account clients", IsActive: true},
+		{GroupName: "GROUP-INST", GroupType: core.ClientGroupInstitutional, DealerID: 1, Description: "Institutional clients", IsActive: true},
+	}
+
+	for i := range groups {
+		if err := dm.db.Create(&groups[i]).Error; err != nil {
+			return fmt.Errorf("failed to create group %s: %w", groups[i].GroupName, err)
+		}
+	}
+
+	// Assign BO accounts to groups
+	// GROUP-HNI: BO1001, BO1003
+	// GROUP-MARGIN: BO1002
+	// GROUP-INST: BO1005
+	memberships := []struct {
+		groupName string
+		boID      string
+		weight    float64
+	}{
+		{"GROUP-HNI", "BO1001", 1.0},
+		{"GROUP-HNI", "BO1003", 2.0},
+		{"GROUP-MARGIN", "BO1002", 1.0},
+		{"GROUP-INST", "BO1005", 1.0},
+	}
+
+	for _, m := range memberships {
+		var group core.ClientGroup
+		if err := dm.db.Where("group_name = ?", m.groupName).First(&group).Error; err != nil {
+			continue
+		}
+		var bo core.BOAccount
+		if err := dm.db.Where("bo_id = ?", m.boID).First(&bo).Error; err != nil {
+			continue
+		}
+		member := core.ClientGroupMember{GroupID: group.ID, BOAccountID: bo.ID, Weight: m.weight}
+		dm.db.Create(&member)
+	}
+
+	// Dealer permission for user 1
+	perm := core.DealerPermission{DealerID: 1, Role: core.DealerRoleDealer}
+	dm.db.Create(&perm)
 
 	return nil
 }
