@@ -288,6 +288,14 @@ async def terminal_history(user_id: int = 1, limit: int = 50):
     history = executor.history[-limit:]
     return JSONResponse(content={"history": history})
 
+
+@app.delete("/api/terminal/history")
+async def terminal_clear_history(user_id: int = 1):
+    """Clear the command history for a user."""
+    executor = get_terminal_executor(user_id)
+    executor.clear_history()
+    return JSONResponse(content={"cleared": True})
+
 @app.get("/api/ai/analysis")
 async def get_ai_analysis(user_id: int = 1):
     """Get AI trading analysis"""
@@ -654,6 +662,28 @@ def get_main_html():
             box-shadow: 0 4px 16px rgba(0,0,0,0.3);
         }
         #terminalToggleBtn:hover { background: #388bfd; }
+        .term-clear-btn {
+            background: transparent;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            color: #8b949e;
+            cursor: pointer;
+            font-size: 0.78rem;
+            padding: 0.1rem 0.45rem;
+            margin-left: 0.5rem;
+        }
+        .term-clear-btn:hover { background: #21262d; color: #c9d1d9; }
+        .term-result-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: baseline;
+        }
+        .term-result-row .term-ts {
+            color: #484f58;
+            font-size: 0.78rem;
+            min-width: 5.5rem;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
@@ -662,16 +692,20 @@ def get_main_html():
         <div id="terminalBox">
             <div id="terminalHeader">
                 <span>⚡ OMS Terminal — FastTrade CMD</span>
-                <span class="kbd">Ctrl+Space / Alt+T to toggle &nbsp;|&nbsp; Enter to submit &nbsp;|&nbsp; ↑↓ history &nbsp;|&nbsp; Esc to close</span>
+                <span style="display:flex;align-items:center;gap:0.25rem;">
+                    <span class="kbd">Ctrl+Space / Alt+T &nbsp;|&nbsp; ↑↓ history &nbsp;|&nbsp; Esc close</span>
+                    <button class="term-clear-btn" onclick="clearTerminal()" title="Clear output and history (cls)">⌫ cls</button>
+                </span>
             </div>
             <div id="terminalOutput">
-                <span class="line-hint">Type a command and press Enter.  Examples:
+                <span class="line-hint">Commands are case-insensitive.  Examples:
   b BATBC 100 25.40     → Limit buy
   bm GP 200             → Market buy
   s BATBC 50 25.60      → Limit sell
   c &lt;order_id&gt;          → Cancel
   m &lt;order_id&gt; 25.80 100 → Modify
   b BATBC 5k 25.40      → qty shorthand (5k=5000)
+  cls                   → clear output &amp; history
   help                  → full command reference
 </span>
             </div>
@@ -1074,6 +1108,7 @@ def get_main_html():
             if (!['b','s','bm','sm','buy','sell'].includes(verb)) {
                 termSuggest.innerHTML = ''; return;
             }
+            // autocomplete on the symbol token regardless of its case
             const prefix = tokens[1] || '';
             if (prefix.length < 1) { termSuggest.innerHTML = ''; return; }
             try {
@@ -1107,6 +1142,16 @@ def get_main_html():
             const cmd = termInput.value.trim();
             if (!cmd) return;
 
+            // locally detect cls/clear so output clears before the API reply
+            const verb = cmd.split(/\s+/)[0].toLowerCase();
+            if (['cls','clear','clearhistory','clr'].includes(verb)) {
+                clearTerminal();
+                termInput.value = '';
+                // also notify server to clear server-side history
+                fetch('/api/terminal/history?user_id=1', {method: 'DELETE'}).catch(() => {});
+                return;
+            }
+
             appendLine('line-cmd', '> ' + cmd);
             termHistory.push(cmd);
             termHistIdx = -1;
@@ -1122,20 +1167,47 @@ def get_main_html():
                 });
                 const data = await resp.json();
                 for (const r of (data.results || [])) {
-                    appendLine(r.success ? 'line-ok' : 'line-err', r.message);
-                    if (r.order_id) refreshOrders();
+                    if (r.data && r.data.clear_output) {
+                        clearOutput();
+                    } else {
+                        appendLine(r.success ? 'line-ok' : 'line-err', r.message);
+                        if (r.order_id) refreshOrders();
+                    }
                 }
             } catch(err) {
                 appendLine('line-err', '❌ Network error: ' + err.message);
             }
         }
 
+        function _timestamp() {
+            const d = new Date();
+            return d.toTimeString().slice(0,8);
+        }
+
         function appendLine(cls, text) {
-            const span = document.createElement('span');
-            span.className = cls;
-            span.textContent = text + '\n';
-            termOutput.appendChild(span);
+            const row = document.createElement('div');
+            row.className = 'term-result-row';
+            const ts = document.createElement('span');
+            ts.className = 'term-ts';
+            ts.textContent = _timestamp();
+            const msg = document.createElement('span');
+            msg.className = cls;
+            msg.style.whiteSpace = 'pre-wrap';
+            msg.textContent = text;
+            row.appendChild(ts);
+            row.appendChild(msg);
+            termOutput.appendChild(row);
             termOutput.scrollTop = termOutput.scrollHeight;
+        }
+
+        function clearOutput() {
+            termOutput.innerHTML = '';
+        }
+
+        function clearTerminal() {
+            clearOutput();
+            termHistory = [];
+            termHistIdx = -1;
         }
     </script>
 </body>

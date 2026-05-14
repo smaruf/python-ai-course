@@ -103,6 +103,11 @@ class TerminalCommandExecutor:
         """Return a copy of the command history (oldest first)."""
         return list(self._history)
 
+    def clear_history(self) -> None:
+        """Clear command history and reset last command."""
+        self._history.clear()
+        self._last_command = None
+
     # ------------------------------------------------------------------
     # Internal dispatch
     # ------------------------------------------------------------------
@@ -114,6 +119,11 @@ class TerminalCommandExecutor:
 
         if cmd.action == Action.HELP:
             return CommandResult(success=True, message=HELP_TEXT, preview="help")
+
+        if cmd.action == Action.CLEAR:
+            self.clear_history()
+            return CommandResult(success=True, message="History cleared.",
+                                 data={"clear_output": True})
 
         if cmd.action == Action.REPEAT:
             if self._last_command is None:

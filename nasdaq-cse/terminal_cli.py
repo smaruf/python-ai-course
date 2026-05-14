@@ -227,6 +227,18 @@ class OMSTerminalShell(cmd.Cmd):
         for i, entry in enumerate(hist[-20:], 1):
             print(f"  {i:3d}  {entry}")
 
+    def do_clearhistory(self, _: str) -> None:
+        """Clear command history: clearhistory"""
+        self._executor.clear_history()
+        if sys.stdout.isatty():
+            # Also clear the terminal screen
+            print("\033[2J\033[H", end="")
+        print("  History cleared.")
+
+    def do_cls(self, _: str) -> None:
+        """Clear screen and command history: cls"""
+        self.do_clearhistory(_)
+
     def do_complete(self, symbol_prefix: str) -> None:
         """Autocomplete symbol: complete <prefix>"""
         matches = autocomplete(symbol_prefix.strip(), max_results=15)

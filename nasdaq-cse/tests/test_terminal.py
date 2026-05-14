@@ -141,7 +141,7 @@ class TestTerminalParser:
         assert cmd.quantity_is_pct is True
         assert cmd.quantity == 50.0
 
-    # ── repeat / help ─────────────────────────────────────────────────────────
+    # ── repeat / help / clear ─────────────────────────────────────────────────
 
     def test_repeat(self):
         cmd = self._single("rr")
@@ -154,6 +154,63 @@ class TestTerminalParser:
 
     def test_help_question_mark(self):
         cmd = self._single("?")
+        assert cmd.action == Action.HELP
+
+    def test_clear_cls(self):
+        cmd = self._single("cls")
+        assert cmd.action == Action.CLEAR
+        assert cmd.is_valid
+
+    def test_clear_clear(self):
+        cmd = self._single("clear")
+        assert cmd.action == Action.CLEAR
+
+    def test_clear_clearhistory(self):
+        cmd = self._single("clearhistory")
+        assert cmd.action == Action.CLEAR
+
+    def test_clear_uppercase(self):
+        cmd = self._single("CLS")
+        assert cmd.action == Action.CLEAR
+
+    # ── case-insensitive commands ─────────────────────────────────────────────
+
+    def test_uppercase_buy(self):
+        cmd = self._single("B BATBC 100 25.40")
+        assert cmd.action == Action.BUY
+        assert cmd.symbol == "BATBC"
+        assert cmd.is_valid
+
+    def test_mixedcase_buy(self):
+        cmd = self._single("Buy BATBC 100 25.40")
+        assert cmd.action == Action.BUY
+
+    def test_uppercase_sell(self):
+        cmd = self._single("S GP 500 350")
+        assert cmd.action == Action.SELL
+
+    def test_uppercase_buy_market(self):
+        cmd = self._single("BM GP 200")
+        assert cmd.action == Action.BUY_MARKET
+
+    def test_uppercase_sell_market(self):
+        cmd = self._single("SM BATBC 100")
+        assert cmd.action == Action.SELL_MARKET
+
+    def test_uppercase_cancel(self):
+        cmd = self._single("C 982734")
+        assert cmd.action == Action.CANCEL
+
+    def test_uppercase_modify(self):
+        cmd = self._single("M ORDER-001 26.00 150")
+        assert cmd.action == Action.MODIFY
+
+    def test_uppercase_rr(self):
+        cmd = self._single("RR")
+        assert cmd.action == Action.REPEAT
+
+    def test_uppercase_help(self):
+        cmd = self._single("HELP")
         assert cmd.action == Action.HELP
 
     # ── basket (semicolons) ───────────────────────────────────────────────────
@@ -366,3 +423,77 @@ class TestTerminalCommandExecutor:
         assert "success" in d
         assert "message" in d
         assert "order_id" in d
+
+    @pytest.mark.asyncio
+    async def test_execute_cls_clears_history(self):
+        ex = self._executor()
+        await ex.execute("b BATBC 100 25.40")
+        await ex.execute("s GP 50 350")
+        assert len(ex.history) == 2
+        results = await ex.execute("cls")
+        assert results[0].success
+        assert "cleared" in results[0].message.lower()
+        assert ex.history == []
+
+    @pytest.mark.asyncio
+    async def test_execute_clear_clears_history(self):
+        ex = self._executor()
+        await ex.execute("bm GP 100")
+        await ex.execute("clear")
+        assert ex.history == []
+
+    @pytest.mark.asyncio
+    async def test_execute_clearhistory(self):
+        ex = self._executor()
+        await ex.execute("bm GP 100")
+        results = await ex.execute("clearhistory")
+        assert results[0].success
+        assert ex.history == []
+
+    @pytest.mark.asyncio
+    async def test_execute_cls_sets_clear_output_flag(self):
+        ex = self._executor()
+        results = await ex.execute("cls")
+        assert results[0].data is not None
+        assert results[0].data.get("clear_output") is True
+
+    @pytest.mark.asyncio
+    async def test_clear_history_method(self):
+        ex = self._executor()
+        await ex.execute("b BATBC 100 25.40")
+        ex.clear_history()
+        assert ex.history == []
+        assert ex._last_command is None
+
+    @pytest.mark.asyncio
+    async def test_case_insensitive_buy(self):
+        ex = self._executor()
+        results = await ex.execute("B BATBC 100 25.40")
+        assert results[0].success
+
+    @pytest.mark.asyncio
+    async def test_case_insensitive_sell(self):
+        ex = self._executor()
+        results = await ex.execute("SELL GP 500 350")
+        assert results[0].success
+
+    @pytest.mark.asyncio
+    async def test_case_insensitive_market_buy(self):
+        ex = self._executor()
+        results = await ex.execute("BM GP 200")
+        assert results[0].success
+
+    @pytest.mark.asyncio
+    async def test_case_insensitive_help(self):
+        ex = self._executor()
+        results = await ex.execute("HELP")
+        assert results[0].success
+        assert "OMS Terminal" in results[0].message
+
+    @pytest.mark.asyncio
+    async def test_case_insensitive_cls(self):
+        ex = self._executor()
+        await ex.execute("bm GP 100")
+        results = await ex.execute("CLS")
+        assert results[0].success
+        assert ex.history == []

@@ -54,6 +54,7 @@ class Action(str, Enum):
     REPEAT = "REPEAT"
     HELP = "HELP"
     BASKET = "BASKET"
+    CLEAR = "CLEAR"
     UNKNOWN = "UNKNOWN"
 
 
@@ -149,6 +150,10 @@ _ACTION_MAP = {
     "?": Action.HELP,
     "h": Action.HELP,
     "basket": Action.BASKET,
+    "cls": Action.CLEAR,
+    "clear": Action.CLEAR,
+    "clearhistory": Action.CLEAR,
+    "clr": Action.CLEAR,
 }
 
 
@@ -228,6 +233,9 @@ class TerminalParser:
         if action == Action.HELP:
             return ParsedCommand(raw=text, action=Action.HELP)
 
+        if action == Action.CLEAR:
+            return ParsedCommand(raw=text, action=Action.CLEAR)
+
         if action == Action.REPEAT:
             return ParsedCommand(raw=text, action=Action.REPEAT)
 
@@ -297,7 +305,7 @@ class TerminalParser:
 HELP_TEXT = """\
 ┌──────────────────────────────────────────────────────────────────────┐
 │  OMS Terminal  –  Ultra-Fast Order Entry                             │
-│  Hotkey: Ctrl+Space  or  Alt+T                                       │
+│  Hotkey: Ctrl+Space  or  Alt+T   (commands are case-insensitive)     │
 ├──────────────────────────────────────────────────────────────────────┤
 │  COMMAND              MEANING                                        │
 │  b  SYMBOL QTY PRICE  Limit Buy                                     │
@@ -312,5 +320,6 @@ HELP_TEXT = """\
 │  QUANTITY SHORTCUTS                                                  │
 │  5k  → 5000    2.5k → 2500    50% → 50 pct of position             │
 ├──────────────────────────────────────────────────────────────────────┤
-│  help  or  ?  — show this screen                                     │
+│  cls / clear / clearhistory  — clear output and command history      │
+│  help  or  ?                 — show this screen                      │
 └──────────────────────────────────────────────────────────────────────┘"""
