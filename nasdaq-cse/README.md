@@ -14,7 +14,7 @@ Use `terminal_cli.py` for fast command-line order entry.
 ### Start terminal mode
 
 ```bash
-cd /home/runner/work/python-ai-course/python-ai-course/nasdaq-cse
+cd nasdaq-cse
 python terminal_cli.py
 ```
 
