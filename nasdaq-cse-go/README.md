@@ -192,7 +192,7 @@ curl http://localhost:8080/api/risk/report?user_id=1
 
 ### Run a Dealer Terminal Command
 
-The example below submits a weighted basket buy for symbol `GP`, distributing a total quantity of `10000` across eligible BO accounts.
+The example below uses the terminal's default buy-side basket workflow for symbol `GP`, distributing a total quantity of `10000` across eligible BO accounts with weighted sizing.
 
 ```bash
 curl -X POST http://localhost:8080/api/terminal/command \
