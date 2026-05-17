@@ -932,6 +932,35 @@ func (s *Server) handleMarginStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, marginStatus)
 }
 
+// parseDealerID parses the dealer_id query parameter, defaulting to 1
+func parseDealerID(c *gin.Context) uint {
+	id, err := strconv.ParseUint(c.DefaultQuery("dealer_id", "1"), 10, 0)
+	if err != nil || id == 0 {
+		return 1
+	}
+	return uint(id)
+}
+
+// parseLimit parses an integer limit query parameter with a given default
+func parseLimit(c *gin.Context, defaultLimit int) int {
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", strconv.Itoa(defaultLimit)))
+	if err != nil || limit <= 0 {
+		return defaultLimit
+	}
+	return limit
+}
+
+// collectErrors converts a slice of errors to a slice of non-nil error strings
+func collectErrors(errs []error) []string {
+	msgs := make([]string, 0, len(errs))
+	for _, e := range errs {
+		if e != nil {
+			msgs = append(msgs, e.Error())
+		}
+	}
+	return msgs
+}
+
 // handleTerminalCommand executes a Bloomberg-lite terminal command
 func (s *Server) handleTerminalCommand(c *gin.Context) {
 	var req core.TerminalCommandRequest
@@ -945,12 +974,7 @@ func (s *Server) handleTerminalCommand(c *gin.Context) {
 
 // handleGetDealerContext returns the current dealer context
 func (s *Server) handleGetDealerContext(c *gin.Context) {
-	dealerIDStr := c.DefaultQuery("dealer_id", "1")
-	dealerID, err := strconv.ParseUint(dealerIDStr, 10, 64)
-	if err != nil {
-		dealerID = 1
-	}
-	ctx := s.dealerManager.GetContext(uint(dealerID))
+	ctx := s.dealerManager.GetContext(parseDealerID(c))
 	c.JSON(http.StatusOK, ctx)
 }
 
@@ -971,12 +995,7 @@ func (s *Server) handleSwitchBO(c *gin.Context) {
 
 // handleListBOs returns the list of BO accounts managed by a dealer
 func (s *Server) handleListBOs(c *gin.Context) {
-	dealerIDStr := c.DefaultQuery("dealer_id", "1")
-	dealerID, err := strconv.ParseUint(dealerIDStr, 10, 64)
-	if err != nil {
-		dealerID = 1
-	}
-	bos, err := s.dealerManager.ListBOs(uint(dealerID))
+	bos, err := s.dealerManager.ListBOs(parseDealerID(c))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -986,12 +1005,7 @@ func (s *Server) handleListBOs(c *gin.Context) {
 
 // handleListGroups returns client groups for a dealer
 func (s *Server) handleListGroups(c *gin.Context) {
-	dealerIDStr := c.DefaultQuery("dealer_id", "1")
-	dealerID, err := strconv.ParseUint(dealerIDStr, 10, 64)
-	if err != nil {
-		dealerID = 1
-	}
-	groups, err := s.dealerManager.ListGroups(uint(dealerID))
+	groups, err := s.dealerManager.ListGroups(parseDealerID(c))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -1001,28 +1015,13 @@ func (s *Server) handleListGroups(c *gin.Context) {
 
 // handleDealerRiskDashboard returns the risk dashboard for all BOs under a dealer
 func (s *Server) handleDealerRiskDashboard(c *gin.Context) {
-	dealerIDStr := c.DefaultQuery("dealer_id", "1")
-	dealerID, err := strconv.ParseUint(dealerIDStr, 10, 64)
-	if err != nil {
-		dealerID = 1
-	}
-	data := s.dealerManager.GetBORiskDashboard(uint(dealerID))
+	data := s.dealerManager.GetBORiskDashboard(parseDealerID(c))
 	c.JSON(http.StatusOK, data)
 }
 
 // handleGetAuditLog returns the audit log for a dealer
 func (s *Server) handleGetAuditLog(c *gin.Context) {
-	dealerIDStr := c.DefaultQuery("dealer_id", "1")
-	dealerID, err := strconv.ParseUint(dealerIDStr, 10, 64)
-	if err != nil {
-		dealerID = 1
-	}
-	limitStr := c.DefaultQuery("limit", "50")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		limit = 50
-	}
-	logs, err := s.dealerManager.GetAuditLog(uint(dealerID), limit)
+	logs, err := s.dealerManager.GetAuditLog(parseDealerID(c), parseLimit(c, 50))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -1055,12 +1054,7 @@ func (s *Server) handleBOPositions(c *gin.Context) {
 // handleBOOrders returns the orders for a specific BO account
 func (s *Server) handleBOOrders(c *gin.Context) {
 	boID := c.Param("bo_id")
-	limitStr := c.DefaultQuery("limit", "50")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		limit = 50
-	}
-	orders, err := s.dealerManager.GetBOOrders(boID, limit)
+	orders, err := s.dealerManager.GetBOOrders(boID, parseLimit(c, 50))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -1098,13 +1092,8 @@ func (s *Server) handleAddWatchlist(c *gin.Context) {
 
 // handleBOSearch searches BO accounts by query string
 func (s *Server) handleBOSearch(c *gin.Context) {
-	dealerIDStr := c.DefaultQuery("dealer_id", "1")
-	dealerID, err := strconv.ParseUint(dealerIDStr, 10, 64)
-	if err != nil {
-		dealerID = 1
-	}
 	query := c.DefaultQuery("q", "")
-	results, err := s.dealerManager.SearchBO(uint(dealerID), query)
+	results, err := s.dealerManager.SearchBO(parseDealerID(c), query)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -1135,13 +1124,7 @@ func (s *Server) handleGroupOrder(c *gin.Context) {
 		return
 	}
 	orders, errs := s.dealerManager.SubmitGroupOrder(req)
-	errMsgs := make([]string, 0, len(errs))
-	for _, e := range errs {
-		if e != nil {
-			errMsgs = append(errMsgs, e.Error())
-		}
-	}
-	c.JSON(http.StatusOK, gin.H{"orders": orders, "errors": errMsgs})
+	c.JSON(http.StatusOK, gin.H{"orders": orders, "errors": collectErrors(errs)})
 }
 
 // handleBasketOrder submits a basket order distributed across BO accounts
@@ -1152,13 +1135,7 @@ func (s *Server) handleBasketOrder(c *gin.Context) {
 		return
 	}
 	orders, errs := s.dealerManager.SubmitBasketOrder(req)
-	errMsgs := make([]string, 0, len(errs))
-	for _, e := range errs {
-		if e != nil {
-			errMsgs = append(errMsgs, e.Error())
-		}
-	}
-	c.JSON(http.StatusOK, gin.H{"orders": orders, "errors": errMsgs})
+	c.JSON(http.StatusOK, gin.H{"orders": orders, "errors": collectErrors(errs)})
 }
 
 // handleAllocOrder submits an allocation order proportionally across BOs
@@ -1169,13 +1146,7 @@ func (s *Server) handleAllocOrder(c *gin.Context) {
 		return
 	}
 	orders, errs := s.dealerManager.SubmitAllocOrder(req)
-	errMsgs := make([]string, 0, len(errs))
-	for _, e := range errs {
-		if e != nil {
-			errMsgs = append(errMsgs, e.Error())
-		}
-	}
-	c.JSON(http.StatusOK, gin.H{"orders": orders, "errors": errMsgs})
+	c.JSON(http.StatusOK, gin.H{"orders": orders, "errors": collectErrors(errs)})
 }
 
 // handleCloneOrder clones the last order from one BO to another
