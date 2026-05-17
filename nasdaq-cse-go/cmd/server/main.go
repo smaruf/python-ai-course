@@ -123,6 +123,7 @@ func (s *Server) setupRoutes() *gin.Engine {
 
 	// Main trading interface
 	router.GET("/", s.handleRoot)
+	router.GET("/simulator", s.handleSimulator)
 
 	// API routes
 	api := router.Group("/api")
@@ -537,6 +538,15 @@ setInterval(() => {
 </html>`
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
 }
+
+// handleSimulator serves the Gold Derivatives Trading Simulator UI
+func (s *Server) handleSimulator(c *gin.Context) {
+	html := `<!DOCTYPE html>
+<html>
+<head>
+    <title>NASDAQ CSE Gold Derivatives Trading Simulator</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
     <div class="header">
@@ -920,6 +930,267 @@ func (s *Server) handleMarginStatus(c *gin.Context) {
 
 	marginStatus := s.riskManager.MonitorMarginRequirements(uint(userID), currentPrices)
 	c.JSON(http.StatusOK, marginStatus)
+}
+
+// handleTerminalCommand executes a Bloomberg-lite terminal command
+func (s *Server) handleTerminalCommand(c *gin.Context) {
+	var req core.TerminalCommandRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp := s.terminalParser.Execute(req.Command, req.DealerID)
+	c.JSON(http.StatusOK, resp)
+}
+
+// handleGetDealerContext returns the current dealer context
+func (s *Server) handleGetDealerContext(c *gin.Context) {
+	dealerIDStr := c.DefaultQuery("dealer_id", "1")
+	dealerID, err := strconv.ParseUint(dealerIDStr, 10, 64)
+	if err != nil {
+		dealerID = 1
+	}
+	ctx := s.dealerManager.GetContext(uint(dealerID))
+	c.JSON(http.StatusOK, ctx)
+}
+
+// handleSwitchBO switches the active BO for a dealer
+func (s *Server) handleSwitchBO(c *gin.Context) {
+	var req core.SwitchBORequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	msg, err := s.dealerManager.SwitchBO(req.DealerID, req.BOID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": msg})
+}
+
+// handleListBOs returns the list of BO accounts managed by a dealer
+func (s *Server) handleListBOs(c *gin.Context) {
+	dealerIDStr := c.DefaultQuery("dealer_id", "1")
+	dealerID, err := strconv.ParseUint(dealerIDStr, 10, 64)
+	if err != nil {
+		dealerID = 1
+	}
+	bos, err := s.dealerManager.ListBOs(uint(dealerID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, bos)
+}
+
+// handleListGroups returns client groups for a dealer
+func (s *Server) handleListGroups(c *gin.Context) {
+	dealerIDStr := c.DefaultQuery("dealer_id", "1")
+	dealerID, err := strconv.ParseUint(dealerIDStr, 10, 64)
+	if err != nil {
+		dealerID = 1
+	}
+	groups, err := s.dealerManager.ListGroups(uint(dealerID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, groups)
+}
+
+// handleDealerRiskDashboard returns the risk dashboard for all BOs under a dealer
+func (s *Server) handleDealerRiskDashboard(c *gin.Context) {
+	dealerIDStr := c.DefaultQuery("dealer_id", "1")
+	dealerID, err := strconv.ParseUint(dealerIDStr, 10, 64)
+	if err != nil {
+		dealerID = 1
+	}
+	data := s.dealerManager.GetBORiskDashboard(uint(dealerID))
+	c.JSON(http.StatusOK, data)
+}
+
+// handleGetAuditLog returns the audit log for a dealer
+func (s *Server) handleGetAuditLog(c *gin.Context) {
+	dealerIDStr := c.DefaultQuery("dealer_id", "1")
+	dealerID, err := strconv.ParseUint(dealerIDStr, 10, 64)
+	if err != nil {
+		dealerID = 1
+	}
+	limitStr := c.DefaultQuery("limit", "50")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		limit = 50
+	}
+	logs, err := s.dealerManager.GetAuditLog(uint(dealerID), limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, logs)
+}
+
+// handleBODashboard returns the dashboard for a specific BO account
+func (s *Server) handleBODashboard(c *gin.Context) {
+	boID := c.Param("bo_id")
+	dash, err := s.dealerManager.GetBODashboard(boID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, dash)
+}
+
+// handleBOPositions returns the positions for a specific BO account
+func (s *Server) handleBOPositions(c *gin.Context) {
+	boID := c.Param("bo_id")
+	positions, err := s.dealerManager.GetBOPositions(boID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, positions)
+}
+
+// handleBOOrders returns the orders for a specific BO account
+func (s *Server) handleBOOrders(c *gin.Context) {
+	boID := c.Param("bo_id")
+	limitStr := c.DefaultQuery("limit", "50")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		limit = 50
+	}
+	orders, err := s.dealerManager.GetBOOrders(boID, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, orders)
+}
+
+// handleGetWatchlist returns the watchlist for a specific BO account
+func (s *Server) handleGetWatchlist(c *gin.Context) {
+	boID := c.Param("bo_id")
+	items, err := s.dealerManager.GetWatchlist(boID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, items)
+}
+
+// handleAddWatchlist adds a symbol to the watchlist for a specific BO account
+func (s *Server) handleAddWatchlist(c *gin.Context) {
+	boID := c.Param("bo_id")
+	var body struct {
+		Symbol string `json:"symbol" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := s.dealerManager.AddToWatchlist(boID, body.Symbol); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "added"})
+}
+
+// handleBOSearch searches BO accounts by query string
+func (s *Server) handleBOSearch(c *gin.Context) {
+	dealerIDStr := c.DefaultQuery("dealer_id", "1")
+	dealerID, err := strconv.ParseUint(dealerIDStr, 10, 64)
+	if err != nil {
+		dealerID = 1
+	}
+	query := c.DefaultQuery("q", "")
+	results, err := s.dealerManager.SearchBO(uint(dealerID), query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, results)
+}
+
+// handleSubmitBOOrder submits an order for a specific BO account
+func (s *Server) handleSubmitBOOrder(c *gin.Context) {
+	var req core.BOOrderCreateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	order, err := s.dealerManager.SubmitBOOrder(req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, order)
+}
+
+// handleGroupOrder submits a group order across all BOs in a client group
+func (s *Server) handleGroupOrder(c *gin.Context) {
+	var req core.GroupOrderRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	orders, errs := s.dealerManager.SubmitGroupOrder(req)
+	errMsgs := make([]string, 0, len(errs))
+	for _, e := range errs {
+		if e != nil {
+			errMsgs = append(errMsgs, e.Error())
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{"orders": orders, "errors": errMsgs})
+}
+
+// handleBasketOrder submits a basket order distributed across BO accounts
+func (s *Server) handleBasketOrder(c *gin.Context) {
+	var req core.BasketOrderRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	orders, errs := s.dealerManager.SubmitBasketOrder(req)
+	errMsgs := make([]string, 0, len(errs))
+	for _, e := range errs {
+		if e != nil {
+			errMsgs = append(errMsgs, e.Error())
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{"orders": orders, "errors": errMsgs})
+}
+
+// handleAllocOrder submits an allocation order proportionally across BOs
+func (s *Server) handleAllocOrder(c *gin.Context) {
+	var req core.AllocOrderRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	orders, errs := s.dealerManager.SubmitAllocOrder(req)
+	errMsgs := make([]string, 0, len(errs))
+	for _, e := range errs {
+		if e != nil {
+			errMsgs = append(errMsgs, e.Error())
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{"orders": orders, "errors": errMsgs})
+}
+
+// handleCloneOrder clones the last order from one BO to another
+func (s *Server) handleCloneOrder(c *gin.Context) {
+	var req core.CloneOrderRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	order, err := s.dealerManager.CloneOrder(req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, order)
 }
 
 // handleWebSocket handles WebSocket connections
