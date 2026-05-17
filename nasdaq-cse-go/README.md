@@ -3,7 +3,7 @@
 > **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.  
 > See also: [NASDAQ CSE Python](../nasdaq-cse/) | [Fintech Tools](../fintech-tools/)
 
-A comprehensive, high-performance gold derivatives trading simulator built in Go, featuring AI-powered assistance, real-time risk management, and educational trading tools.
+A comprehensive, high-performance gold derivatives trading simulator built in Go, featuring AI-powered assistance, real-time risk management, educational trading tools, and a Bloomberg-style multi-BO dealer workstation.
 
 ## 🎯 Overview
 
@@ -13,6 +13,7 @@ This Go implementation is a complete port of the Python trading simulator, provi
 - **AI-Powered Assistant** - ML-based trading analysis and chat interface  
 - **Risk Management System** - Real-time margin monitoring and risk analytics
 - **Order Management System** - Professional-grade order processing and execution
+- **Bloomberg-Style Dealer Workstation** - Multi-BO account management with keyboard-driven terminal workflows
 - **FIX/FAST Protocol Simulation** - Industry-standard communication protocols
 - **WebSocket Live Updates** - Real-time market data and position updates
 - **JSON Data Persistence** - Reloadable trading scenarios and state
@@ -21,7 +22,7 @@ This Go implementation is a complete port of the Python trading simulator, provi
 
 ### Prerequisites
 
-- Go 1.21 or higher
+- Go 1.24.6 or higher
 - Git
 
 ### Installation
@@ -42,7 +43,8 @@ go run ./cmd/server
 
 ### Access the Application
 
-- **Trading Interface**: http://localhost:8080
+- **Dealer Workstation**: http://localhost:8080
+- **Classic Trading Simulator**: http://localhost:8080/simulator
 - **WebSocket Endpoint**: ws://localhost:8080/ws
 - **API Documentation**: Available through the web interface
 
@@ -53,10 +55,12 @@ go run ./cmd/server
 - **`internal/core`** - Data models and structures
 - **`internal/aiassistant`** - AI trading bot and analysis
 - **`internal/communication`** - FIX/FAST protocol simulation
+- **`internal/dealer`** - Multi-BO dealer workflows and account operations
 - **`internal/marketdata`** - Real-time market data provider
 - **`internal/oms`** - Order Management System
 - **`internal/rms`** - Risk Management System
 - **`internal/storage`** - Database and JSON persistence
+- **`internal/terminal`** - Bloomberg-style terminal parser and command dispatcher
 
 ### Technology Stack
 
@@ -89,6 +93,13 @@ go run ./cmd/server
 - Trade history and reporting
 - Order lifecycle management
 
+### Bloomberg-Style Dealer Workstation
+- Multi-BO dealer dashboard available at the root route (`/`)
+- Keyboard-friendly terminal commands for BO search, switching, and order entry
+- Group, basket, allocation, clone, and reverse order workflows
+- BO watchlists, audit history, and dealer-wide risk dashboards
+- Dedicated BO dashboard, orders, and positions panels for account monitoring
+
 ### Risk Management System (RMS)
 - Pre-trade risk checks
 - Real-time margin monitoring
@@ -115,6 +126,26 @@ go run ./cmd/server
 - `GET /api/orders?user_id=1` - Get user orders
 - `GET /api/trades?user_id=1` - Get user trades
 - `GET /api/positions?user_id=1` - Get user positions
+
+### Dealer Workstation
+- `POST /api/terminal/command` - Execute Bloomberg-style terminal commands
+- `GET /api/dealer/context?dealer_id=1` - Get current dealer context
+- `POST /api/dealer/switch-bo` - Switch the active BO account
+- `GET /api/dealer/bo-list?dealer_id=1` - List BO accounts managed by a dealer
+- `GET /api/dealer/groups?dealer_id=1` - List client groups for bulk workflows
+- `GET /api/dealer/risk-dashboard?dealer_id=1` - Dealer-wide BO risk dashboard
+- `GET /api/dealer/audit?dealer_id=1` - Dealer audit trail
+- `GET /api/bo/{bo_id}/dashboard` - BO summary dashboard
+- `GET /api/bo/{bo_id}/positions` - BO positions
+- `GET /api/bo/{bo_id}/orders` - BO order history
+- `GET /api/bo/{bo_id}/watchlist` - BO watchlist
+- `POST /api/bo/{bo_id}/watchlist` - Add symbol to BO watchlist
+- `GET /api/bo/search?q=maruf&dealer_id=1` - Search BO accounts
+- `POST /api/bo/order` - Submit a BO-specific order
+- `POST /api/bo/group-order` - Submit a group order
+- `POST /api/bo/basket-order` - Submit a basket order
+- `POST /api/bo/alloc-order` - Submit an allocation order
+- `POST /api/bo/clone-order` - Clone the latest BO order to another BO
 
 ### AI Assistant
 - `POST /api/ai/chat` - Chat with AI assistant
@@ -159,6 +190,27 @@ curl -X POST http://localhost:8080/api/ai/chat \
 curl http://localhost:8080/api/risk/report?user_id=1
 ```
 
+### Run a Dealer Terminal Command
+
+```bash
+curl -X POST http://localhost:8080/api/terminal/command \
+  -H "Content-Type: application/json" \
+  -d '{
+    "command": "basket GP 10000 weighted",
+    "dealer_id": 1
+  }'
+```
+
+### Add a BO Watchlist Symbol
+
+```bash
+curl -X POST http://localhost:8080/api/bo/BO1001/watchlist \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbol": "GP"
+  }'
+```
+
 ## 🧪 Testing
 
 ### Run Unit Tests
@@ -197,12 +249,13 @@ nasdaq-cse-go/
 │   ├── aiassistant/     # AI trading bot
 │   ├── communication/   # FIX/FAST protocols
 │   ├── marketdata/      # Market data provider
+│   ├── dealer/          # Multi-BO dealer workstation workflows
 │   ├── oms/             # Order Management System
 │   ├── rms/             # Risk Management System
-│   └── storage/         # Database and JSON storage
+│   ├── storage/         # Database and JSON storage
+│   └── terminal/        # Bloomberg-style command parser
 ├── tests/               # Unit tests
 ├── data/                # JSON data files
-├── web/static/          # Static web assets
 ├── main.go              # Convenience entry point
 ├── go.mod               # Go module definition
 └── README.md            # This file
