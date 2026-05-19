@@ -6,5 +6,5 @@
 - [NUMA, Memory Handling, HW and Isolation](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/NUMA_memory_hardware_isolation.md)
 
 ## Description:
-........
+This section introduces core concepts in computer architecture and operating systems that are essential for understanding how programs run efficiently on modern hardware. It covers CPU internals, memory hierarchy, threading vs processing models, OS and RTOS behavior, scheduling strategies, and hardware-level memory and isolation concepts.
 
