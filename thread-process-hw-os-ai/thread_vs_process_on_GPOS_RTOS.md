@@ -244,7 +244,4 @@ RTOS asks: "Can we guarantee Task_X finishes within Y microseconds, always?"
 
 ---
 
-Let me know if you'd like:
-- A deep dive into **Rate-Monotonic Analysis (RMA)** for RTOS schedulability
-- How **mixed-criticality systems** (e.g., AUTOSAR, QNX Hypervisor) combine both models
-- Visualizations of **cache locking**, **TCM (Tightly-Coupled Memory)**, or **DMA coherency** in RTOS contexts 🛠️⏱️
+
