@@ -2,6 +2,8 @@
 
 Here is a **text-based, hardware-level visualization** of multi-threading vs. multi-processing — covering CPU time-sharing, clock/bus dynamics, and memory management — all from a core computing perspective.
 
+[ON OS vs RTOS](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/thread_vs_process_on_GPOS_RTOS.md)
+
 ---
 
 ## 🖥️ System Model (Simplified Hardware View)
