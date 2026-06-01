@@ -27,6 +27,7 @@ It covers:
 - [General CPU vs AOPU vs AI Extended CPU](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/GCPU_vs_AOP_vs_AECPU.md)
 - [How TPU Works](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/How_TPU_works.md)
 - [How GPU works compare to CPU and TPU](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/How_GPU_works_vs_TPU.md)
+- [Early Computing or Game Engine](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/Early_Game_engine_Comodore.md)
 
 ---
 
