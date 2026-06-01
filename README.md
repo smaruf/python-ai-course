@@ -28,6 +28,7 @@ A comprehensive collection of Python projects covering AI development, bioinform
 - [Bioinformatics & Computational Science](#bioinformatics--computational-science)
 - [Algorithms & Data Structures](#algorithms--data-structures)
 - [Web Applications](#web-applications)
+- [Systems & Career Resources](#systems--career-resources)
 - [Specialized Projects](#specialized-projects)
 - [Quick Start Guide](#quick-start-guide)
 - [Learning Paths](#learning-paths)
@@ -190,6 +191,22 @@ A comprehensive collection of Python projects covering AI development, bioinform
   - Blog API with full CRUD
   - Database persistence
 - **Difficulty**: Beginner to Intermediate
+
+---
+
+## 🖥️ Systems & Career Resources
+
+### [Thread, Process, Hardware, OS, and AI](./thread-process-hw-os-ai/)
+**Core computer architecture and OS concepts for AI engineers**
+- **Topics**: CPU internals, Memory hierarchy, Threading, Multiprocessing, Scheduling, NUMA, GPU/TPU/AI CPUs
+- **Covers**: GPOS vs RTOS, hardware-aware computing, AI-oriented workloads
+- **Difficulty**: Intermediate
+
+### [AI with Python, Java, and Spring](./ai-py-java-srping/)
+**Career and integration guide for Java/Python developers entering AI**
+- **Topics**: AI integration consulting, Spring AI, LangChain4j, Micro-SaaS, Freelancing paths
+- **Covers**: Java + LLM integration patterns, Python-to-Java AI workflows
+- **Difficulty**: Intermediate
 
 ---
 

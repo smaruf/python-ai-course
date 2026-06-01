@@ -1,6 +1,6 @@
 # Rosalind k-mers & Distance — Sessions 3–4
 
-> **Part of [Philomath AI](../README.md)**
+> **Part of [Philomath AI](../README.md)** | [Python AI Course](../../README.md)
 
 This module implements three string-algorithm problems from the
 [Rosalind](https://rosalind.info) bioinformatics learning platform, focused on

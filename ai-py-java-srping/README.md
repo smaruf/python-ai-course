@@ -1,3 +1,7 @@
+# AI with Python, Java, and Spring — Career & Integration Guide
+
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.
+
 ## Plan of work with experience and leverage for you:
 ---
 Based on your GitHub profile and goals, here's a strategic roadmap to **earn effectively with your Java/Python skills + AI/LLM**, while minimizing heavy coding and focusing on direction/consulting:

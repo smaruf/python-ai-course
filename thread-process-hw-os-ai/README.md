@@ -1,5 +1,7 @@
 # Thread, Process, Hardware, OS, and AI
 
+> **Part of [Python AI Course](../README.md)** - A comprehensive learning repository covering AI, algorithms, and real-world applications.
+
 ## Overview
 
 This section introduces core concepts in **computer architecture** and **operating systems** that are essential for understanding how software runs efficiently on modern hardware.

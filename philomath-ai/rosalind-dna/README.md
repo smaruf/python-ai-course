@@ -1,6 +1,6 @@
 # Rosalind DNA Basics — Sessions 1–2
 
-> **Part of [Philomath AI](../README.md)**
+> **Part of [Philomath AI](../README.md)** | [Python AI Course](../../README.md)
 
 These are the foundational Rosalind problems that form **Sessions 1–2** of
 the Philomath live problem-solving series.  They introduce the core building
