@@ -1,6 +1,6 @@
 # Rosalind Phylogeny — Session 8
 
-> **Part of [Philomath AI](../README.md)**
+> **Part of [Philomath AI](../README.md)** | [Python AI Course](../../README.md)
 
 This module implements two foundational phylogenetics problems from the
 [Rosalind](https://rosalind.info) bioinformatics learning platform, solved

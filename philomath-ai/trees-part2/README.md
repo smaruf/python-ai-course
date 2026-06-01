@@ -1,6 +1,6 @@
 # Trees Part 2 — Programming for Lovers in Python
 
-> **Part of [Philomath AI](../README.md)** — a comprehensive learning project from
+> **Part of [Philomath AI](../README.md)** | [Python AI Course](../../README.md) — a comprehensive learning project from
 > Phillip Compeau's "Programming for Lovers in Python" course.  
 > See also: [Rosalind Genetics](../rosalind-genetics/) | [Genome Algorithms](../genome_algorithms/)
 

@@ -1,6 +1,6 @@
 # Rosalind Graph Theory — Sessions 6–7
 
-> **Part of [Philomath AI](../README.md)**
+> **Part of [Philomath AI](../README.md)** | [Python AI Course](../../README.md)
 
 Graph theory is a cornerstone of computational biology.  Protein interaction
 networks, metabolic pathways, genome assembly overlap graphs, and phylogenetic
