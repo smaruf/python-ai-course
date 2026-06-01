@@ -25,6 +25,7 @@ It covers:
 - [Scheduling and OS Design](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/scheduling_and_os_design.md)
 - [NUMA, Memory Handling, HW and Isolation](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/NUMA_memory_hardware_isolation.md)
 - [General CPU vs AOPU vs AI Extended CPU](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/GCPU_vs_AOP_vs_AECPU.md)
+- [How TPU Works](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/How_TPU_works.md)
 
 ---
 
