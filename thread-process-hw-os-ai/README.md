@@ -31,6 +31,7 @@ It covers:
 - [How GPU works compare to CPU and TPU](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/How_GPU_works_vs_TPU.md)
 - [Early Computing or Game Engine](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/Early_Game_engine_Comodore.md)
 - [LPU, CPU and GPU Comparison](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/LPU_CPU_GPU_Task_comparision.md)
+- [OS, Network, Gateway and Internet](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/Big_Picture_OS_Network_Gateway_Internet.md)
 
 ---
 
