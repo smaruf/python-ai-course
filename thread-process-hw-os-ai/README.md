@@ -33,6 +33,7 @@ It covers:
 - [LPU, CPU and GPU Comparison](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/LPU_CPU_GPU_Task_comparision.md)
 - [OS, Network, Gateway and Internet](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/Big_Picture_OS_Network_Gateway_Internet.md)
 - [Complete Journey of IP and Packets](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/TCP_IP_MAC_Router_Network.md)
+- [UPC, TCP, SoupTCP and Streaming](https://github.com/smaruf/python-ai-course/blob/main/thread-process-hw-os-ai/UDP_TCP_SoupTCP_Streaming.md)
 
 ---
 
