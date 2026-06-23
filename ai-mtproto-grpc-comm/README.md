@@ -1,6 +1,8 @@
 ### Links:
  - [AI Implementation](https://github.com/smaruf/python-ai-course/blob/main/ai-mtproto-grpc-comm/AI_INCLUSION_ARCHITECTURE.md)
  - [Diffie Hellman Encryption](https://github.com/smaruf/python-ai-course/blob/main/ai-mtproto-grpc-comm/Diffie_Hellman_Encryption.md)
+ - [MTB Analysis](https://github.com/smaruf/python-ai-course/blob/main/ai-mtproto-grpc-comm/MTB_Case_Analysis_of_AES_RSA.md)
+ - [MTB Suggestions](https://github.com/smaruf/python-ai-course/blob/main/ai-mtproto-grpc-comm/MTB_Improvement_Suggestion.md)
 
 ### Overview:
 
