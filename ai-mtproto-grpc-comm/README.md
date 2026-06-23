@@ -1,5 +1,6 @@
 ### Links:
  - [AI Implementation](https://github.com/smaruf/python-ai-course/blob/main/ai-mtproto-grpc-comm/AI_INCLUSION_ARCHITECTURE.md)
+ - [Diffie Hellman Encryption](https://github.com/smaruf/python-ai-course/blob/main/ai-mtproto-grpc-comm/Diffie_Hellman_Encryption.md)
 
 ### Overview:
 
