@@ -1,3 +1,8 @@
+### Links:
+ - [AI Implementation](https://github.com/smaruf/python-ai-course/blob/main/ai-mtproto-grpc-comm/AI_INCLUSION_ARCHITECTURE.md)
+
+### Overview:
+
 If you want to combine the strengths of both protocols—the industry-standard microservice ecosystem of **gRPC** and the highly resilient, censorship-resistant edge routing of **MTProto**—you can design a **Hybrid Edge-Core Architecture**.
 
 This approach uses an MTProto-style obfuscated layer at the hostile user-facing edge, which then untangles into a high-performance gRPC mesh once inside your secure data center infrastructure.
