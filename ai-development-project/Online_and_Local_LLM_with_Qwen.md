@@ -4,6 +4,9 @@ Most CLI tools don't have a native "switch to local if offline" button, so we us
 
 Here is the exact setup to analyze your project folder using **Aider** (the best CLI for codebases) and **LiteLLM** (to handle the online/offline fallback).
 
+#### Links:
+ - [On working Laptop Dell Latitude 7490](Online_vs_Offline_Qwen_LLM_for_Laptop.md)
+
 ---
 
 ### The Architecture
