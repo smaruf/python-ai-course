@@ -6,6 +6,7 @@ Here is the exact setup to analyze your project folder using **Aider** (the best
 
 #### Links:
  - [On working Laptop Dell Latitude 7490](Online_vs_Offline_Qwen_LLM_for_Laptop.md)
+ - [Step by Step on Laptop](Step_by_Steps_Qwen_on_Laptop.md)
 
 ---
 
