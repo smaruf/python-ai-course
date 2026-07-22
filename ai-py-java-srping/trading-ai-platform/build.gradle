@@ -66,9 +66,6 @@ subprojects {
 
     // ── Compiler flags ──────────────────────────────────────────
     compileJava.options.compilerArgs += [
-        '--enable-preview',     // Java 21 preview features
         '-parameters'           // Spring parameter name discovery
     ]
-    compileTestJava.options.compilerArgs += ['--enable-preview']
-    test.jvmArgs += ['--enable-preview']
 }

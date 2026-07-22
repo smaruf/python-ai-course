@@ -53,5 +53,5 @@ class TradingApiUser(HttpUser):
             name="/api/payments/balance",
             catch_response=True,
         ) as resp:
-            if resp.status_code not in (200, 401):
+            if resp.status_code != 200:
                 resp.failure(f"Unexpected status {resp.status_code}")

@@ -77,6 +77,14 @@ jobs:
       - name: Start Mock FIX Server
         run: python scripts/testing/mock_fix_server.py &
 
+      - name: Wait for Mock FIX Server to be ready
+        run: |
+          for i in $(seq 1 15); do
+            nc -z localhost 9878 && echo "Mock FIX server ready" && break
+            echo "Waiting for mock FIX server... ($i/15)"
+            sleep 2
+          done
+
       - name: Run E2E tests (PyTest)
         run: pytest scripts/testing/test_e2e_trading.py -v --tb=short
 

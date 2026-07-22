@@ -16,10 +16,7 @@ import os
 import time
 
 BASE_URL = os.getenv("APP_URL", "http://localhost:8080")
-DB_DSN   = os.getenv(
-    "DB_DSN",
-    "host=localhost dbname=tradingai user=tradingai ******"
-)
+DB_DSN = os.environ["DB_DSN"]  # e.g. "host=localhost dbname=tradingai user=tradingai ******"
 
 
 @pytest.fixture(scope="session")
