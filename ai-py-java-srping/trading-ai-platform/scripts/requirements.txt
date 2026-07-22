@@ -1,0 +1,20 @@
+# Python dependencies for the Trading AI Platform outer loop
+# Install: pip install -r scripts/requirements.txt
+
+# Testing
+pytest==8.3.2
+pytest-asyncio==0.23.8
+requests==2.32.3
+psycopg2-binary==2.9.9
+
+# Load testing
+locust==2.29.1
+
+# AI evaluation
+ragas==0.1.18
+openai==1.37.1
+
+# Infrastructure / DevOps helpers
+pulumi==3.127.0
+pulumi-aws==6.50.1
+docker==7.1.0

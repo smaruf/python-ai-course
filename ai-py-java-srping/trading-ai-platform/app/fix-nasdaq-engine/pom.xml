@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.tradingai</groupId>
+        <artifactId>trading-ai-platform</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>fix-nasdaq-engine</artifactId>
+    <name>FIX / Nasdaq Engine — QuickFIX/J, ITCH 5.0, OpenFAST</name>
+
+    <dependencies>
+
+        <!-- Internal -->
+        <dependency>
+            <groupId>com.tradingai</groupId>
+            <artifactId>shared-kernel</artifactId>
+        </dependency>
+
+        <!-- Spring Boot -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <!-- ── QuickFIX/J: FIX protocol ──────────────────────── -->
+        <dependency>
+            <groupId>org.quickfixj</groupId>
+            <artifactId>quickfixj-core</artifactId>
+        </dependency>
+        <!-- FIX 4.4 messages (standard equity orders) -->
+        <dependency>
+            <groupId>org.quickfixj</groupId>
+            <artifactId>quickfixj-messages-fix44</artifactId>
+        </dependency>
+        <!-- FIX 5.0 SP2 messages (latest Nasdaq spec) -->
+        <dependency>
+            <groupId>org.quickfixj</groupId>
+            <artifactId>quickfixj-messages-fix50sp2</artifactId>
+        </dependency>
+        <!-- Spring Boot auto-configuration for QuickFIX/J -->
+        <dependency>
+            <groupId>org.quickfixj</groupId>
+            <artifactId>quickfixj-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- ── Nassau: Nasdaq ITCH 5.0 market data feed ──────── -->
+        <!--
+            Nassau is a high-performance implementation of the
+            Nasdaq TotalView-ITCH 5.0 protocol.
+            Docs: https://github.com/paritytrading/nassau
+        -->
+        <dependency>
+            <groupId>com.paritytrading.nassau</groupId>
+            <artifactId>nassau-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.paritytrading.nassau</groupId>
+            <artifactId>nassau-util</artifactId>
+        </dependency>
+
+        <!-- ── OpenFAST: CME/exchange fast binary encoding ───── -->
+        <!--
+            OpenFAST implements the FIX Adapted for STreaming (FAST)
+            protocol for efficient market data encoding.
+            Templates live in src/main/resources/fast-templates/
+        -->
+        <dependency>
+            <groupId>org.openfast</groupId>
+            <artifactId>openfast</artifactId>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>kafka</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+</project>

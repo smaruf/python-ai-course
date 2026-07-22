@@ -1,0 +1,71 @@
+// ============================================================
+// Root Gradle build — Trading AI Platform
+// Java 21 + Spring Boot 3.3, QuickFIX/J, Nassau ITCH 5.0, OpenFAST
+// ============================================================
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot'   version '3.3.2' apply false
+    id 'io.spring.dependency-management' version '1.1.6' apply false
+}
+
+// Shared configuration for all sub-projects
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+
+    group   = 'com.tradingai'
+    version = '1.0.0-SNAPSHOT'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    repositories {
+        mavenCentral()
+        maven { url 'https://repo.spring.io/milestone' }
+    }
+
+    // ── Dependency versions ─────────────────────────────────────
+    ext {
+        set('springAiVersion',     '1.0.0')
+        set('quickfixjVersion',    '2.3.1')
+        set('nassauVersion',       '0.15.0')
+        set('openfastVersion',     '1.1.2')
+        set('lombokVersion',       '1.18.34')
+        set('mapstructVersion',    '1.5.5.Final')
+        set('testcontainersVersion', '1.20.1')
+    }
+
+    // ── BOM imports ─────────────────────────────────────────────
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.boot:spring-boot-dependencies:3.3.2"
+            mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+            mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+        }
+    }
+
+    // ── Dependencies common to every module ─────────────────────
+    dependencies {
+        compileOnly     "org.projectlombok:lombok:${lombokVersion}"
+        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.testcontainers:junit-jupiter'
+    }
+
+    // ── Test configuration ──────────────────────────────────────
+    tasks.named('test') {
+        useJUnitPlatform()
+        jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
+    }
+
+    // ── Compiler flags ──────────────────────────────────────────
+    compileJava.options.compilerArgs += [
+        '-parameters'           // Spring parameter name discovery
+    ]
+}

@@ -1,0 +1,36 @@
+// ── fix-nasdaq-engine ────────────────────────────────────────────
+// QuickFIX/J FIX protocol, Nassau ITCH 5.0, OpenFAST encoding
+
+dependencies {
+    // Internal
+    implementation project(':app:shared-kernel')
+
+    // Spring
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    // ── QuickFIX/J — FIX protocol session management ────────────
+    // Core QuickFIX/J engine
+    implementation "org.quickfixj:quickfixj-core:${quickfixjVersion}"
+    // FIX 4.4 message definitions (standard equity orders)
+    implementation "org.quickfixj:quickfixj-messages-fix44:${quickfixjVersion}"
+    // FIX 5.0 SP2 message definitions (latest Nasdaq spec)
+    implementation "org.quickfixj:quickfixj-messages-fix50sp2:${quickfixjVersion}"
+    // Spring Boot auto-configuration for QuickFIX/J sessions
+    implementation "org.quickfixj:quickfixj-spring-boot-starter:${quickfixjVersion}"
+
+    // ── Nassau — Nasdaq TotalView-ITCH 5.0 ──────────────────────
+    // High-performance ITCH 5.0 binary feed parser
+    // See: https://github.com/paritytrading/nassau
+    implementation "com.paritytrading.nassau:nassau-core:${nassauVersion}"
+    // Nassau utilities: BinaryFeedClient, replay, session layer
+    implementation "com.paritytrading.nassau:nassau-util:${nassauVersion}"
+
+    // ── OpenFAST — FAST protocol for market data encoding ───────
+    // FIX Adapted for STreaming: efficient binary encoding/decoding
+    // Templates: src/main/resources/fast-templates/*.xml
+    implementation "org.openfast:openfast:${openfastVersion}"
+
+    // Test
+    testImplementation 'org.testcontainers:kafka'
+}
