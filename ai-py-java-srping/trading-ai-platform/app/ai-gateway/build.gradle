@@ -1,0 +1,18 @@
+// ── ai-gateway ───────────────────────────────────────────────────
+// Spring AI tool calling, WebSocket streaming, Redis chat memory
+
+dependencies {
+    implementation project(':app:shared-kernel')
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    // Spring AI with OpenAI provider (tool calling, RAG, chat memory)
+    implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
+
+    // Redis for per-user chat memory
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // Kafka for AI audit event publishing
+    implementation 'org.springframework.kafka:spring-kafka'
+}

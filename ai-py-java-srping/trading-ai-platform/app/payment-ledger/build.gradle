@@ -1,0 +1,17 @@
+// ── payment-ledger ───────────────────────────────────────────────
+// Double-entry bookkeeping, wallet services, EoD reconciliation (Spring Batch)
+
+dependencies {
+    implementation project(':app:shared-kernel')
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.kafka:spring-kafka'
+    // Spring Batch for End-of-Day reconciliation jobs
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+
+    testImplementation 'org.testcontainers:postgresql'
+}

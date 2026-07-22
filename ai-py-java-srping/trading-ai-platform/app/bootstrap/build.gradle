@@ -1,0 +1,28 @@
+// ── bootstrap ────────────────────────────────────────────────────
+// Spring Boot application entry point — assembles all modules
+
+plugins {
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    // Wire all modules together
+    implementation project(':app:shared-kernel')
+    implementation project(':app:fix-nasdaq-engine')
+    implementation project(':app:payment-ledger')
+    implementation project(':app:ai-gateway')
+
+    // Actuator for health / metrics
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // PostgreSQL driver at runtime
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // Dev tools (excluded from fat jar automatically)
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+}
+
+// Build a runnable fat JAR
+bootJar {
+    archiveFileName = 'trading-ai-platform.jar'
+}

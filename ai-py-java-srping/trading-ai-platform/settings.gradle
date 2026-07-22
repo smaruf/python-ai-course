@@ -1,0 +1,8 @@
+rootProject.name = 'trading-ai-platform'
+
+// ── Sub-projects ────────────────────────────────────────────────
+include ':app:shared-kernel'
+include ':app:fix-nasdaq-engine'
+include ':app:payment-ledger'
+include ':app:ai-gateway'
+include ':app:bootstrap'

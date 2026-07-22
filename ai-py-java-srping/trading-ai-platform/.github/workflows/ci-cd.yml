@@ -1,0 +1,130 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  JAVA_VERSION: '21'
+  PYTHON_VERSION: '3.12'
+
+jobs:
+
+  # ── 1. Build & Unit Test (Java / Maven) ───────────────────────
+  build-java:
+    name: Build & Unit Test (Java)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn clean verify -B
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-test-results
+          path: '**/target/surefire-reports/*.xml'
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: '**/target/site/jacoco/'
+
+  # ── 2. Python Outer Loop: E2E, AI Eval, Load Tests ────────────
+  python-outer-loop:
+    name: Python Tests (E2E + AI Eval + Load)
+    needs: build-java
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: tradingai
+          POSTGRES_USER: tradingai
+          POSTGRES_PASSWORD: tradingai_local
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install Python dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Start Mock FIX Server
+        run: python scripts/testing/mock_fix_server.py &
+
+      - name: Run E2E tests (PyTest)
+        run: pytest scripts/testing/test_e2e_trading.py -v --tb=short
+
+      - name: Run AI evaluation (Ragas)
+        run: python scripts/testing/eval_ai_tools.py
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Run load test (Locust — headless, 60 s)
+        run: |
+          locust -f scripts/load/locustfile.py \
+            --headless -u 200 -r 20 --run-time 60s \
+            --host http://localhost:8080
+
+  # ── 3. Deploy to Cloud (Pulumi) — main branch only ───────────
+  deploy-cloud:
+    name: Deploy to Cloud (Pulumi)
+    needs: python-outer-loop
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Pulumi
+        run: pip install pulumi pulumi-aws
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            us-east-1
+
+      - name: Deploy infrastructure
+        run: |
+          cd infra
+          pulumi login
+          pulumi up --yes --stack prod
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+      - name: Update application image
+        run: python scripts/devops/deploy_cloud.py --update-image
+        env:
+          APP_VERSION: ${{ github.sha }}
