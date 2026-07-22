@@ -5,6 +5,7 @@
 ## Links:
   - [Payment and NASDAQ](Spring_Java_AI_Payment_NASDAQ_Planning.md)
   - [Commodity Exchange](Spring_Java_AI_Commodity_Exchange_Planning.md)
+  - [CSE-BD Commodity Exchange](CSE_BD_Commodity_Exchange_Planning.md)
 
 ## Plan of work with experience and leverage for you:
 ---
