@@ -8,6 +8,7 @@
   - [CSE-BD Commodity Exchange](CSE_BD_Commodity_Exchange_Planning.md)
   - [Streamlit and FastAPI with AI-LLM](Streamlit_FastAPI_AI_LLM_Planning.md)
   - [Gradio and FastAPI with AI-LLM](Gradio_FastAPI_with_AI_LLM_Planning.md)
+  - [React Native with AI-LLM and Multi-platform](React_Native_with_AI_LLM_Planning.md)
 
 ## Plan of work with experience and leverage for you:
 ---
