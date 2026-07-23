@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>AI Doc Processor – QA Dashboard</title>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2023.11.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2023.11.1/core.js"></script>
+    <style>
+        body { font-family: sans-serif; max-width: 700px; margin: 2rem auto; }
+        button { margin: 0.5rem; padding: 0.5rem 1rem; cursor: pointer; }
+        pre { background: #f4f4f4; padding: 1rem; border-radius: 4px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h2>🧪 AI Doc Processor – QA Dashboard</h2>
+    <p>Base URL: <input id="base-url" type="text" value="http://localhost:8000" size="35" /></p>
+
+    <button id="btn-health">✅ Test /health</button>
+    <button id="btn-upload">📄 Upload sample.txt</button>
+
+    <pre id="output">Results will appear here…</pre>
+
+    <py-script>
+        import asyncio
+        from pyscript import document
+        from pyodide.http import pyfetch  # type: ignore
+
+        def get_base():
+            return document.getElementById("base-url").value.rstrip("/")
+
+        async def test_health(event):
+            out = document.getElementById("output")
+            out.innerText = "Calling /health…"
+            res = await pyfetch(f"{get_base()}/health")
+            data = await res.json()
+            out.innerText = str(data)
+
+        async def test_upload(event):
+            out = document.getElementById("output")
+            out.innerText = "Uploading sample text…"
+            content = b"This is a test document for the AI processor."
+            res = await pyfetch(
+                f"{get_base()}/api/documents/upload",
+                method="POST",
+                body=content,
+                headers={"Content-Disposition": 'form-data; name="file"; filename="sample.txt"'},
+            )
+            data = await res.json()
+            out.innerText = str(data)
+
+        document.getElementById("btn-health").addEventListener(
+            "click", lambda e: asyncio.create_task(test_health(e))
+        )
+        document.getElementById("btn-upload").addEventListener(
+            "click", lambda e: asyncio.create_task(test_upload(e))
+        )
+    </py-script>
+</body>
+</html>

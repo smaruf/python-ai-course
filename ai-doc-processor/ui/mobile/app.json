@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "AI Doc Processor",
+    "slug": "ai-doc-processor",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "aidocprocessor",
+    "userInterfaceStyle": "automatic",
+    "platforms": ["ios", "android", "web"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.smaruf.aidocprocessor"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.smaruf.aidocprocessor"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

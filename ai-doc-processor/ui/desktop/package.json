@@ -1,0 +1,27 @@
+{
+  "name": "ai-doc-processor-desktop",
+  "version": "0.1.0",
+  "description": "Electron desktop wrapper for AI Document Processor web UI",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "electron": "^31.0.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.smaruf.aidocprocessor",
+    "productName": "AI Doc Processor",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": { "target": "dmg" },
+    "win": { "target": "nsis" },
+    "linux": { "target": "AppImage" }
+  }
+}
