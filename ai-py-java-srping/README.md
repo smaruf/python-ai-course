@@ -38,11 +38,11 @@ Enterprises need to **prototype in Python, deploy in Java** — exactly your ski
 ### 🎯 2. **Build & Sell Micro-SaaS Tools** *(Passive Income)*
 Create lightweight AI wrappers using your Python skills, then productize:
 
-| Idea | Tech Stack | Monetization | Effort |
-|------|-----------|--------------|--------|
-| **AI Document Processor** | Python + FastAPI + LangChain | $19-99/mo subscription | Low |
-| **LLM-Powered API Gateway** | Java Spring Boot + OpenAI API | Usage-based pricing | Medium |
-| **Fintech Compliance Checker** | Python + LLM + Rule Engine | B2B licensing | Medium |
+| Idea | Tech Stack | Monetization | Effort | Link |
+|------|-----------|--------------|--------|-------|
+| **AI Document Processor** | Python + FastAPI + LangChain | $19-99/mo subscription | Low |[Planning](AI_Document_Processor_Planning.md) |
+| **LLM-Powered API Gateway** | Java Spring Boot + OpenAI API | Usage-based pricing | Medium | |
+| **Fintech Compliance Checker** | Python + LLM + Rule Engine | B2B licensing | Medium | |
 
 ✅ Use no-code frontends (Gradio, Streamlit) to avoid UI work [[32]]  
 ✅ Deploy on Render/Fly.io for minimal DevOps  
