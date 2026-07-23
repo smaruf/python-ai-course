@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ai_doc_processor
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  api:
+    build: ..
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    env_file: ../.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ..:/app
+
+  worker:
+    build: ..
+    command: celery -A app.workers.celery_app worker --loglevel=info
+    env_file: ../.env
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ..:/app
+
+  streamlit:
+    build: ..
+    command: streamlit run ui/streamlit/dashboard.py --server.port 8501 --server.address 0.0.0.0
+    env_file: ../.env
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
