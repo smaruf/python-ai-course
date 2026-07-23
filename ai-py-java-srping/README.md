@@ -7,6 +7,7 @@
   - [Commodity Exchange](Spring_Java_AI_Commodity_Exchange_Planning.md)
   - [CSE-BD Commodity Exchange](CSE_BD_Commodity_Exchange_Planning.md)
   - [Streamlit and FastAPI with AI-LLM](Streamlit_FastAPI_AI_LLM_Planning.md)
+  - [Gradio and FastAPI with AI-LLM](Gradio_FastAPI_with_AI_LLM_Planning.md)
 
 ## Plan of work with experience and leverage for you:
 ---
