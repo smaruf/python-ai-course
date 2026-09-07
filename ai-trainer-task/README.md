@@ -1,6 +1,7 @@
 Absolutely. Based specifically on the uploaded `rv` document, here is a **personal working guideline for you as a Realm SWE task author/reviewer**. I’m keeping the terminology and rules from the document rather than adding undocumented requirements. 
 
 # Realm SWE — Personal Working Guideline
+  - Links: [Tools->](scoop_based_setup_of_tools.md)
 
 ## 1. Objective
 
