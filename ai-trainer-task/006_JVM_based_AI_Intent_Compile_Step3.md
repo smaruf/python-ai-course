@@ -103,10 +103,4 @@ To monetize this effectively, do not sell "hours." Sell **outcomes and intellect
 
 ---
 
-### **Next Step: Technical Due Diligence**
 
-When you pitch this, the client's Lead Engineer or Staff Architect will inevitably push back and ask: *"How does this JSON IR actually map to Java Bytecode without losing performance? How do you handle JVM garbage collection for the stateful nodes?"*
-
-To close the deal, you need to prove you can answer that. 
-
-Shall we proceed to **Option 2: Detail the JVM Backend Mapping**? We can map the exact JSON IR nodes to Java Bytecode instructions (using ASM/ByteBuddy concepts) and define how the `@bounded_memory` stateful nodes are implemented in the JVM to guarantee zero GC pauses.
