@@ -1,4 +1,4 @@
-You can build, using **Yacc**, a completely new programming language whose **source syntax is defined with a Yacc-style grammar**, while the compiler targets **JVM bytecode**.
+You can build a new programming language using ** Yacc **, whose **source syntax is defined with a Yacc-style grammar**, while the compiler targets **JVM bytecode**.
 
 A good architecture is:
 
