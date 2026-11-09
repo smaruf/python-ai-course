@@ -28,7 +28,6 @@ for Bangladesh capital markets.
 # Core Product Name Ideas
 
 * TraderOS
-* EcoTrader Pro
 * TurboOMS
 * DealerX
 * TradeDesk BD
