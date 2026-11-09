@@ -2,7 +2,7 @@
 
 ## Goal
 
-Build a professional low-latency dealer/trader workstation on top of existing EcoSoftBD OMS infrastructure for:
+Build a professional low-latency dealer/trader workstation on top of the existing OMS infrastructure for:
 
 * DSE-BD
 * CSE-BD
