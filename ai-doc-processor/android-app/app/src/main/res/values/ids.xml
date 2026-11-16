@@ -1,0 +1,9 @@
+<resources>
+    <item name="import_button" type="id" />
+    <item name="search_input" type="id" />
+    <item name="search_button" type="id" />
+    <item name="document_list" type="id" />
+    <item name="document_detail" type="id" />
+    <item name="delete_button" type="id" />
+    <item name="status" type="id" />
+</resources>
