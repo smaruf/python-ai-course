@@ -11,11 +11,11 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = "com.example.aidocprocessor"
 DEVICE_SUITES = {
-    "integration": "DocumentIntegrationTest",
-    "e2e": "DocumentE2ETest",
-    "bdd": "DocumentFeatureTest",
-    "load": "DocumentLoadTest",
-    "smoke": "SmokeTest",
+    "integration": ("DocumentIntegrationTest", "LocalAssistantIntegrationTest"),
+    "e2e": ("DocumentE2ETest",),
+    "bdd": ("DocumentFeatureTest",),
+    "load": ("DocumentLoadTest",),
+    "smoke": ("SmokeTest",),
 }
 
 
@@ -80,10 +80,10 @@ def main(argv: list[str] | None = None) -> int:
             elif suite == "all":
                 tasks = ["testDebugUnitTest", "lintDebug", "connectedDebugAndroidTest"]
             else:
+                classes = ",".join(f"{PACKAGE}.{name}" for name in DEVICE_SUITES[suite])
                 tasks = [
                     "connectedDebugAndroidTest",
-                    f"-Pandroid.testInstrumentationRunnerArguments.class="
-                    f"{PACKAGE}.{DEVICE_SUITES[suite]}",
+                    f"-Pandroid.testInstrumentationRunnerArguments.class={classes}",
                 ]
             gradle(tasks, offline=arguments.offline)
         else:

@@ -34,19 +34,26 @@ class BuildScriptTest(unittest.TestCase):
                 gradle.assert_called_once_with([task], offline=False)
 
     def test_device_suite_filters_and_serial(self):
-        for suite, name in build.DEVICE_SUITES.items():
+        for suite, names in build.DEVICE_SUITES.items():
             with self.subTest(suite=suite), patch.object(build, "gradle") as gradle:
                 self.assertEqual(
                     build.main(["test", "--suite", suite, "--serial", "emulator-5554"]), 0
                 )
+                classes = ",".join(f"{build.PACKAGE}.{name}" for name in names)
                 gradle.assert_called_once_with(
                     [
                         "connectedDebugAndroidTest",
-                        f"-Pandroid.testInstrumentationRunnerArguments.class={build.PACKAGE}.{name}",
+                        f"-Pandroid.testInstrumentationRunnerArguments.class={classes}",
                     ],
                     offline=False,
                 )
                 self.assertEqual(os.environ["ANDROID_SERIAL"], "emulator-5554")
+
+    def test_integration_suite_includes_local_assistant(self):
+        self.assertEqual(
+            build.DEVICE_SUITES["integration"],
+            ("DocumentIntegrationTest", "LocalAssistantIntegrationTest"),
+        )
 
     def test_all_suites(self):
         with patch.object(build, "gradle") as gradle:
@@ -110,7 +117,10 @@ class BuildScriptTest(unittest.TestCase):
             patch.dict(os.environ, {"ANDROID_HOME": "/sdk with spaces"}),
             patch.object(Path, "is_file", return_value=True),
         ):
-            self.assertEqual(build.adb_path(), "/sdk with spaces/platform-tools/adb")
+            executable = "adb.exe" if os.name == "nt" else "adb"
+            self.assertEqual(
+                build.adb_path(), str(Path("/sdk with spaces") / "platform-tools" / executable)
+            )
         with patch.object(build.shutil, "which", return_value="/bin/adb"):
             self.assertEqual(build.adb_path(), "/bin/adb")
         with patch.object(build.shutil, "which", return_value=None):
@@ -123,8 +133,12 @@ class BuildScriptTest(unittest.TestCase):
             patch.object(build, "run") as run,
         ):
             build.gradle(["assembleDebug"], offline=True)
+            command = (
+                ["cmd.exe", "/d", "/c", str(build.ROOT / "gradlew.bat")]
+                if os.name == "nt" else [str(build.ROOT / "gradlew")]
+            )
             run.assert_called_once_with(
-                [str(build.ROOT / "gradlew"), "--no-daemon", "--offline", "assembleDebug"]
+                command + ["--no-daemon", "--offline", "assembleDebug"]
             )
         with patch.object(build.subprocess, "run") as run:
             build.run(["adb", "-s", "serial with spaces"], cwd=build.ROOT)

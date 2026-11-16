@@ -6,3 +6,12 @@ build
 
 # Ignore Kotlin plugin data
 .kotlin
+
+# Device-specific SDK configuration, release keys and imported model weights
+local.properties
+*.jks
+*.keystore
+*.apk
+*.aab
+*.bin
+*.task

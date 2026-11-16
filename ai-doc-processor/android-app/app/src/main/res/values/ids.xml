@@ -6,4 +6,10 @@
     <item name="document_detail" type="id" />
     <item name="delete_button" type="id" />
     <item name="status" type="id" />
+    <item name="assistant_button" type="id" />
+    <item name="model_import_button" type="id" />
+    <item name="model_remove_button" type="id" />
+    <item name="assistant_question" type="id" />
+    <item name="assistant_answer_button" type="id" />
+    <item name="assistant_answer" type="id" />
 </resources>
