@@ -35,4 +35,15 @@ class UnitTest {
         assertTrue(DocumentEngine.process("word ".repeat(10000)).summary.length <= 1500)
         assertEquals("", DocumentEngine.summarize(""))
     }
+    @Test fun previewBoundaryDoesNotSplitSurrogatePairs() {
+        val text = "x".repeat(19_999) + "😀tail"
+        assertEquals("x".repeat(19_999), DocumentEngine.boundedPrefix(text, 20_000))
+        assertEquals("x".repeat(19_999) + "😀", DocumentEngine.boundedPrefix(text, 20_001))
+        assertEquals("short", DocumentEngine.boundedPrefix("short", 20_000))
+        assertEquals("", DocumentEngine.boundedPrefix(text, 0))
+    }
+    @Test fun summaryBoundaryDoesNotSplitSurrogatePairs() {
+        val summary = DocumentEngine.summarize("x".repeat(1499) + "😀tail")
+        assertEquals("x".repeat(1499), summary)
+    }
 }

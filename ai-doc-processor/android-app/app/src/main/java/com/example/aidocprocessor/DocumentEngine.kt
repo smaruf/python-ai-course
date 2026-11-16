@@ -53,6 +53,13 @@ object DocumentEngine {
         return result
     }
 
+    fun boundedPrefix(text: String, limit: Int): String {
+        require(limit >= 0)
+        var end = text.length.coerceAtMost(limit)
+        if (end > 0 && end < text.length && text[end - 1].isHighSurrogate() && text[end].isLowSurrogate()) end--
+        return text.substring(0, end)
+    }
+
     fun summarize(text: String): String {
         require(text.length <= MAX_CHARS) { "Text exceeds character limit." }
         val sentences = text.split(Regex("(?<=[.!?])\\s+|\\n+")).filter { it.isNotBlank() }
@@ -63,9 +70,10 @@ object DocumentEngine {
         fun tokens(sentence: String) = words.findAll(sentence.lowercase(Locale.ROOT))
             .map { it.value }.filter { it !in stop }.toList()
         sentences.forEach { s -> tokens(s).forEach { frequencies[it] = (frequencies[it] ?: 0) + 1 } }
-        return sentences.indices.sortedWith(compareByDescending<Int> { index ->
+        val summary = sentences.indices.sortedWith(compareByDescending<Int> { index ->
             val terms = tokens(sentences[index])
             terms.sumOf { frequencies[it] ?: 0 }.toDouble() / terms.size.coerceAtLeast(1)
-        }.thenBy { it }).take(3).sorted().joinToString("\n") { sentences[it].trim() }.take(1500)
+        }.thenBy { it }).take(3).sorted().joinToString("\n") { sentences[it].trim() }
+        return boundedPrefix(summary, 1500)
     }
 }

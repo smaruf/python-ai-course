@@ -5,6 +5,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeFalse
@@ -14,6 +16,24 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class LocalAssistantIntegrationTest {
+    @Test fun overlappingOwnersCloseExactlyOnce() = onWorker { first ->
+        val field = LocalAssistant::class.java.getDeclaredField("owners")
+        field.isAccessible = true
+        val owners = field.get(null) as AtomicInteger
+        val initial = owners.get()
+        LocalAssistant(InstrumentationRegistry.getInstrumentation().targetContext).use { second ->
+            assertEquals(initial + 1, owners.get())
+            first.close()
+            assertEquals(initial, owners.get())
+            first.close()
+            assertEquals(initial, owners.get())
+            second.close()
+            assertEquals(initial - 1, owners.get())
+            second.close()
+            assertEquals(initial - 1, owners.get())
+        }
+    }
+
     @Test fun missingModelLeavesOfflineToolsUsable() = onWorker { assistant ->
         assumeFalse("Run without an imported model to verify the absent-model path.", assistant.hasModel())
         try {

@@ -132,7 +132,8 @@ class MainActivity : Activity() {
     private fun renderDocument(document: StoredDocument) {
         selected = document.id
         selectedDocument = document
-        detail.text = "${document.name}\n\nExtractive summary\n${document.summary}\n\nExtracted text\n${document.text}"
+        val preview = DocumentEngine.boundedPrefix(document.text, 20_000)
+        detail.text = "${document.name}\n\nExtractive summary\n${document.summary}\n\nExtracted text (preview; full text retained locally)\n$preview"
         deleteButton.isEnabled = !busy
     }
     private fun showDocument(id: Long) { execute { val document = store.get(id); post { if (document != null) renderDocument(document) } } }

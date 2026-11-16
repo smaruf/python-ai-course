@@ -73,4 +73,21 @@ class DocumentIntegrationTest {
         }
         context.deleteDatabase("atomic.db")
     }
+    @Test fun maximumUtf8TextSurvivesSqliteCursorRoundTrip() {
+        context.deleteDatabase("boundary.db")
+        val text = "\u4e00".repeat(DocumentEngine.MAX_CHARS)
+        val document = DocumentEngine.process(text)
+        try {
+            val id = DocumentStore(context, "boundary.db").use { it.save("boundary.txt", document) }
+            DocumentStore(context, "boundary.db").use { store ->
+                val restored = requireNotNull(store.get(id))
+                assertEquals(DocumentEngine.MAX_CHARS, restored.text.length)
+                assertEquals(text, restored.text)
+                assertEquals(document.summary, restored.summary)
+                assertEquals(document.chunks, store.chunks(id))
+                assertEquals(text, store.chunks(id).joinToString(""))
+                assertEquals(listOf(id to "boundary.txt"), store.list("\u4e00\u4e00"))
+            }
+        } finally { context.deleteDatabase("boundary.db") }
+    }
 }

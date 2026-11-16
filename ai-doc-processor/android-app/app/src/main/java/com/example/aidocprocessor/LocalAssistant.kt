@@ -10,6 +10,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Optional on-device inference. Blocking operations must run on a worker thread.
@@ -25,6 +26,11 @@ class LocalAssistant(context: Context) : Closeable {
         // Activity recreation can leave an older worker alive. Share both the lock and native session.
         val lock = Any()
         var engine: LlmInference? = null
+        val owners = AtomicInteger()
+    }
+
+    init {
+        owners.incrementAndGet()
     }
 
     fun hasModel(): Boolean = !closed && modelFile.isFile && modelFile.length() > 0
@@ -96,7 +102,7 @@ class LocalAssistant(context: Context) : Closeable {
         checkWorker()
         if (closed) return
         closed = true
-        releaseEngine()
+        if (owners.decrementAndGet() == 0) releaseEngine()
     }
 
     private fun checkOpen() = check(!closed) { "Local assistant is closed." }

@@ -77,7 +77,9 @@ Android 8.0 (API 26) or newer is required.
   generative summary or vector-embedding pipeline.
 - Browse, search, open and delete saved documents. Imports and inference run
   off the UI thread. No storage-account credentials or broad storage permission
-  are needed.
+  are needed. The UI previews up to 20,000 extracted characters to avoid large
+  text layouts; the complete extracted text remains available to local storage
+  and search.
 - Ask a minimal **local LLM assistant** about the selected document after
   importing a compatible model. The assistant has no tools, executes no code,
   and sends no document data to a remote service.

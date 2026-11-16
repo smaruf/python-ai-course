@@ -18,7 +18,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
-    packaging { resources.excludes += setOf("META-INF/DEPENDENCIES", "META-INF/LICENSE*", "META-INF/NOTICE*") }
+    packaging {
+        resources.excludes += "META-INF/DEPENDENCIES"
+        resources.merges += setOf("META-INF/LICENSE*", "META-INF/NOTICE*")
+    }
 }
 dependencies {
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
